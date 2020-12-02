@@ -1,0 +1,28 @@
+{
+	"name": "raxos/database",
+	"description": "Database ORM and Query Builder.",
+	"license": "mit",
+	"minimum-stability": "stable",
+	"type": "library",
+	"version": "dev-master",
+	"authors": [
+		{
+			"name": "Bas Milius",
+			"email": "bas@mili.us"
+		}
+	],
+	"autoload": {
+		"psr-4": {
+			"Raxos\\Database\\": "src/Raxos/Database"
+		}
+	},
+	"config": {
+		"platform": {
+			"php": "8.0"
+		}
+	},
+	"require": {
+		"jetbrains/phpstorm-attributes": "^1.0",
+        "raxos/foundation": "dev-master"
+	}
+}
