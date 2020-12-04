@@ -4,8 +4,11 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use JsonSerializable;
+use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Error\ModelException;
 use Serializable;
 use function array_key_exists;
+use function sprintf;
 
 /**
  * Class ModelBase
@@ -28,6 +31,27 @@ abstract class ModelBase implements JsonSerializable, Serializable
      */
     public function __construct(protected array $data = [], protected ?self $master = null)
     {
+        if ($this->master !== null) {
+            $this->data = &$this->master->data;
+        }
+    }
+
+    /**
+     * Clones the model.
+     *
+     * @return $this
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function clone(): static
+    {
+        $master = $this;
+
+        if ($this->master !== null) {
+            $master = $this->master;
+        }
+
+        return new static(master: $master);
     }
 
     /**
@@ -36,12 +60,17 @@ abstract class ModelBase implements JsonSerializable, Serializable
      * @param string $field
      *
      * @return mixed
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     protected function getValue(string $field): mixed
     {
-        return $this->data[$field] ?? null;
+        if (array_key_exists($field, $this->data)) {
+            return $this->data[$field];
+        }
+
+        throw new ModelException(sprintf('Field "%s" does not exists in "%s".', $field, static::class), ModelException::ERR_FIELD_NOT_FOUND);
     }
 
     /**
@@ -92,7 +121,19 @@ abstract class ModelBase implements JsonSerializable, Serializable
      */
     public function jsonSerialize(): array
     {
-        return [];
+        return $this->toArray();
+    }
+
+    /**
+     * Converts the model to an array.
+     *
+     * @return array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function toArray(): array
+    {
+        return $this->data;
     }
 
     /**
@@ -118,6 +159,7 @@ abstract class ModelBase implements JsonSerializable, Serializable
      * @param string $name
      *
      * @return mixed
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ModelBase::getValue()
