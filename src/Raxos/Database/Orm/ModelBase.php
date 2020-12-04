@@ -115,16 +115,6 @@ abstract class ModelBase implements JsonSerializable, Serializable
     }
 
     /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
-    }
-
-    /**
      * Converts the model to an array.
      *
      * @return array
@@ -141,19 +131,21 @@ abstract class ModelBase implements JsonSerializable, Serializable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function serialize(): string
-    {
-        return '';
-    }
+    public abstract function jsonSerialize(): array;
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function unserialize($serialized): void
-    {
-    }
+    public abstract function serialize(): string;
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public abstract function unserialize($serialized): void;
 
     /**
      * @param string $name
