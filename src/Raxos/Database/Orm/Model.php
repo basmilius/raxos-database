@@ -4,9 +4,10 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use JetBrains\PhpStorm\ArrayShape;
+use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Attribute\{Cast, Column, Macro, PrimaryKey};
+use Raxos\Database\Orm\Attribute\{Cast, Column, Macro, PrimaryKey, Table};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ReflectionUtil;
@@ -24,7 +25,9 @@ use function Columba\Util\pre;
 use function count;
 use function in_array;
 use function is_string;
+use function serialize;
 use function sprintf;
+use function unserialize;
 
 /**
  * Class Model
@@ -36,17 +39,19 @@ use function sprintf;
 abstract class Model extends ModelBase implements DebugInfoInterface
 {
 
-    public const ATTRIBUTES = [
+    protected const ATTRIBUTES = [
         Cast::class,
         Column::class,
         Macro::class,
-        PrimaryKey::class
+        PrimaryKey::class,
+        Table::class
     ];
 
-    protected static array $fields = [];
-    protected static array $fieldNames = [];
-    protected static array $initialized = [];
-    protected static array $macros = [];
+    private static array $fields = [];
+    private static array $fieldNames = [];
+    private static array $initialized = [];
+    private static array $macros = [];
+    private static array $tables = [];
 
     protected array $modified = [];
     protected array $hidden = [];
@@ -70,10 +75,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         parent::__construct($data, $master);
 
         self::initialize();
-
-        foreach (static::$fields[static::class] as $name => $field) {
-            unset($this->{$name});
-        }
+        $this->prepareModel();
 
         if ($this->master === null) {
             $this->onInitialize($this->data);
@@ -105,7 +107,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         'data' => 'array',
         'fields' => 'array',
         'macros' => 'array',
-        'modified' => 'string[]'
+        'modified' => 'string[]',
+        'table' => 'string'
     ])]
     public function getDebugInformation(): array
     {
@@ -114,7 +117,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             'data' => $this->data,
             'fields' => static::getFields(),
             'macros' => static::getMacros(),
-            'modified' => $this->modified
+            'modified' => $this->modified,
+            'table' => static::$tables[static::class]
         ];
     }
 
@@ -167,6 +171,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public function isHidden(string $field): bool
     {
         return in_array($field, $this->hidden);
@@ -181,6 +186,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public function isVisible(string $field): bool
     {
         return in_array($field, $this->visible);
@@ -243,7 +249,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
     /**
      * {@inheritdoc}
-     * @throws ModelException
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -266,6 +272,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
             $data[$name] = $this->callMacro($name);
         }
+
+        $this->onPublish($data);
 
         return $data;
     }
@@ -370,7 +378,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @param string $name
      *
      * @return mixed
-     * @throws ModelException
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -398,6 +406,62 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
+     * Prepares the model for prime time.
+     * - Removes all defined fields from the class that are known to
+     *   be database related fields.
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    private function prepareModel(): void
+    {
+        foreach (static::$fields[static::class] as $name => $field) {
+            unset($this->{$name});
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function serialize(): string
+    {
+        return serialize([
+            $this->data,
+            $this->hidden,
+            $this->visible
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function unserialize($serialized): void
+    {
+        [
+            $this->data,
+            $this->hidden,
+            $this->visible
+        ] = unserialize($serialized);
+
+        $this->prepareModel();
+    }
+
+    /**
      * Gets a defined field.
      *
      * @param string $field
@@ -406,7 +470,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected static function getField(string $field): ?array
+    public static function getField(string $field): ?array
     {
         return static::$fields[static::class][$field] ?? null;
     }
@@ -420,7 +484,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected static function getFieldName(string $field): string
+    public static function getFieldName(string $field): string
     {
         return static::$fieldNames[static::class][$field] ?? $field;
     }
@@ -432,7 +496,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected static function getFieldNames(): array
+    public static function getFieldNames(): array
     {
         return static::$fieldNames[static::class] ?? [];
     }
@@ -444,7 +508,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected static function getFields(): array
+    public static function getFields(): array
     {
         return static::$fields[static::class] ?? [];
     }
@@ -458,7 +522,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected static function getMacro(string $name): ?array
+    public static function getMacro(string $name): ?array
     {
         return static::$macros[static::class][$name] ?? null;
     }
@@ -470,9 +534,22 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected static function getMacros(): array
+    public static function getMacros(): array
     {
         return static::$macros[static::class] ?? [];
+    }
+
+    /**
+     * Gets the table of the model.
+     *
+     * @return string
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function getTable(): string
+    {
+        return static::$tables[static::class] ?? throw new ModelException(sprintf('Model "%s" does not have a table assigned.', static::class), ModelException::ERR_NO_TABLE_ASSIGNED);
     }
 
     /**
@@ -490,6 +567,25 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         static::$fields[static::class] = [];
 
         $class = new ReflectionClass(static::class);
+
+        $attributes = $class->getAttributes();
+
+        foreach ($attributes as $attribute) {
+            if (!in_array($attribute->getName(), self::ATTRIBUTES)) {
+                continue;
+            }
+
+            $attr = $attribute->newInstance();
+
+            switch (true) {
+                case $attr instanceof Table:
+                    static::$tables[static::class] = $attr->getName();
+                    break;
+
+                default:
+                    continue 2;
+            }
+        }
 
         static::initializeFields($class);
         static::initializeMethods($class);
