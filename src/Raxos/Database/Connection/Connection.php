@@ -112,6 +112,18 @@ abstract class Connection
     }
 
     /**
+     * Gets the connection id.
+     *
+     * @return string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    /**
      * Gets a connection attribute.
      *
      * @param int $attribute
@@ -132,7 +144,7 @@ abstract class Connection
     /**
      * Executes the given query and returns the amount of affected rows.
      *
-     * @param string $query
+     * @param Query|string $query
      *
      * @return int
      * @throws DatabaseException
@@ -140,8 +152,12 @@ abstract class Connection
      * @since 1.0.0
      * @see PDO::exec()
      */
-    public function execute(string $query): int
+    public function execute(Query|string $query): int
     {
+        if ($query instanceof Query) {
+            $query = $query->toSql();
+        }
+
         $result = $this->pdo->exec($query);
 
         if ($result !== false) {
@@ -149,6 +165,18 @@ abstract class Connection
         }
 
         throw $this->throwFromError();
+    }
+
+    /**
+     * Returns TRUE if we're connected.
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function isConnected(): bool
+    {
+        return $this->pdo !== null;
     }
 
     /**
