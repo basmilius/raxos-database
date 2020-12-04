@@ -20,5 +20,6 @@ final class ModelException extends DatabaseException
     public const ERR_MACRO_NOT_FOUND = 16;
     public const ERR_RELATION_NOT_FOUND = 32;
     public const ERR_FIELD_NOT_FOUND = 64;
+    public const ERR_NO_TABLE_ASSIGNED = 128;
 
 }
