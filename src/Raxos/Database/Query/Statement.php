@@ -194,20 +194,45 @@ class Statement
      * Binds the given value.
      *
      * @param string $name
-     * @param string|int|float $value
+     * @param string|int|float|null $value
      * @param int|null $type
      *
      * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function bind(string $name, string|int|float $value, ?int $type = null): static
+    public final function bind(string $name, string|int|float|null $value, ?int $type = null): static
     {
         $type ??= is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
 
         $this->pdoStatement->bindValue($name, $value, $type);
 
         return $this;
+    }
+
+    /**
+     * Creates a new model instance.
+     *
+     * @param mixed $result
+     *
+     * @return Model
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function createModel(mixed $result): Model
+    {
+        if ($this->modelClass === null) {
+            throw new QueryException('Cannot create model instance, no model was assigned to the query.', QueryException::ERR_INVALID_MODEL);
+        }
+
+        /** @var Model $model */
+        $model = new $this->modelClass($result, false);
+        $model::cache()->set($model);
+
+        // todo(Bas): Implement eager loading.
+
+        return $model;
     }
 
     /**
@@ -229,6 +254,7 @@ class Statement
      * @param int $fetchMode
      *
      * @return Model|stdClass|array|null
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -241,10 +267,7 @@ class Statement
         }
 
         if ($this->modelClass !== null) {
-            /** @var Model $model */
-            $model = $this->modelClass;
-
-            return new $model($result, false);
+            return $this->createModel($result);
         }
 
         return $result;
@@ -256,6 +279,7 @@ class Statement
      * @param int $fetchMode
      *
      * @return array
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -264,12 +288,7 @@ class Statement
         $results = $this->pdoStatement->fetchAll($fetchMode);
 
         if ($this->modelClass !== null) {
-            /** @var Model $model */
-            $model = $this->modelClass;
-
-            // todo(Bas): eager loading
-
-            return array_map(fn(mixed $result) => new $model($result, false), $results);
+            return array_map(fn(mixed $result) => $this->createModel($result), $results);
         }
 
         return $results;
@@ -332,7 +351,7 @@ class Statement
             throw new QueryException('Eager loading is only available for models.', QueryException::ERR_EAGER_NOT_AVAILABLE);
         }
 
-        // todo(Bas): Query logging.
+        // todo(Bas): Implement query logging.
 
         $result = $this->pdoStatement->execute();
 

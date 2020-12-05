@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Dialect;
 
-use Raxos\Database\Query\Query;
-
 /**
  * Class MySqlDialect
  *

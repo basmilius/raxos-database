@@ -142,7 +142,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             'data' => $this->data,
             'fields' => $fields,
             'macros' => $macros,
-            'modified' => $this->modified,
             'table' => static::$tables[static::class]
         ];
     }
@@ -172,6 +171,35 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             return $fields[0];
         } else {
             return $fields;
+        }
+    }
+
+    /**
+     * Gets the value(s) of the primary key(s) of the model.
+     *
+     * @return array|string|int|null
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function getPrimaryKeyValues(): array|string|int|null
+    {
+        $keys = $this->getPrimaryKey();
+
+        if ($keys === null) {
+            return null;
+        }
+
+        if (is_string($keys)) {
+            $keys = [$keys];
+        }
+
+        $values = array_map(fn(string $key) => $this->getValue($key), $keys);
+
+        if (count($values) === 1) {
+            return $values[0];
+        } else {
+            return $values;
         }
     }
 
@@ -342,16 +370,16 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                 $this->data = $data;
             }
 
-            // todo(Bas): Cache when cache is made.
-            $this->macroCache = [];
+            static::cache()->set($this);
 
-            $this->emit(static::EVENT_CREATE, $this);
+            $this->macroCache = [];
+            $this->emit(static::EVENT_CREATE);
         } else {
             $primaryKey = array_map(fn(string $key) => $this->getValue($key), $primaryKey);
 
             static::update($primaryKey, $pairs);
 
-            $this->emit(static::EVENT_UPDATE, $this);
+            $this->emit(static::EVENT_UPDATE);
         }
     }
 

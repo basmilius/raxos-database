@@ -5,6 +5,7 @@ namespace Raxos\Database\Orm;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Db;
+use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
 use Raxos\Database\Error\QueryException;
@@ -41,6 +42,34 @@ trait ModelDatabaseAccess
         return static::select()
             ->limit($limit, $offset)
             ->array();
+    }
+
+    /**
+     * Gets the cache instance.
+     *
+     * @return Cache
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see Connection::getCache()
+     */
+    public static function cache(): Cache
+    {
+        return static::connection()->getCache();
+    }
+
+    /**
+     * Gets the dialect instance.
+     *
+     * @return Dialect
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see Connection::getDialect()
+     */
+    public static function dialect(): Dialect
+    {
+        return static::connection()->getDialect();
     }
 
     /**
@@ -81,20 +110,20 @@ trait ModelDatabaseAccess
     /**
      * Deletes a model row by its primary key(s).
      *
-     * @param array|string|int $primaryKeys
+     * @param array|string|int $primaryKey
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function delete(array|string|int $primaryKeys): void
+    public static function delete(array|string|int $primaryKey): void
     {
-        // todo(Bas): Delete from cache when that's made.
+        static::cache()->removeByKey(static::class, $primaryKey);
 
         $query = static::query()
             ->deleteFrom(static::getTable());
 
-        self::addPrimaryKeyClauses($query, $primaryKeys);
+        self::addPrimaryKeyClauses($query, $primaryKey);
 
         $query->run();
     }
@@ -111,7 +140,9 @@ trait ModelDatabaseAccess
      */
     public static function exists(array|string|int $primaryKey): bool
     {
-        // todo(Bas): Check if cached when that's made.
+        if (static::cache()->has(static::class, $primaryKey)) {
+            return true;
+        }
 
         $query = static::select(1)
             ->withoutModel();
@@ -156,7 +187,9 @@ trait ModelDatabaseAccess
      */
     public static function get(array|string|int $primaryKey): ?static
     {
-        // todo(Bas): Check and get from cache when that's made.
+        if (static::cache()->has(static::class, $primaryKey)) {
+            return static::cache()->get(static::class, $primaryKey);
+        }
 
         $query = static::select();
 

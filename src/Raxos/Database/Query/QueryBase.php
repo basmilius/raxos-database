@@ -167,14 +167,14 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * Adds a param and returns its name or when not in prepared mode, returns the
      * value as string or int.
      *
-     * @param Value|string|int|float|bool $value
+     * @param Value|string|int|float|bool|null $value
      *
      * @return string|int
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function addParam(Value|string|int|float|bool $value): string|int
+    public function addParam(Value|string|int|float|bool|null $value): string|int
     {
         if ($value instanceof Value) {
             $value = $value->get($this);

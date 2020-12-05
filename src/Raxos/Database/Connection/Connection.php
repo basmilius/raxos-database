@@ -12,6 +12,7 @@ use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\ConnectionException;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\QueryException;
+use Raxos\Database\Orm\Cache;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Statement;
 use Raxos\Foundation\Event\Emitter;
@@ -34,6 +35,7 @@ abstract class Connection
     public const EVENT_CONNECT = 'connect';
     public const EVENT_DISCONNECT = 'disconnect';
 
+    protected Cache $cache;
     protected ?array $columnsPerTable = null;
     protected Dialect $dialect;
     protected ?PDO $pdo = null;
@@ -52,6 +54,7 @@ abstract class Connection
         protected Connector $connector
     )
     {
+        $this->cache = new Cache();
         $this->dialect = $this->initializeDialect();
     }
 
@@ -120,6 +123,18 @@ abstract class Connection
     {
         $this->pdo = null;
         $this->emit(self::EVENT_DISCONNECT);
+    }
+
+    /**
+     * Gets the cache instance.
+     *
+     * @return Cache
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function getCache(): Cache
+    {
+        return $this->cache;
     }
 
     /**
