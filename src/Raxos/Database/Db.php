@@ -17,9 +17,9 @@ use function sprintf;
 /**
  * Class Db
  *
- * @author Bas Milius <bas@glybe.nl>
+ * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database
- * @since 2.0.0
+ * @since 1.0.0
  */
 class Db
 {

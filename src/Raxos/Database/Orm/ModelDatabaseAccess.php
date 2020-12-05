@@ -18,9 +18,9 @@ use function json_encode;
 /**
  * Trait ModelDatabaseAccess
  *
- * @author Bas Milius <bas@glybe.nl>
+ * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 2.0.0
+ * @since 1.0.0
  */
 trait ModelDatabaseAccess
 {
@@ -33,8 +33,8 @@ trait ModelDatabaseAccess
      *
      * @return static[]
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function all(int $offset = 0, int $limit = 20): array
     {
@@ -51,8 +51,8 @@ trait ModelDatabaseAccess
      *
      * @return string
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function column(string $column, ?string $table = null): string
     {
@@ -68,8 +68,8 @@ trait ModelDatabaseAccess
      *
      * @return Connection
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function connection(): Connection
     {
@@ -84,8 +84,8 @@ trait ModelDatabaseAccess
      * @param array|string|int $primaryKeys
      *
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function delete(array|string|int $primaryKeys): void
     {
@@ -106,8 +106,8 @@ trait ModelDatabaseAccess
      *
      * @return bool
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function exists(array|string|int $primaryKey): bool
     {
@@ -128,8 +128,8 @@ trait ModelDatabaseAccess
      *
      * @return static[]
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function find(array $primaryKeys): array
     {
@@ -151,8 +151,8 @@ trait ModelDatabaseAccess
      *
      * @return static|null
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function get(array|string|int $primaryKey): ?static
     {
@@ -173,8 +173,8 @@ trait ModelDatabaseAccess
      *
      * @return static|null
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function getOrFail(array|string|int $primaryKey): ?static
     {
@@ -190,8 +190,8 @@ trait ModelDatabaseAccess
      *
      * @return Query
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      * @see Query::having()
      */
     public static function having(Value|string|int|float|bool|null $field = null, Value|string|int|float|bool|null $comparator = null, Value|string|int|float|bool|null $value = null): Query
@@ -207,8 +207,8 @@ trait ModelDatabaseAccess
      *
      * @return Query
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      * @see Connection::query()
      * @see Query
      */
@@ -226,8 +226,8 @@ trait ModelDatabaseAccess
      *
      * @return Query
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      * @see Query::select()
      */
     public static function select(array|string|int $fields = []): Query
@@ -242,8 +242,8 @@ trait ModelDatabaseAccess
      *
      * @return Query
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      * @see Query::selectFoundRows()
      */
     public static function selectFoundRows(array|string|int $fields = []): Query
@@ -258,8 +258,8 @@ trait ModelDatabaseAccess
      *
      * @return Query
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      * @see Query::selectDistinct()
      */
     public static function selectDistinct(array|string|int $fields = []): Query
@@ -275,8 +275,8 @@ trait ModelDatabaseAccess
      *
      * @return Query
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      * @see Query::selectSuffix()
      */
     public static function selectSuffix(string $suffix, array|string|int $fields = []): Query
@@ -291,8 +291,8 @@ trait ModelDatabaseAccess
      * @param array $pairs
      *
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      * @see Query::update()
      */
     public static function update(array|string|int $primaryKey, array $pairs): void
@@ -314,8 +314,8 @@ trait ModelDatabaseAccess
      *
      * @return Query
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      * @see Query::where()
      */
     public static function where(Value|string|int|float|bool|null $field = null, Value|string|int|float|bool|null $comparator = null, Value|string|int|float|bool|null $value = null): Query
@@ -332,8 +332,8 @@ trait ModelDatabaseAccess
      * @param bool $startWithWhere
      *
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     private static function addPrimaryKeyClauses(Query $query, array|string|int $primaryKey, bool $startWithWhere = true): void
     {
@@ -374,8 +374,8 @@ trait ModelDatabaseAccess
      * @param bool $startWithWhere
      *
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     private static function addPrimaryKeyInClauses(Query $query, array $primaryKeys, bool $startWithWhere = true): void
     {
@@ -415,8 +415,8 @@ trait ModelDatabaseAccess
      * @param string[]|string|int $fields
      *
      * @return Query
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     private static function baseSelect(callable $fn, array|string|int $fields): Query
     {

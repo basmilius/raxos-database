@@ -7,6 +7,7 @@ use JsonSerializable;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
 use Serializable;
+use stdClass;
 use function array_key_exists;
 use function sprintf;
 
@@ -17,7 +18,7 @@ use function sprintf;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class ModelBase implements JsonSerializable, Serializable
+abstract class ModelBase extends stdClass implements JsonSerializable, Serializable
 {
 
     /**

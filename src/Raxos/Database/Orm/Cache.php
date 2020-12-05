@@ -6,9 +6,9 @@ namespace Raxos\Database\Orm;
 /**
  * Class Cache
  *
- * @author Bas Milius <bas@glybe.nl>
+ * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 2.0.0
+ * @since 1.0.0
  */
 class Cache
 {

@@ -8,7 +8,7 @@ use JetBrains\PhpStorm\ExpectedValues;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Attribute\{Cast, Column, Macro, PrimaryKey, Table};
+use Raxos\Database\Orm\Attribute\{Column, Macro, PrimaryKey, Table};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Foundation\Event\Emitter;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
@@ -21,11 +21,12 @@ use ReflectionProperty;
 use function array_diff;
 use function array_filter;
 use function array_key_exists;
+use function array_keys;
 use function array_map;
 use function array_unique;
 use function class_exists;
-use function Columba\Util\preDie;
 use function count;
+use function implode;
 use function in_array;
 use function is_array;
 use function is_string;
@@ -52,7 +53,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     public const EVENT_UPDATE = 'update';
 
     protected const ATTRIBUTES = [
-        Cast::class,
         Column::class,
         Macro::class,
         PrimaryKey::class,
@@ -120,17 +120,28 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         'type' => 'string',
         'data' => 'array',
         'fields' => 'array',
-        'macros' => 'array',
+        'macros' => 'string[]',
         'modified' => 'string[]',
         'table' => 'string'
     ])]
     public function getDebugInformation(): array
     {
+        $fields = static::getFields();
+        $macros = static::getMacros();
+
+        foreach ($fields as &$field) {
+            $field['types'] = implode('|', $field['types']);
+        }
+
+        foreach ($macros as &$macro) {
+            $macro = sprintf('%s::%s() [%s]', static::class, $macro['method'], $macro['is_cacheable'] ? 'cacheable' : 'dynamic');
+        }
+
         return [
             'type' => static::class,
             'data' => $this->data,
-            'fields' => static::getFields(),
-            'macros' => static::getMacros(),
+            'fields' => $fields,
+            'macros' => $macros,
             'modified' => $this->modified,
             'table' => static::$tables[static::class]
         ];
@@ -251,6 +262,40 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
+     * Marks all fields as hidden, except for the given fields.
+     *
+     * @param string[]|string $fields
+     *
+     * @return $this
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function only(array|string $fields): static
+    {
+        if (is_string($fields)) {
+            $fields = [$fields];
+        }
+
+        $hidden = [];
+
+        foreach (array_keys(static::getFields()) as $fieldName) {
+            $fieldName = static::getFieldName($fieldName);
+
+            if (in_array($fieldName, $fields)) {
+                continue;
+            }
+
+            $hidden[] = $fieldName;
+        }
+
+        $clone = $this->clone();
+        $clone->hidden = $hidden;
+        $clone->visible = $fields;
+
+        return $clone;
+    }
+
+    /**
      * Saves the model.
      *
      * @throws DatabaseException
@@ -281,6 +326,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                 ->insertIntoValues(static::getTable(), $pairs)
                 ->run();
 
+            $this->isNew = false;
+
             if (count($primaryKey) === 1) {
                 $primaryKey = static::connection()->lastInsertId();
 
@@ -297,10 +344,14 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
             // todo(Bas): Cache when cache is made.
             $this->macroCache = [];
+
+            $this->emit(static::EVENT_CREATE, $this);
         } else {
             $primaryKey = array_map(fn(string $key) => $this->getValue($key), $primaryKey);
 
             static::update($primaryKey, $pairs);
+
+            $this->emit(static::EVENT_UPDATE, $this);
         }
     }
 
@@ -352,12 +403,15 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      */
     protected function onInitialize(array &$data): void
     {
-        preDie(static::getFields());
-
         foreach (static::getFields() as $fieldName => $field) {
             $fieldName = static::getFieldName($fieldName);
+            $fieldExists = array_key_exists($fieldName, $data);
 
-            if (!array_key_exists($fieldName, $data) && array_key_exists('default', $field)) {
+            if (!$fieldExists && $this->isNew) {
+                continue;
+            }
+
+            if (!$fieldExists && array_key_exists('default', $field)) {
                 $data[$fieldName] = $field['default'];
             }
 
@@ -489,8 +543,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      *
      * @return mixed
      * @throws ModelException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     private function castField(string $casterClass, #[ExpectedValues(['decode', 'encode'])] string $mode, mixed $value): mixed
     {
@@ -720,13 +774,13 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                 $attr = $attribute->newInstance();
 
                 switch (true) {
-                    case $attr instanceof Cast:
-                        $field['cast'] = $attr->getClass();
-                        break;
-
                     case $attr instanceof Column:
                         if (($alias = $attr->getAlias()) !== null) {
                             $field['alias'] = $alias;
+                        }
+
+                        if (($caster = $attr->getCaster()) !== null) {
+                            $field['cast'] = $caster;
                         }
 
                         if (($default = $attr->getDefault()) !== null) {
