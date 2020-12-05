@@ -4,11 +4,13 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use JetBrains\PhpStorm\ArrayShape;
+use JetBrains\PhpStorm\ExpectedValues;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
 use Raxos\Database\Orm\Attribute\{Cast, Column, Macro, PrimaryKey, Table};
 use Raxos\Database\Orm\Cast\CastInterface;
+use Raxos\Foundation\Event\Emitter;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ReflectionUtil;
 use Raxos\Foundation\Util\Singleton;
@@ -21,10 +23,13 @@ use function array_filter;
 use function array_key_exists;
 use function array_map;
 use function array_unique;
-use function Columba\Util\pre;
+use function class_exists;
+use function Columba\Util\preDie;
 use function count;
 use function in_array;
+use function is_array;
 use function is_string;
+use function is_subclass_of;
 use function serialize;
 use function sprintf;
 use function unserialize;
@@ -39,6 +44,13 @@ use function unserialize;
 abstract class Model extends ModelBase implements DebugInfoInterface
 {
 
+    use Emitter;
+    use ModelDatabaseAccess;
+
+    public const EVENT_CREATE = 'create';
+    public const EVENT_DELETE = 'delete';
+    public const EVENT_UPDATE = 'update';
+
     protected const ATTRIBUTES = [
         Cast::class,
         Column::class,
@@ -47,8 +59,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         Table::class
     ];
 
+    protected static string $connectionId = 'default';
+
     private static array $fields = [];
-    private static array $fieldNames = [];
     private static array $initialized = [];
     private static array $macros = [];
     private static array $tables = [];
@@ -67,6 +80,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @param bool $isNew
      * @param Model|null $master
      *
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -239,12 +253,55 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     /**
      * Saves the model.
      *
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function save(): void
     {
-        pre(__METHOD__, $this->modified);
+        $pairs = [];
+
+        foreach ($this->modified as $field) {
+            $fieldName = static::getFieldName($field);
+            $fieldSpec = static::getField($field);
+            $value = parent::getValue($fieldName);
+
+            if (isset($fieldSpec['cast'])) {
+                $value = $this->castField($fieldSpec['cast'], 'encode', $value);
+            }
+
+            $pairs[$fieldName] = $value;
+        }
+
+        $primaryKey = $this->getPrimaryKey();
+        $primaryKey = is_array($primaryKey) ? $primaryKey : [$primaryKey];
+
+        if ($this->isNew) {
+            static::query()
+                ->insertIntoValues(static::getTable(), $pairs)
+                ->run();
+
+            if (count($primaryKey) === 1) {
+                $primaryKey = static::connection()->lastInsertId();
+
+                $query = static::select()
+                    ->withoutModel();
+
+                self::addPrimaryKeyClauses($query, $primaryKey);
+
+                /** @var array $data */
+                $data = $query->single();
+                $this->onInitialize($data);
+                $this->data = $data;
+            }
+
+            // todo(Bas): Cache when cache is made.
+            $this->macroCache = [];
+        } else {
+            $primaryKey = array_map(fn(string $key) => $this->getValue($key), $primaryKey);
+
+            static::update($primaryKey, $pairs);
+        }
     }
 
     /**
@@ -257,12 +314,18 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     {
         $data = [];
 
-        foreach (static::getFieldNames() as $field => $alias) {
+        foreach (static::getFields() as $fieldName => $field) {
+            $alias = $field['alias'] ?? $fieldName;
+
             if ($this->isHidden($alias)) {
                 continue;
             }
 
-            $data[$alias] = $this->{$field};
+            if ($this->isNew && $field['is_primary']) {
+                $data[$alias] = null;
+            } else if ($this->hasValue($fieldName)) {
+                $data[$alias] = $this->{$fieldName};
+            }
         }
 
         foreach (static::getMacros() as $name => $macro) {
@@ -283,19 +346,23 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      *
      * @param array $data
      *
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     protected function onInitialize(array &$data): void
     {
+        preDie(static::getFields());
+
         foreach (static::getFields() as $fieldName => $field) {
             $fieldName = static::getFieldName($fieldName);
 
-            if (isset($field['cast'])) {
-                /** @var CastInterface $caster */
-                $caster = Singleton::get($field['cast']);
+            if (!array_key_exists($fieldName, $data) && array_key_exists('default', $field)) {
+                $data[$fieldName] = $field['default'];
+            }
 
-                $data[$fieldName] = $caster->decode($data[$fieldName]);
+            if (isset($field['cast'])) {
+                $data[$fieldName] = $this->castField($field['cast'], 'decode', $data[$fieldName]);
             }
         }
     }
@@ -346,17 +413,25 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
     /**
      * {@inheritdoc}
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     protected function setValue(string $field, mixed $value): void
     {
-        $field = static::getFieldName($field);
+        $fieldName = static::getFieldName($field);
+        $fieldSpec = static::getField($field);
 
-        if ($field !== null) {
+        if ($fieldSpec !== null) {
+            if ($fieldSpec['is_primary']) {
+                throw new ModelException(sprintf('Field "%s" is part of the primary key of model "%s" and is therefore not writable.', $field, static::class), ModelException::ERR_IMMUTABLE);
+            }
+
             $this->modified[] = $field;
 
-            parent::setValue($field, $value);
+            parent::setValue($fieldName, $value);
+        } else {
+            throw new ModelException(sprintf('Field "%s" is not writable on model "%s".', $field, static::class), ModelException::ERR_IMMUTABLE);
         }
     }
 
@@ -403,6 +478,34 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Casts the given value using the given caster class.
+     *
+     * @param string $casterClass
+     * @param string $mode
+     * @param mixed $value
+     *
+     * @return mixed
+     * @throws ModelException
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     */
+    private function castField(string $casterClass, #[ExpectedValues(['decode', 'encode'])] string $mode, mixed $value): mixed
+    {
+        if (!class_exists($casterClass)) {
+            throw new ModelException(sprintf('Caster "%s" not found.', $casterClass), ModelException::ERR_CASTER_NOT_FOUND);
+        }
+
+        if (!is_subclass_of($casterClass, CastInterface::class)) {
+            throw new ModelException(sprintf('Class "%s" is not a valid caster class.', $casterClass), ModelException::ERR_CASTER_NOT_FOUND);
+        }
+
+        /** @var CastInterface $caster */
+        $caster = Singleton::get($casterClass);
+
+        return $caster->{$mode}($value);
     }
 
     /**
@@ -476,7 +579,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
-     * Gets a field name.
+     * Gets the real name of a field.
      *
      * @param string $field
      *
@@ -486,19 +589,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      */
     public static function getFieldName(string $field): string
     {
-        return static::$fieldNames[static::class][$field] ?? $field;
-    }
+        $f = static::getField($field);
 
-    /**
-     * Gets all defined field names.
-     *
-     * @return array
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public static function getFieldNames(): array
-    {
-        return static::$fieldNames[static::class] ?? [];
+        return $f['alias'] ?? $field;
     }
 
     /**
@@ -617,7 +710,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $field = [];
             $field['is_primary'] = false;
             $field['types'] = ReflectionUtil::getTypes($propertyType) ?? [];
-            $fieldName = $propertyName;
             $validField = false;
 
             foreach ($propertyAttributes as $attribute) {
@@ -634,7 +726,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
                     case $attr instanceof Column:
                         if (($alias = $attr->getAlias()) !== null) {
-                            $fieldName = $alias;
+                            $field['alias'] = $alias;
+                        }
+
+                        if (($default = $attr->getDefault()) !== null) {
+                            $field['default'] = $default;
                         }
 
                         $validField = true;
@@ -651,7 +747,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             }
 
             static::$fields[static::class][$propertyName] = $field;
-            static::$fieldNames[static::class][$propertyName] = $fieldName;
         }
     }
 

@@ -4,8 +4,10 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use JetBrains\PhpStorm\ExpectedValues;
+use JetBrains\PhpStorm\Pure;
 use PDO;
 use Raxos\Database\Connector\Connector;
+use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\ConnectionException;
 use Raxos\Database\Error\DatabaseException;
@@ -13,6 +15,9 @@ use Raxos\Database\Error\QueryException;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Statement;
 use Raxos\Foundation\Event\Emitter;
+use function array_key_exists;
+use function in_array;
+use function sprintf;
 
 /**
  * Class Connection
@@ -29,13 +34,7 @@ abstract class Connection
     public const EVENT_CONNECT = 'connect';
     public const EVENT_DISCONNECT = 'disconnect';
 
-    public const PARAM_TYPES = [
-        PDO::PARAM_BOOL,
-        PDO::PARAM_NULL,
-        PDO::PARAM_INT,
-        PDO::PARAM_STR
-    ];
-
+    protected ?array $columnsPerTable = null;
     protected Dialect $dialect;
     protected ?PDO $pdo = null;
 
@@ -67,6 +66,16 @@ abstract class Connection
     public abstract function foundRows(): int;
 
     /**
+     * Loads the database schema.
+     *
+     * @return array
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public abstract function loadDatabaseSchema(): array;
+
+    /**
      * Starts a new query.
      *
      * @param bool $isPrepared
@@ -75,6 +84,7 @@ abstract class Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public abstract function query(bool $isPrepared = true): Query;
 
     /**
@@ -84,6 +94,7 @@ abstract class Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     protected abstract function initializeDialect(): Dialect;
 
     /**
@@ -139,6 +150,28 @@ abstract class Connection
         $this->ensureConnected();
 
         return $this->pdo->getAttribute($attribute);
+    }
+
+    /**
+     * Executes the given query and returns the first column.
+     *
+     * @param Query|string $query
+     *
+     * @return string|int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function column(Query|string $query): string|int
+    {
+        if ($query instanceof Query) {
+            $query = $query->toSql();
+        }
+
+        $smt = $this->pdo->query($query);
+        $result = $smt->fetchColumn();
+        $smt->closeCursor();
+
+        return $result;
     }
 
     /**
@@ -225,28 +258,6 @@ abstract class Connection
     }
 
     /**
-     * Executes the given query and returns the first column.
-     *
-     * @param Query|string $query
-     *
-     * @return string|int
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function queryColumn(Query|string $query): string|int
-    {
-        if ($query instanceof Query) {
-            $query = $query->toSql();
-        }
-
-        $smt = $this->pdo->query($query);
-        $result = $smt->fetchColumn();
-        $smt->closeCursor();
-
-        return $result;
-    }
-
-    /**
      * Quotes the given value.
      *
      * @param string|int|float|bool $value
@@ -257,11 +268,63 @@ abstract class Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function quote(string|int|float|bool $value, #[ExpectedValues(self::PARAM_TYPES)] int $type = PDO::PARAM_STR): string
+    public function quote(string|int|float|bool $value, #[ExpectedValues(Db::TYPES)] int $type = PDO::PARAM_STR): string
     {
         $this->ensureConnected();
 
         return $this->pdo->quote((string)$value, $type);
+    }
+
+    /**
+     * Returns TRUE if the given column exists in the given table.
+     *
+     * @param string $table
+     * @param string $column
+     *
+     * @return bool
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function tableColumnExists(string $table, string $column): bool
+    {
+        return $this->tableExists($table) && in_array($column, $this->columnsPerTable[$table]);
+    }
+
+    /**
+     * Gets all the columns of the given table.
+     *
+     * @param string $table
+     *
+     * @return bool
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function tableColumns(string $table): bool
+    {
+        if (!$this->tableExists($table)) {
+            throw new ConnectionException(sprintf('Table "%s" does not exists in the current database.', $table), ConnectionException::ERR_SCHEMA_ERROR);
+        }
+
+        return $this->columnsPerTable[$table];
+    }
+
+    /**
+     * Returns TRUE if the given table exists.
+     *
+     * @param string $table
+     *
+     * @return bool
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function tableExists(string $table): bool
+    {
+        $this->columnsPerTable ??= $this->loadDatabaseSchema();
+
+        return array_key_exists($table, $this->columnsPerTable);
     }
 
     /**
@@ -329,7 +392,7 @@ abstract class Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function getConnector(): Connector
+    public function getConnector(): Connector
     {
         return $this->connector;
     }

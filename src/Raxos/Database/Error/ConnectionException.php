@@ -17,6 +17,7 @@ final class ConnectionException extends DatabaseException
     public const ERR_UNDEFINED_CONNECTION = 2;
     public const ERR_INVALID_CONNECTION = 4;
     public const ERR_DISCONNECTED = 8;
+    public const ERR_SCHEMA_ERROR = 8;
 
     public const ERR_ACCESS_DENIED = 1045;
     public const ERR_ACCESS_DENIED_PASSWORD = 1698;

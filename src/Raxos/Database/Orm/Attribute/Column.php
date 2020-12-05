@@ -20,11 +20,12 @@ final class Column
      * Column constructor.
      *
      * @param string|null $alias
+     * @param string|int|float|null $default
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private ?string $alias = null)
+    public function __construct(private ?string $alias = null, private string|int|float|null $default = null)
     {
     }
 
@@ -38,6 +39,18 @@ final class Column
     public final function getAlias(): ?string
     {
         return $this->alias;
+    }
+
+    /**
+     * Gets the default value.
+     *
+     * @return string|int|float|null
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function getDefault(): string|int|float|null
+    {
+        return $this->default;
     }
 
 }

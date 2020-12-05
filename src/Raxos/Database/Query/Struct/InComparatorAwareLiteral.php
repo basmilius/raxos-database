@@ -43,7 +43,7 @@ class InComparatorAwareLiteral extends ComparatorAwareLiteral
         $options = array_map(fn($option) => is_int($option) ? $option : $query->getConnection()->quote($option), $options);
         $options = implode(', ', $options);
 
-        return "in ({$options})";
+        return "in({$options})";
     }
 
 }

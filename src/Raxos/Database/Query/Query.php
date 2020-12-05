@@ -633,7 +633,7 @@ abstract class Query extends QueryBase
     /**
      * Adds a `select $fields` expression.
      *
-     * @param array|string|int $fields
+     * @param string[]|string|int $fields
      *
      * @return $this
      * @throws DatabaseException
@@ -648,7 +648,7 @@ abstract class Query extends QueryBase
     /**
      * Adds a `select distinct $fields` expression.
      *
-     * @param array|string|int $fields
+     * @param string[]|string|int $fields
      *
      * @return $this
      * @throws DatabaseException
@@ -663,7 +663,7 @@ abstract class Query extends QueryBase
     /**
      * Adds a `select sql_calc_found_rows $fields` expression.
      *
-     * @param array|string|int $fields
+     * @param string[]|string|int $fields
      *
      * @return $this
      * @throws DatabaseException
@@ -679,7 +679,7 @@ abstract class Query extends QueryBase
      * Adds a `select $suffix $fields` expression.
      *
      * @param string $suffix
-     * @param array|string|int $fields
+     * @param string[]|string|int $fields
      *
      * @return $this
      * @throws DatabaseException

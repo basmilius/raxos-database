@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connection;
 
+use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Dialect\MariaDbDialect;
 use Raxos\Database\Query\MariaDbQuery;
@@ -22,6 +23,7 @@ class MariaDbConnection extends MySqlConnection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public function query(bool $isPrepared = true): MariaDbQuery
     {
         return new MariaDbQuery($this, $isPrepared);
@@ -32,6 +34,7 @@ class MariaDbConnection extends MySqlConnection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     protected function initializeDialect(): Dialect
     {
         return new MariaDbDialect();

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connection;
 
+use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Dialect\MySqlDialect;
 use Raxos\Database\Query\MySqlQuery;
@@ -24,7 +25,7 @@ class MySqlConnection extends Connection
      */
     public function foundRows(): int
     {
-        return $this->queryColumn(
+        return $this->column(
             $this->query(false)
                 ->select('found_rows()')
         );
@@ -35,6 +36,31 @@ class MySqlConnection extends Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    public function loadDatabaseSchema(): array
+    {
+        $results = $this
+            ->query(false)
+            ->select(['TABLE_NAME', 'COLUMN_NAME'])
+            ->from('information_schema.COLUMNS')
+            ->where('TABLE_SCHEMA', $this->getConnector()->getDatabase())
+            ->array();
+
+        $data = [];
+
+        foreach ($results as ['TABLE_NAME' => $table, 'COLUMN_NAME' => $column]) {
+            $data[$table] ??= [];
+            $data[$table][] = $column;
+        }
+
+        return $data;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    #[Pure]
     public function query(bool $isPrepared = true): MySqlQuery
     {
         return new MySqlQuery($this, $isPrepared);
@@ -45,6 +71,7 @@ class MySqlConnection extends Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     protected function initializeDialect(): Dialect
     {
         return new MySqlDialect();

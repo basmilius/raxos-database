@@ -599,14 +599,15 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @since 1.0.0
      */
     #[ArrayShape([
-        'query' => 'string',
+        'sql' => 'string',
+        'type' => 'string',
         'params' => 'array'
     ])]
     public function __debugInfo(): ?array
     {
         return [
+            'sql' => $this->toSql(),
             'type' => $this->isPrepared ? 'PREPARED' : 'RAW',
-            'query' => $this->toSql(),
             'params' => $this->params
         ];
     }
