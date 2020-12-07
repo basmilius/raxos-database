@@ -387,6 +387,8 @@ trait ModelDatabaseAccess
 
             $value = array_shift($primaryKey);
 
+            $field = static::getFieldName($field);
+
             if ($index++ === 0) {
                 $query->where(static::column($field), $value);
             } else {
