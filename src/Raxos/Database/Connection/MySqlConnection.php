@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connection;
 
+use JetBrains\PhpStorm\Deprecated;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Dialect\MySqlDialect;
@@ -23,6 +24,7 @@ class MySqlConnection extends Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Deprecated('https://dev.mysql.com/doc/refman/8.0/en/information-functions.html#function_found-rows')]
     public function foundRows(): int
     {
         return $this->column(

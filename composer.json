@@ -22,7 +22,8 @@
 		}
 	},
 	"require": {
-		"jetbrains/phpstorm-attributes": "^1.0",
+        "ext-pdo": "*",
+        "jetbrains/phpstorm-attributes": "^1.0",
         "raxos/foundation": "dev-master"
-	}
+    }
 }
