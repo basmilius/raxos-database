@@ -146,7 +146,7 @@ abstract class ModelBase extends stdClass implements JsonSerializable, Serializa
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function unserialize($serialized): void;
+    public abstract function unserialize(mixed $data): void;
 
     /**
      * @param string $name

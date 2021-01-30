@@ -635,13 +635,13 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function unserialize($serialized): void
+    public function unserialize(mixed $data): void
     {
         [
             $this->data,
             $this->hidden,
             $this->visible
-        ] = unserialize($serialized);
+        ] = unserialize($data);
 
         $this->prepareModel();
     }

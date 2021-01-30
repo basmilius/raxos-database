@@ -87,7 +87,6 @@ abstract class Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public abstract function query(bool $isPrepared = true): Query;
 
     /**

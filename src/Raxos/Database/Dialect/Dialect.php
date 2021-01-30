@@ -24,7 +24,6 @@ abstract class Dialect
     public string $fieldSeparator = ', ';
     public string $tableSeparator = ', ';
     public array $escapers = ['', ''];
-    public string $indentation = '  ';
 
     /**
      * Escapes the given field.

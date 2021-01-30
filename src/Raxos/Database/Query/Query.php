@@ -872,9 +872,9 @@ abstract class Query extends QueryBase
             return $this->addPiece($clause, $this->dialect->escapeFields($fields));
         }
 
-        if (ArrayUtil::isAssociative($fields)) {
-            $result = [];
+        $result = [];
 
+        if (ArrayUtil::isAssociative($fields)) {
             foreach ($fields as $alias => $field) {
                 $alias = $this->dialect->escapeFields($alias);
 
@@ -899,8 +899,6 @@ abstract class Query extends QueryBase
                 }
             }
         } else {
-            $result = [];
-
             foreach ($fields as $field) {
                 if (is_array($field) && count($field) === 2) {
                     $result[] = $this->dialect->escapeFields($field[0]) . ' as ' . $this->dialect->escapeFields($field[1]);

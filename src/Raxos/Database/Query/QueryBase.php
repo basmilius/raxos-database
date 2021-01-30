@@ -16,8 +16,10 @@ use Raxos\Database\Query\Struct\BeforeExpressionInterface;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Value;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
+use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
 use Stringable;
+use function array_splice;
 use function count;
 use function implode;
 use function is_array;
@@ -185,7 +187,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
                 return $value;
             }
 
-            return $this->connection->quote((string)$value, PDO::PARAM_STR);
+            return $this->connection->quote((string)$value);
         }
 
         if (is_bool($value)) {
@@ -451,6 +453,33 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
         }
 
         return $query;
+    }
+
+    /**
+     * Returns the total rows found based on the current query. Any limit
+     * clause is ignored and the select part is removed. This is useful for
+     * queries used for pagination and such.
+     *
+     * @return int
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function foundRows(): int
+    {
+        $selectIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'select');
+        $limitIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'limit');
+
+        $query = new static($this->connection, $this->isPrepared);
+        $query->params = $this->params;
+        $query->pieces = $this->pieces;
+        $query->pieces[$selectIndex][1] = 'count(*)';
+
+        array_splice($query->pieces, $limitIndex, 1);
+
+        $result = $query->single();
+
+        return (int)$result['count(*)'];
     }
 
     /**
