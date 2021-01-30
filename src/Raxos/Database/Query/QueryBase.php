@@ -11,10 +11,13 @@ use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Query\Struct\AfterExpressionInterface;
 use Raxos\Database\Query\Struct\BeforeExpressionInterface;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Value;
+use Raxos\Foundation\Collection\ArrayList;
+use Raxos\Foundation\Collection\CollectionException;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
@@ -486,55 +489,75 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * Runs the query and returns an array containing all the results.
      *
      * @param int $fetchMode
-     * @param int|null $foundRows
      * @param array $options
      *
      * @return array
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see Statement::array()
      */
-    public function array(int $fetchMode = PDO::FETCH_ASSOC, ?int $foundRows = null, array $options = []): array
+    public function array(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): array
     {
         return $this
             ->statement($options)
-            ->array($fetchMode, $foundRows);
+            ->array($fetchMode);
+    }
+
+    /**
+     * Runs the query and returns an ArrayList containing all the results.
+     *
+     * @param int $fetchMode
+     * @param array $options
+     *
+     * @return ArrayList|ModelArrayList
+     * @throws CollectionException
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see Statement::arrayList()
+     */
+    public function arrayList(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): ArrayList|ModelArrayList
+    {
+        return $this
+            ->statement($options)
+            ->arrayList($fetchMode);
     }
 
     /**
      * Runs the query and returns a generator containing all results.
      *
      * @param int $fetchMode
-     * @param int|null $foundRows
      * @param array $options
      *
      * @return Generator
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see Statement::cursor()
      */
-    public function cursor(int $fetchMode = PDO::FETCH_ASSOC, ?int $foundRows = null, array $options = []): Generator
+    public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Generator
     {
         return $this
             ->statement($options)
-            ->cursor($fetchMode, $foundRows);
+            ->cursor($fetchMode);
     }
 
     /**
      * Runs the query.
      *
-     * @param int|null $foundRows
      * @param array $options
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see Statement::run()
      */
-    public function run(?int $foundRows = null, array $options = []): void
+    public function run(array $options = []): void
     {
         $this
             ->statement($options)
-            ->run($foundRows);
+            ->run();
     }
 
     /**

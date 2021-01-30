@@ -10,10 +10,13 @@ use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\ModelArrayList;
+use Raxos\Foundation\Collection\ArrayList;
+use Raxos\Foundation\Collection\CollectionException;
 use stdClass;
+use function array_filter;
 use function array_map;
 use function is_int;
-use function str_contains;
 
 /**
  * Class Statement
@@ -132,27 +135,49 @@ class Statement
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function array(int $fetchMode = PDO::FETCH_ASSOC, ?int $foundRows = null): array
+    public final function array(int $fetchMode = PDO::FETCH_ASSOC): array
     {
-        $this->execute($foundRows);
+        $this->execute();
 
         return $this->fetchAll($fetchMode);
+    }
+
+    /**
+     * Executes the statement and returns an ArrayList containing all results.
+     *
+     * @param int $fetchMode
+     *
+     * @return ArrayList|ModelArrayList
+     * @throws CollectionException
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function arrayList(int $fetchMode = PDO::FETCH_ASSOC): ArrayList|ModelArrayList
+    {
+        $results = $this->array($fetchMode);
+        $isAllModels = empty(array_filter($results, fn(mixed $result) => !($result instanceof Model)));
+
+        if ($isAllModels) {
+            return ModelArrayList::of($results);
+        }
+
+        return ArrayList::of($results);
     }
 
     /**
      * Executes the statement and returns a generator containing all results.
      *
      * @param int $fetchMode
-     * @param int|null $foundRows
      *
      * @return Generator
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function cursor(int $fetchMode = PDO::FETCH_ASSOC, ?int $foundRows = null): Generator
+    public final function cursor(int $fetchMode = PDO::FETCH_ASSOC): Generator
     {
-        $this->execute($foundRows);
+        $this->execute();
 
         while ($result = $this->fetch($fetchMode)) {
             yield $result;
@@ -162,15 +187,13 @@ class Statement
     /**
      * Executes the statement.
      *
-     * @param int|null $foundRows
-     *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function run(?int $foundRows = null): void
+    public final function run(): void
     {
-        $this->execute($foundRows);
+        $this->execute();
     }
 
     /**
@@ -339,13 +362,11 @@ class Statement
     /**
      * Executes the pdo statement.
      *
-     * @param int|null $foundRows
-     *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    private function execute(?int &$foundRows = null): void
+    private function execute(): void
     {
         if ($this->modelClass === null && !empty($this->eagerLoad)) {
             throw new QueryException('Eager loading is only available for models.', QueryException::ERR_EAGER_NOT_AVAILABLE);
@@ -358,8 +379,6 @@ class Statement
         if ($result === false) {
             throw $this->throwFromError();
         }
-
-        $foundRows = str_contains($this->sql, 'sql_calc_found_rows') ? $this->connection->foundRows() : null;
     }
 
     /**
