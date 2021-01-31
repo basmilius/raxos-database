@@ -168,6 +168,9 @@ trait ModelDatabaseAccess
             return [];
         }
 
+        // todo(Bas): Find models that are already in cache. We don't need
+        //  to query those again as we're using existing models.
+
         $query = static::select();
 
         self::addPrimaryKeyInClauses($query, $primaryKeys);

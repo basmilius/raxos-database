@@ -3,14 +3,19 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
+use JetBrains\PhpStorm\ArrayShape;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
+use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use function array_filter;
 use function array_keys;
 use function array_map;
 use function array_values;
+use function get_class;
 use function implode;
 use function is_scalar;
+use function json_encode;
+use function sprintf;
 
 /**
  * Class Cache
@@ -19,7 +24,7 @@ use function is_scalar;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-class Cache
+class Cache implements DebugInfoInterface
 {
 
     /** @var Model[][] */
@@ -179,6 +184,21 @@ class Cache
         $key = $this->key($model->getPrimaryKeyValues());
 
         $this->instances[$model::class][$key] = $model;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    #[ArrayShape([
+        'models' => 'int[]|string[]',
+        'instances' => 'string[][]'
+    ])]
+    public function __debugInfo(): ?array
+    {
+        return array_map(fn($models) => array_map(fn($model) => sprintf('%s(%s)', get_class($model), json_encode($model->getPrimaryKeyValues())), $models), $this->instances);
     }
 
 }

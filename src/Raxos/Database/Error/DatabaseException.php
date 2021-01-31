@@ -29,6 +29,7 @@ abstract class DatabaseException extends RaxosException
      */
     public static function throw(int $code, string $message, ?Throwable $err = null): DatabaseException
     {
+        /** @noinspection PhpSwitchCanBeReplacedWithMatchExpressionInspection */
         switch ($code) {
             case ConnectionException::ERR_ACCESS_DENIED:
             case ConnectionException::ERR_ACCESS_DENIED_PASSWORD:

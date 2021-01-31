@@ -19,14 +19,20 @@ final class Column
     /**
      * Column constructor.
      *
+     * @template C of \Raxos\Database\Orm\Cast\CastInterface
+     *
      * @param string|null $alias
-     * @param string|null $caster
+     * @param class-string<C>|null $caster
      * @param string|int|float|null $default
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private ?string $alias = null, private ?string $caster = null, private string|int|float|null $default = null)
+    public function __construct(
+        private ?string $alias = null,
+        private ?string $caster = null,
+        private string|int|float|null $default = null
+    )
     {
     }
 
@@ -45,7 +51,9 @@ final class Column
     /**
      * Gets the caster class.
      *
-     * @return string|null
+     * @template C of \Raxos\Database\Orm\Cast\CastInterface
+     *
+     * @return class-string<C>|null
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

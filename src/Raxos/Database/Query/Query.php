@@ -722,6 +722,21 @@ abstract class Query extends QueryBase
     }
 
     /**
+     * Adds a `join $table $fn()` expression.
+     *
+     * @param string $table
+     * @param callable|null $fn
+     *
+     * @return $this
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function join(string $table, ?callable $fn = null): static
+    {
+        return $this->baseJoin('join', $table, $fn);
+    }
+
+    /**
      * Adds a `left join $table $fn()` expression.
      *
      * @param string $table

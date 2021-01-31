@@ -8,8 +8,9 @@ use JetBrains\PhpStorm\ExpectedValues;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Attribute\{Column, Macro, PrimaryKey, Table};
+use Raxos\Database\Orm\Attribute\{Column, HasMany, HasOne, Macro, PrimaryKey, RelationAttribute, Table};
 use Raxos\Database\Orm\Cast\CastInterface;
+use Raxos\Database\Orm\Relation\Relation;
 use Raxos\Foundation\Event\Emitter;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ReflectionUtil;
@@ -55,6 +56,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     protected const ATTRIBUTES = [
         Column::class,
         Macro::class,
+        HasMany::class,
+        HasOne::class,
         PrimaryKey::class,
         Table::class
     ];
@@ -64,6 +67,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     private static array $fields = [];
     private static array $initialized = [];
     private static array $macros = [];
+    private static array $relations = [];
     private static array $tables = [];
 
     protected array $modified = [];
@@ -147,34 +151,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
-     * Gets the primary key(s) of the model.
-     *
-     * @return array|string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function getPrimaryKey(): array|string|null
-    {
-        $fields = [];
-
-        foreach (static::getFields() as $fieldName => $field) {
-            if ($field['is_primary']) {
-                $fields[] = static::getFieldName($fieldName);
-            }
-        }
-
-        $length = count($fields);
-
-        if ($length === 0) {
-            return null;
-        } else if ($length === 1) {
-            return $fields[0];
-        } else {
-            return $fields;
-        }
-    }
-
-    /**
      * Gets the value(s) of the primary key(s) of the model.
      *
      * @return array|string|int|null
@@ -184,7 +160,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      */
     public function getPrimaryKeyValues(): array|string|int|null
     {
-        $keys = $this->getPrimaryKey();
+        $keys = static::getPrimaryKey();
 
         if ($keys === null) {
             return null;
@@ -346,7 +322,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $pairs[$fieldName] = $value;
         }
 
-        $primaryKey = $this->getPrimaryKey();
+        $primaryKey = static::getPrimaryKey();
         $primaryKey = is_array($primaryKey) ? $primaryKey : [$primaryKey];
 
         if ($this->isNew) {
@@ -400,7 +376,13 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                 continue;
             }
 
-            if ($this->isNew && $field['is_primary']) {
+            if (static::isRelation($fieldName)) {
+                if ($this->isVisible($fieldName)) {
+                    $relation = static::getRelation($fieldName);
+
+                    $data[$fieldName] = $relation->get($this);
+                }
+            } else if ($this->isNew && $field['is_primary']) {
                 $data[$alias] = null;
             } else if ($this->hasValue($fieldName)) {
                 $data[$alias] = $this->{$fieldName};
@@ -472,6 +454,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             return $this->callMacro($field);
         }
 
+        if (static::isRelation($field)) {
+            $relation = static::getRelation($field);
+
+            return $relation->get($this);
+        }
+
         $field = static::getFieldName($field);
 
         return parent::getValue($field);
@@ -485,6 +473,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     protected function hasValue(string $field): bool
     {
         if (!$this->isMacroCall && static::getMacro($field) !== null) {
+            return true;
+        }
+
+        if (array_key_exists($field, static::$relations[static::class]) || static::isRelation($field)) {
             return true;
         }
 
@@ -655,6 +647,14 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[ArrayShape([
+        'alias' => 'string',
+        'cast' => 'class-string<Raxos\Database\Orm\Cast\CastInterface>',
+        'default' => 'mixed',
+        'is_primary' => 'bool',
+        'relation' => 'Raxos\Database\Orm\Attribute\RelationAttribute|null',
+        'types' => 'string[]'
+    ])]
     public static function getField(string $field): ?array
     {
         return static::$fields[static::class][$field] ?? null;
@@ -715,6 +715,90 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
+     * Gets the primary key(s) of the model.
+     *
+     * @return array|string|null
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function getPrimaryKey(): array|string|null
+    {
+        $fields = [];
+
+        foreach (static::getFields() as $fieldName => $field) {
+            if ($field['is_primary']) {
+                $fields[] = static::getFieldName($fieldName);
+            }
+        }
+
+        $length = count($fields);
+
+        if ($length === 0) {
+            return null;
+        } else if ($length === 1) {
+            return $fields[0];
+        } else {
+            return $fields;
+        }
+    }
+
+    /**
+     * Ensures a relation with the given name.
+     *
+     * @param string $field
+     *
+     * @return Relation
+     * @throws DatabaseException
+     * @throws ModelException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function getRelation(string $field): Relation
+    {
+        if (array_key_exists($field, static::$relations[static::class])) {
+            return static::$relations[static::class][$field];
+        }
+
+        $spec = static::getField($field);
+
+        if (!array_key_exists('relation', $spec) || $spec['relation'] === null) {
+            throw new ModelException(sprintf('Model %s does not have a relation named %s.', static::class, $field), ModelException::ERR_RELATION_NOT_FOUND);
+        }
+
+        /** @var RelationAttribute $relation */
+        $relation = $spec['relation'];
+        $relation = $relation->create(static::connection(), static::class, $spec);
+
+        static::$relations[static::class][$field] = $relation;
+
+        return $relation;
+    }
+
+    /**
+     * Gets all relations of the model.
+     *
+     * @return Relation[]
+     * @throws DatabaseException
+     * @throws ModelException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function getRelations(): array
+    {
+        $relations = [];
+
+        foreach (static::getFields() as $fieldName => $field) {
+            if (!array_key_exists('relation', $field) || $field['relation'] === null) {
+                continue;
+            }
+
+            $relations[] = static::getRelation($fieldName);
+        }
+
+        return $relations;
+    }
+
+    /**
      * Gets the table of the model.
      *
      * @return string
@@ -725,6 +809,22 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     public static function getTable(): string
     {
         return static::$tables[static::class] ?? throw new ModelException(sprintf('Model "%s" does not have a table assigned.', static::class), ModelException::ERR_NO_TABLE_ASSIGNED);
+    }
+
+    /**
+     * Returns TRUE if the given field is a relation.
+     *
+     * @param string $field
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function isRelation(string $field): bool
+    {
+        $field = static::getField($field);
+
+        return $field !== null && $field['relation'] !== null;
     }
 
     /**
@@ -740,6 +840,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         static::$fields[static::class] = [];
+        static::$relations[static::class] = [];
 
         $class = new ReflectionClass(static::class);
 
@@ -791,6 +892,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $propertyType = $property->getType();
             $field = [];
             $field['is_primary'] = false;
+            $field['property'] = $propertyName;
+            $field['relation'] = null;
             $field['types'] = ReflectionUtil::getTypes($propertyType) ?? [];
             $validField = false;
 
@@ -814,6 +917,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                         if (($default = $attr->getDefault()) !== null) {
                             $field['default'] = $default;
                         }
+
+                        $validField = true;
+                        break;
+
+                    case $attr instanceof RelationAttribute:
+                        $field['relation'] = $attr;
 
                         $validField = true;
                         break;
@@ -894,6 +1003,19 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         static::$macros[static::class][$macroName] = $macro;
+    }
+
+    /**
+     * Initializes the model from a relation.
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @access private
+     * @internal
+     */
+    static function initializeFromRelation(): void
+    {
+        static::initialize();
     }
 
     /**

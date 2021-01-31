@@ -16,6 +16,8 @@ use Raxos\Foundation\Collection\CollectionException;
 use stdClass;
 use function array_filter;
 use function array_map;
+use function in_array;
+use function is_array;
 use function is_int;
 
 /**
@@ -35,6 +37,10 @@ class Statement
     private PDOStatement $pdoStatement;
     private string $sql;
 
+    /**
+     * @template M of \Raxos\Database\Orm\Model
+     * @var class-string<M>|null
+     */
     private ?string $modelClass = null;
 
     /**
@@ -128,7 +134,6 @@ class Statement
      * Executes the statement and returns an array containing all results.
      *
      * @param int $fetchMode
-     * @param int|null $foundRows
      *
      * @return array
      * @throws DatabaseException
@@ -249,11 +254,23 @@ class Statement
             throw new QueryException('Cannot create model instance, no model was assigned to the query.', QueryException::ERR_INVALID_MODEL);
         }
 
+        /** @var Model $modelClass */
+        $modelClass = $this->modelClass;
+        $primaryKey = $modelClass::getPrimaryKey();
+
+        if (is_array($primaryKey)) {
+            $primaryKeyValue = array_map(fn(string $key) => $result[$key], $primaryKey);
+        } else {
+            $primaryKeyValue = $result[$primaryKey];
+        }
+
+        if ($modelClass::cache()->has($this->modelClass, $primaryKeyValue)) {
+            return $modelClass::cache()->get($this->modelClass, $primaryKeyValue);
+        }
+
         /** @var Model $model */
         $model = new $this->modelClass($result, false);
         $model::cache()->set($model);
-
-        // todo(Bas): Implement eager loading.
 
         return $model;
     }
@@ -290,7 +307,11 @@ class Statement
         }
 
         if ($this->modelClass !== null) {
-            return $this->createModel($result);
+            $model = $this->createModel($result);
+
+            $this->loadRelationships($model);
+
+            return $model;
         }
 
         return $result;
@@ -311,7 +332,11 @@ class Statement
         $results = $this->pdoStatement->fetchAll($fetchMode);
 
         if ($this->modelClass !== null) {
-            return array_map(fn(mixed $result) => $this->createModel($result), $results);
+            $models = array_map(fn(mixed $result) => $this->createModel($result), $results);
+
+            $this->loadRelationships($models);
+
+            return $models;
         }
 
         return $results;
@@ -374,10 +399,47 @@ class Statement
 
         // todo(Bas): Implement query logging.
 
+//        \Columba\Util\pre([
+//            'query' => $this->query->toSql(),
+//            'trace' => array_map(fn(array $item) => sprintf('%s:%d (%s)', ($item['file'] ?? '-'), ($item['line'] ?? 0), isset($item['class']) ? $item['class'] . $item['type'] . $item['function'] : ($item['function'] ?? 'unknown')), debug_backtrace())
+//        ]);
+
         $result = $this->pdoStatement->execute();
 
         if ($result === false) {
             throw $this->throwFromError();
+        }
+    }
+
+    /**
+     * Eager loads the relationships.
+     *
+     * @param Model|array $models
+     *
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    private function loadRelationships(Model|array $models): void
+    {
+        if (!is_array($models)) {
+            $models = [$models];
+        }
+
+        if (empty($models)) {
+            return;
+        }
+
+        /** @var Model $modelClass */
+        $modelClass = $this->modelClass;
+        $relations = $modelClass::getRelations();
+
+        foreach ($relations as $relation) {
+            if (!$relation->isEagerLoadEnabled() && !in_array($relation->getFieldName(), $this->eagerLoad)) {
+                continue;
+            }
+
+            $relation->eagerLoad($models);
         }
     }
 
