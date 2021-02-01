@@ -11,6 +11,7 @@ use Raxos\Database\Error\ModelException;
 use Raxos\Database\Orm\Attribute\{Column, HasMany, HasOne, Macro, PrimaryKey, RelationAttribute, Table};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Relation\Relation;
+use Raxos\Database\Query\Query;
 use Raxos\Foundation\Event\Emitter;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ReflectionUtil;
@@ -300,6 +301,29 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
+     * Queries the given relation.
+     *
+     * @param string $field
+     *
+     * @return Query
+     * @throws DatabaseException
+     * @throws ModelException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @no-named-arguments
+     */
+    public function queryRelation(string $field): Query
+    {
+        if (!static::isRelation($field)) {
+            throw new ModelException(sprintf('Field %s is not a relation.', $field), ModelException::ERR_RELATION_NOT_FOUND);
+        }
+
+        $relation = static::getRelation($field);
+
+        return $relation->getQuery($this);
+    }
+
+    /**
      * Saves the model.
      *
      * @throws DatabaseException
@@ -316,7 +340,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $value = parent::getValue($fieldName);
 
             if (isset($fieldSpec['cast'])) {
-                $value = $this->castField($fieldSpec['cast'], 'encode', $value);
+                $value = static::castField($fieldSpec['cast'], 'encode', $value);
             }
 
             $pairs[$fieldName] = $value;
@@ -426,7 +450,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             }
 
             if (isset($field['cast'])) {
-                $data[$fieldName] = $this->castField($field['cast'], 'decode', $data[$fieldName]);
+                $data[$fieldName] = static::castField($field['cast'], 'decode', $data[$fieldName]);
             }
         }
     }
@@ -552,34 +576,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         return $result;
-    }
-
-    /**
-     * Casts the given value using the given caster class.
-     *
-     * @param string $casterClass
-     * @param string $mode
-     * @param mixed $value
-     *
-     * @return mixed
-     * @throws ModelException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    private function castField(string $casterClass, #[ExpectedValues(['decode', 'encode'])] string $mode, mixed $value): mixed
-    {
-        if (!class_exists($casterClass)) {
-            throw new ModelException(sprintf('Caster "%s" not found.', $casterClass), ModelException::ERR_CASTER_NOT_FOUND);
-        }
-
-        if (!is_subclass_of($casterClass, CastInterface::class)) {
-            throw new ModelException(sprintf('Class "%s" is not a valid caster class.', $casterClass), ModelException::ERR_CASTER_NOT_FOUND);
-        }
-
-        /** @var CastInterface $caster */
-        $caster = Singleton::get($casterClass);
-
-        return $caster->{$mode}($value);
     }
 
     /**
@@ -828,6 +824,34 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
+     * Casts the given value using the given caster class.
+     *
+     * @param string $casterClass
+     * @param string $mode
+     * @param mixed $value
+     *
+     * @return mixed
+     * @throws ModelException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    private static function castField(string $casterClass, #[ExpectedValues(['decode', 'encode'])] string $mode, mixed $value): mixed
+    {
+        if (!class_exists($casterClass)) {
+            throw new ModelException(sprintf('Caster "%s" not found.', $casterClass), ModelException::ERR_CASTER_NOT_FOUND);
+        }
+
+        if (!is_subclass_of($casterClass, CastInterface::class)) {
+            throw new ModelException(sprintf('Class "%s" is not a valid caster class.', $casterClass), ModelException::ERR_CASTER_NOT_FOUND);
+        }
+
+        /** @var CastInterface $caster */
+        $caster = Singleton::get($casterClass);
+
+        return $caster->{$mode}($value);
+    }
+
+    /**
      * Initializes the model.
      *
      * @author Bas Milius <bas@mili.us>
@@ -964,8 +988,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             if (in_array(Macro::class, $attributeNames)) {
                 static::initializeMethodMacro($method, $attributes);
             }
-
-            // todo(Bas): Relation methods.
         }
     }
 
@@ -993,7 +1015,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
             switch (true) {
                 case $attribute instanceof Macro:
-                    $macroName = $attribute->getName();
+                    $macroName = $attribute->getName() ?? $macroName;
                     $macro['is_cacheable'] = $attribute->isCacheable();
                     break;
 
@@ -1012,6 +1034,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @since 1.0.0
      * @access private
      * @internal
+     * @private
      */
     static function initializeFromRelation(): void
     {

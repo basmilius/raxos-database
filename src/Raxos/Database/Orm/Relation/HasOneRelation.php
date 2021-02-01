@@ -5,6 +5,7 @@ namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Orm\Model;
+use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use function array_column;
 use function array_filter;
@@ -54,19 +55,29 @@ class HasOneRelation extends Relation
      */
     public function get(Model $model): Model
     {
-        /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
-
-        $result = $referenceModel::query(false)
-            ->select($referenceModel::column('*'))
-            ->from($referenceModel::getTable())
-            ->where($this->referenceColumn, $model->{$this->column});
+        $query = $this->getQuery($model);
 
         if ($this->connection->getCache()->has($this->getReferenceModel(), $model->{$this->column})) {
             return $this->connection->getCache()->get($this->getReferenceModel(), $model->{$this->column});
         }
 
-        return $result->single();
+        return $query->single();
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function getQuery(Model $model): Query
+    {
+        /** @var Model $referenceModel */
+        $referenceModel = $this->getReferenceModel();
+
+        return $referenceModel::query(false)
+            ->select($referenceModel::column('*'))
+            ->from($referenceModel::getTable())
+            ->where($this->referenceColumn, $model->{$this->column});
     }
 
     /**

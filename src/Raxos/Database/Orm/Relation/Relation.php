@@ -6,6 +6,7 @@ namespace Raxos\Database\Orm\Relation;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Orm\Model;
+use Raxos\Database\Query\Query;
 
 /**
  * Class Relation
@@ -50,6 +51,18 @@ abstract class Relation
      * @since 1.0.0
      */
     public abstract function get(Model $model): Model|array;
+
+    /**
+     * Gets the query.
+     *
+     * @param Model $model
+     *
+     * @return Query
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public abstract function getQuery(Model $model): Query;
 
     /**
      * Eager loads relations.

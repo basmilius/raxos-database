@@ -12,8 +12,11 @@ use Raxos\Database\Error\QueryException;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Value;
+use function array_map;
 use function array_shift;
+use function count;
 use function is_array;
+use function is_string;
 use function json_encode;
 
 /**
@@ -166,6 +169,12 @@ trait ModelDatabaseAccess
     {
         if (empty($primaryKeys)) {
             return [];
+        }
+
+        if (count($primaryKeys) === 1) {
+            return [
+                self::get($primaryKeys[0])
+            ];
         }
 
         // todo(Bas): Find models that are already in cache. We don't need
@@ -423,21 +432,31 @@ trait ModelDatabaseAccess
             $primaryKeys = [$primaryKeys];
         }
 
-        foreach (static::getFields() as $field => ['is_primary' => $isPrimary]) {
-            if (!$isPrimary) {
-                continue;
-            }
+        $primaryKeyFields = static::getPrimaryKey();
 
-            if (empty($primaryKeys)) {
-                throw new QueryException('Too few primary key values.', QueryException::ERR_PRIMARY_KEY_MISMATCH);
-            }
-
-            $values = array_shift($primaryKeys);
-
-            if ($index++ === 0) {
-                $query->where(static::column($field), ComparatorAwareLiteral::in($values));
+        if (is_string($primaryKeyFields)) {
+            if ($index === 0) {
+                $query->where(static::column($primaryKeyFields), ComparatorAwareLiteral::in(array_shift($primaryKeys)));
             } else {
-                $query->and(static::column($field), ComparatorAwareLiteral::in($values));
+                $query->and(static::column($primaryKeyFields), ComparatorAwareLiteral::in(array_shift($primaryKeys)));
+            }
+        } else {
+            $primaryKeyFields = array_map([static::class, 'column'], $primaryKeyFields);
+
+            while (($keys = array_shift($primaryKeys)) !== null) {
+                $query->parenthesis(function () use (&$index, $keys, $query, $primaryKeyFields): void {
+                    foreach ($keys as $kIndex => $key) {
+                        $primaryKeyField = $primaryKeyFields[$kIndex];
+
+                        if ($index++ === 0) {
+                            $query->where($primaryKeyField, $key);
+                        } else if ($kIndex === 0) {
+                            $query->or($primaryKeyField, $key);
+                        } else {
+                            $query->and($primaryKeyField, $key);
+                        }
+                    }
+                });
             }
         }
 

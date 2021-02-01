@@ -19,24 +19,24 @@ final class Macro
     /**
      * Macro constructor.
      *
-     * @param string $name
+     * @param string|null $name
      * @param bool $isCacheable
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private string $name, private bool $isCacheable = false)
+    public function __construct(private ?string $name = null, private bool $isCacheable = false)
     {
     }
 
     /**
      * Gets the name of the macro.
      *
-     * @return string
+     * @return string|null
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function getName(): string
+    public final function getName(): ?string
     {
         return $this->name;
     }

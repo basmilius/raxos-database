@@ -429,14 +429,13 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     public function toSql(): string
     {
         $query = '';
-        $lastClause = null;
 
         foreach ($this->pieces as [$clause, $data, $separator]) {
             if (is_array($data)) {
                 $data = implode($separator, $data);
             }
 
-            $addSpace = !empty($query) && $lastClause !== '(' && !str_ends_with($query, ' ');
+            $addSpace = !empty($query) && !str_ends_with($query, '(') && !str_ends_with($query, ' ');
             $pieces = [];
 
             if (!empty($clause)) {
@@ -452,7 +451,6 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
             }
 
             $query .= ($addSpace ? ' ' : '') . implode(' ', $pieces);
-            $lastClause = $clause;
         }
 
         return $query;

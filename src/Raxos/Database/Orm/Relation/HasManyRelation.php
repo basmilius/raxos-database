@@ -5,6 +5,7 @@ namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Orm\Model;
+use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use WeakMap;
 use function array_column;
@@ -64,13 +65,8 @@ class HasManyRelation extends Relation
             return $this->results[$model];
         }
 
-        /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
-
-        $results = $referenceModel::query(false)
-            ->select($referenceModel::column('*'))
-            ->from($referenceModel::getTable())
-            ->where($this->referenceColumn, $model->{$this->column})
+        $results = $this
+            ->getQuery($model)
             ->array();
 
         $results = array_map(function (Model $model): Model {
@@ -82,6 +78,22 @@ class HasManyRelation extends Relation
         }, $results);
 
         return $results;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function getQuery(Model $model): Query
+    {
+        /** @var Model $referenceModel */
+        $referenceModel = $this->getReferenceModel();
+
+        return $referenceModel::query(false)
+            ->select($referenceModel::column('*'))
+            ->from($referenceModel::getTable())
+            ->where($this->referenceColumn, $model->{$this->column});
     }
 
     /**
