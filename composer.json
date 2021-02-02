@@ -12,6 +12,9 @@
 		}
 	],
 	"autoload": {
+        "files": [
+            "src/Raxos/Database/Query/functions.php"
+        ],
 		"psr-4": {
 			"Raxos\\Database\\": "src/Raxos/Database"
 		}
