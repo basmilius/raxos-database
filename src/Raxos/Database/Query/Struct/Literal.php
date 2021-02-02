@@ -57,13 +57,13 @@ class Literal extends Value
     /**
      * Returns a `$value` literal.
      *
-     * @param int|float|bool $value
+     * @param string|int|float|bool $value
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function with(int|float|bool $value): self
+    public static function with(string|int|float|bool $value): self
     {
         return new Literal($value);
     }

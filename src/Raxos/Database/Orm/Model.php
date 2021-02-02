@@ -830,6 +830,20 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
+     * Gets the fields that should be selected by default.
+     *
+     * @param array|string|int $fields
+     *
+     * @return array|string|int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    protected static function getDefaultFields(array|string|int $fields): array|string|int
+    {
+        return $fields;
+    }
+
+    /**
      * Casts the given value using the given caster class.
      *
      * @param string $casterClass

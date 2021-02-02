@@ -474,7 +474,7 @@ trait ModelDatabaseAccess
      */
     private static function baseSelect(callable $fn, array|string|int $fields): Query
     {
-        return $fn($fields)
+        return $fn(static::getDefaultFields($fields))
             ->from(static::getTable());
     }
 

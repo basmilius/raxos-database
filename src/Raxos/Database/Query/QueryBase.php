@@ -265,6 +265,28 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
+     * Eager load the given relations when a Model is fetched from the database.
+     *
+     * @param string|string[] $relations
+     *
+     * @return $this
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function eagerLoad(string|array $relations): static
+    {
+        if (is_string($relations)) {
+            $this->eagerLoad[] = $relations;
+        } else {
+            foreach ($relations as $relation) {
+                $this->eagerLoad[] = $relation;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Merges the given query with the current one.
      *
      * @param QueryBase $query

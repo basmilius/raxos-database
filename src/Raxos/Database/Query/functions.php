@@ -10,7 +10,7 @@ use Raxos\Database\Query\Struct\Literal;
 use function is_string;
 
 /**
- * Returns a `$value` literal or a `'$value'` literal.
+ * Returns a `$value` literal.
  *
  * @param string|int|float|bool $value
  *
@@ -18,16 +18,27 @@ use function is_string;
  * @author Bas Milius <bas@mili.us>
  * @since 1.0.0
  * @see Literal
- * @see Literal::string()
  * @see Literal::with()
  */
 function literal(string|int|float|bool $value): Literal
 {
-    if (is_string($value)) {
-        return Literal::string($value);
-    }
-
     return Literal::with($value);
+}
+
+/**
+ * Returns a `'$value'` literal.
+ *
+ * @param string $value
+ *
+ * @return Literal
+ * @author Bas Milius <bas@mili.us>
+ * @since 1.0.0
+ * @see Literal
+ * @see Literal::string()
+ */
+function stringLiteral(string $value): Literal
+{
+    return Literal::string($value);
 }
 
 /**
