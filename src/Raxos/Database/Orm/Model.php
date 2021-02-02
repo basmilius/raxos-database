@@ -126,7 +126,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     #[ArrayShape([
         'type' => 'string',
         'data' => 'array',
-        'fields' => 'Raxos\Database\Orm\Defenition\FieldDefinition[]',
+        'fields' => 'array[]',
         'macros' => 'string[]',
         'modified' => 'string[]',
         'table' => 'string'
