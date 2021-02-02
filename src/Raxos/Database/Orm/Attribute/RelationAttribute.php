@@ -5,6 +5,7 @@ namespace Raxos\Database\Orm\Attribute;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Orm\Defenition\FieldDefinition;
 use Raxos\Database\Orm\Relation\Relation;
 
 /**
@@ -36,14 +37,14 @@ abstract class RelationAttribute
      *
      * @param Connection $connection
      * @param class-string<M> $modelClass
-     * @param array $field
+     * @param FieldDefinition $field
      *
      * @return Relation
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function create(Connection $connection, string $modelClass, array $field): Relation;
+    public abstract function create(Connection $connection, string $modelClass, FieldDefinition $field): Relation;
 
     /**
      * Returns TRUE if the relation should have eager loading enabled

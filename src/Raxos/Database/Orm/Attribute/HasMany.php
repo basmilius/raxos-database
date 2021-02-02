@@ -6,6 +6,7 @@ namespace Raxos\Database\Orm\Attribute;
 use Attribute;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\ModelException;
+use Raxos\Database\Orm\Defenition\FieldDefinition;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\Relation\HasManyRelation;
 use Raxos\Database\Orm\Relation\Relation;
@@ -77,7 +78,7 @@ class HasMany extends RelationAttribute
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function create(Connection $connection, string $modelClass, array $field): Relation
+    public function create(Connection $connection, string $modelClass, FieldDefinition $field): Relation
     {
         /** @var Model $modelClass */
 
@@ -98,7 +99,7 @@ class HasMany extends RelationAttribute
             $connection,
             $referenceModel,
             $this->eagerLoad,
-            $field['property'],
+            $field->property,
             $this->column ?? $primaryKey,
             $this->referenceColumn ?? $modelClass::getTable() . '_' . $primaryKey,
         );

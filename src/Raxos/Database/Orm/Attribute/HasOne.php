@@ -6,6 +6,7 @@ namespace Raxos\Database\Orm\Attribute;
 use Attribute;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\ModelException;
+use Raxos\Database\Orm\Defenition\FieldDefinition;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\Relation\HasOneRelation;
 use Raxos\Database\Orm\Relation\Relation;
@@ -72,9 +73,9 @@ class HasOne extends RelationAttribute
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function create(Connection $connection, string $modelClass, array $field): Relation
+    public function create(Connection $connection, string $modelClass, FieldDefinition $field): Relation
     {
-        $referenceModel = $field['types'][0] ?? null;
+        $referenceModel = $field->types[0] ?? null;
 
         if (!is_subclass_of($referenceModel, Model::class)) {
             throw new ModelException(sprintf('Referenced model %s is not a model.', $referenceModel), ModelException::ERR_NOT_A_MODEL);
@@ -91,7 +92,7 @@ class HasOne extends RelationAttribute
             $connection,
             $referenceModel,
             $this->eagerLoad,
-            $field['property'],
+            $field->property,
             $this->column ?? $referenceModel::getTable() . '_' . $primaryKey,
             $this->referenceColumn ?? $referenceModel::column($primaryKey)
         );

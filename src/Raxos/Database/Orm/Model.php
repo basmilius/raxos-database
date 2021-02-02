@@ -10,6 +10,8 @@ use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
 use Raxos\Database\Orm\Attribute\{Column, HasMany, HasOne, Macro, PrimaryKey, RelationAttribute, Table};
 use Raxos\Database\Orm\Cast\CastInterface;
+use Raxos\Database\Orm\Defenition\FieldDefinition;
+use Raxos\Database\Orm\Defenition\MacroDefinition;
 use Raxos\Database\Orm\Relation\Relation;
 use Raxos\Database\Query\Query;
 use Raxos\Foundation\Event\Emitter;
@@ -18,10 +20,8 @@ use Raxos\Foundation\Util\ReflectionUtil;
 use Raxos\Foundation\Util\Singleton;
 use ReflectionAttribute;
 use ReflectionClass;
-use ReflectionMethod;
 use ReflectionProperty;
 use function array_diff;
-use function array_filter;
 use function array_key_exists;
 use function array_keys;
 use function array_map;
@@ -35,6 +35,8 @@ use function is_string;
 use function is_subclass_of;
 use function serialize;
 use function sprintf;
+use function str_starts_with;
+use function ucfirst;
 use function unserialize;
 
 /**
@@ -124,7 +126,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     #[ArrayShape([
         'type' => 'string',
         'data' => 'array',
-        'fields' => 'array',
+        'fields' => 'Raxos\Database\Orm\Defenition\FieldDefinition[]',
         'macros' => 'string[]',
         'modified' => 'string[]',
         'table' => 'string'
@@ -135,11 +137,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $macros = static::getMacros();
 
         foreach ($fields as &$field) {
+            $field = $field->toArray();
             $field['types'] = implode('|', $field['types']);
         }
 
         foreach ($macros as &$macro) {
-            $macro = sprintf('%s::%s() [%s]', static::class, $macro['method'], $macro['is_cacheable'] ? 'cacheable' : 'dynamic');
+            $macro = sprintf('%s::%s() [%s]', static::class, $macro->method, $macro->isCacheable ? 'cacheable' : 'dynamic');
         }
 
         return [
@@ -336,11 +339,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
         foreach ($this->modified as $field) {
             $fieldName = static::getFieldName($field);
-            $fieldSpec = static::getField($field);
+            $fieldDefinition = static::getField($field);
             $value = parent::getValue($fieldName);
 
-            if (isset($fieldSpec['cast'])) {
-                $value = static::castField($fieldSpec['cast'], 'encode', $value);
+            if ($fieldDefinition->cast !== null) {
+                $value = static::castField($fieldDefinition->cast, 'encode', $value);
             }
 
             $pairs[$fieldName] = $value;
@@ -393,8 +396,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     {
         $data = [];
 
-        foreach (static::getFields() as $fieldName => $field) {
-            $alias = $field['alias'] ?? $fieldName;
+        foreach (static::getFields() as $fieldName => $fieldDefinition) {
+            $alias = $fieldDefinition->alias ?? $fieldName;
 
             if ($this->isHidden($alias)) {
                 continue;
@@ -406,7 +409,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
                     $data[$fieldName] = $relation->get($this);
                 }
-            } else if ($this->isNew && $field['is_primary']) {
+            } else if ($this->isNew && $fieldDefinition->isPrimary) {
                 $data[$alias] = null;
             } else if ($this->hasValue($fieldName)) {
                 $data[$alias] = $this->{$fieldName};
@@ -414,11 +417,13 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         foreach (static::getMacros() as $name => $macro) {
-            if ($this->isHidden($name) || !$this->isVisible($name)) {
+            $macroName = $macro->alias ?? $name;
+
+            if ($this->isHidden($macroName) || !$this->isVisible($macroName)) {
                 continue;
             }
 
-            $data[$name] = $this->callMacro($name);
+            $data[$macroName] = $this->callMacro($name);
         }
 
         $this->onPublish($data);
@@ -437,7 +442,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      */
     protected function onInitialize(array &$data): void
     {
-        foreach (static::getFields() as $fieldName => $field) {
+        foreach (static::getFields() as $fieldName => $fieldDefinition) {
             $fieldName = static::getFieldName($fieldName);
             $fieldExists = array_key_exists($fieldName, $data);
 
@@ -445,12 +450,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                 continue;
             }
 
-            if (!$fieldExists && array_key_exists('default', $field)) {
-                $data[$fieldName] = $field['default'];
+            if (!$fieldExists && array_key_exists($fieldName, $data)) {
+                $data[$fieldName] = $fieldDefinition->default;
             }
 
-            if (isset($field['cast'])) {
-                $data[$fieldName] = static::castField($field['cast'], 'decode', $data[$fieldName]);
+            if ($fieldDefinition->cast !== null) {
+                $data[$fieldName] = static::castField($fieldDefinition->cast, 'decode', $data[$fieldName]);
             }
         }
     }
@@ -518,10 +523,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     protected function setValue(string $field, mixed $value): void
     {
         $fieldName = static::getFieldName($field);
-        $fieldSpec = static::getField($field);
+        $fieldDefinition = static::getField($field);
 
-        if ($fieldSpec !== null) {
-            if ($fieldSpec['is_primary']) {
+        if ($fieldDefinition !== null) {
+            if ($fieldDefinition->isPrimary) {
                 throw new ModelException(sprintf('Field "%s" is part of the primary key of model "%s" and is therefore not writable.', $field, static::class), ModelException::ERR_IMMUTABLE);
             }
 
@@ -568,10 +573,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         $this->isMacroCall = true;
-        $result = $this->{$macro['method']}();
+        $result = $this->{$macro->method}($this);
         $this->isMacroCall = false;
 
-        if ($macro['is_cacheable']) {
+        if ($macro->isCacheable) {
             $this->macroCache[$name] = $result;
         }
 
@@ -589,6 +594,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     private function prepareModel(): void
     {
         foreach (static::$fields[static::class] as $name => $field) {
+            unset($this->{$name});
+        }
+
+        foreach (static::$macros[static::class] as $name => $macro) {
             unset($this->{$name});
         }
     }
@@ -639,19 +648,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      *
      * @param string $field
      *
-     * @return array|null
+     * @return FieldDefinition|null
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[ArrayShape([
-        'alias' => 'string',
-        'cast' => 'class-string<Raxos\Database\Orm\Cast\CastInterface>',
-        'default' => 'mixed',
-        'is_primary' => 'bool',
-        'relation' => 'Raxos\Database\Orm\Attribute\RelationAttribute|null',
-        'types' => 'string[]'
-    ])]
-    public static function getField(string $field): ?array
+    public static function getField(string $field): ?FieldDefinition
     {
         return static::$fields[static::class][$field] ?? null;
     }
@@ -669,13 +670,13 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     {
         $f = static::getField($field);
 
-        return $f['alias'] ?? $field;
+        return $f->alias ?? $field;
     }
 
     /**
      * Gets all defined fields.
      *
-     * @return array
+     * @return FieldDefinition[]
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -689,11 +690,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      *
      * @param string $name
      *
-     * @return array|null
+     * @return MacroDefinition|null
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function getMacro(string $name): ?array
+    public static function getMacro(string $name): ?MacroDefinition
     {
         return static::$macros[static::class][$name] ?? null;
     }
@@ -701,7 +702,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     /**
      * Gets all defined macros.
      *
-     * @return array
+     * @return MacroDefinition[]
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -713,7 +714,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     /**
      * Gets the primary key(s) of the model.
      *
-     * @return array|string|null
+     * @return string[]|string|null
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -722,7 +723,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $fields = [];
 
         foreach (static::getFields() as $fieldName => $field) {
-            if ($field['is_primary']) {
+            if ($field->isPrimary) {
                 $fields[] = static::getFieldName($fieldName);
             }
         }
@@ -755,15 +756,14 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             return static::$relations[static::class][$field];
         }
 
-        $spec = static::getField($field);
+        $definition = static::getField($field);
+        $relationType = $definition->relation;
 
-        if (!array_key_exists('relation', $spec) || $spec['relation'] === null) {
+        if ($relationType === null) {
             throw new ModelException(sprintf('Model %s does not have a relation named %s.', static::class, $field), ModelException::ERR_RELATION_NOT_FOUND);
         }
 
-        /** @var RelationAttribute $relation */
-        $relation = $spec['relation'];
-        $relation = $relation->create(static::connection(), static::class, $spec);
+        $relation = $relationType->create(static::connection(), static::class, $definition);
 
         static::$relations[static::class][$field] = $relation;
 
@@ -784,7 +784,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $relations = [];
 
         foreach (static::getFields() as $fieldName => $field) {
-            if (!array_key_exists('relation', $field) || $field['relation'] === null) {
+            if ($field->relation === null) {
                 continue;
             }
 
@@ -820,7 +820,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     {
         $field = static::getField($field);
 
-        return $field !== null && $field['relation'] !== null;
+        return $field !== null && $field->relation !== null;
     }
 
     /**
@@ -854,6 +854,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     /**
      * Initializes the model.
      *
+     * @throws ModelException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -864,6 +865,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         static::$fields[static::class] = [];
+        static::$macros[static::class] = [];
         static::$relations[static::class] = [];
 
         $class = new ReflectionClass(static::class);
@@ -888,8 +890,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         static::initializeFields($class);
-        static::initializeMethods($class);
-
         static::$initialized[static::class] = true;
     }
 
@@ -899,6 +899,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      *
      * @param ReflectionClass $class
      *
+     * @throws ModelException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -907,129 +908,115 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $properties = $class->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED | ReflectionProperty::IS_PRIVATE);
 
         foreach ($properties as $property) {
-            if ($property->getDeclaringClass()->getName() !== static::class) {
+            if ($property->getDeclaringClass()->getName() !== $class->getName()) {
                 continue;
             }
 
-            $propertyAttributes = $property->getAttributes();
-            $propertyName = $property->getName();
-            $propertyType = $property->getType();
-            $field = [];
-            $field['is_primary'] = false;
-            $field['property'] = $propertyName;
-            $field['relation'] = null;
-            $field['types'] = ReflectionUtil::getTypes($propertyType) ?? [];
-            $validField = false;
-
-            foreach ($propertyAttributes as $attribute) {
-                if (!in_array($attribute->getName(), self::ATTRIBUTES)) {
-                    continue;
-                }
-
-                $attr = $attribute->newInstance();
-
-                switch (true) {
-                    case $attr instanceof Column:
-                        if (($alias = $attr->getAlias()) !== null) {
-                            $field['alias'] = $alias;
-                        }
-
-                        if (($caster = $attr->getCaster()) !== null) {
-                            $field['cast'] = $caster;
-                        }
-
-                        if (($default = $attr->getDefault()) !== null) {
-                            $field['default'] = $default;
-                        }
-
-                        $validField = true;
-                        break;
-
-                    case $attr instanceof RelationAttribute:
-                        $field['relation'] = $attr;
-
-                        $validField = true;
-                        break;
-
-                    case $attr instanceof PrimaryKey:
-                        $field['is_primary'] = true;
-                        break;
-                }
-            }
-
-            if (!$validField) {
-                continue;
-            }
-
-            static::$fields[static::class][$propertyName] = $field;
-        }
-    }
-
-    /**
-     * Initializes macros and relations.
-     *
-     * @param ReflectionClass $class
-     *
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    private static function initializeMethods(ReflectionClass $class): void
-    {
-        $methods = $class->getMethods();
-
-        foreach ($methods as $method) {
-            if ($method->getDeclaringClass()->getName() !== static::class) {
-                continue;
-            }
-
-            $attributes = $method->getAttributes();
-            $attributeNames = array_map(fn(ReflectionAttribute $attr) => $attr->getName(), $attributes);
-
-            if (in_array(Macro::class, $attributeNames)) {
-                static::initializeMethodMacro($method, $attributes);
+            if (!empty($macro = $property->getAttributes(Macro::class))) {
+                static::initializeMacro($class, $property, $macro[0]);
+            } else {
+                static::initializeField($property);
             }
         }
     }
 
     /**
-     * Initializes a macro method.
+     * Initializes a single field of the model.
      *
-     * @param ReflectionMethod $method
-     * @param ReflectionAttribute[] $attributes
+     * @param ReflectionProperty $property
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    private static function initializeMethodMacro(ReflectionMethod $method, array $attributes): void
+    private static function initializeField(ReflectionProperty $property): void
     {
-        $attributes = array_filter($attributes, fn(ReflectionAttribute $attr) => in_array($attr->getName(), self::ATTRIBUTES));
+        $attributes = $property->getAttributes();
 
-        $macroName = $method->getName();
-        $macro = [
-            'method' => $method->getName(),
-            'is_cacheable' => false
-        ];
+        $alias = null;
+        $cast = null;
+        $classProperty = $property->getName();
+        $default = null;
+        $isPrimary = false;
+        $relation = null;
+        $types = ReflectionUtil::getTypes($property->getType()) ?? [];
+        $validField = false;
 
         foreach ($attributes as $attribute) {
-            $attribute = $attribute->newInstance();
+            if (!in_array($attribute->getName(), self::ATTRIBUTES)) {
+                continue;
+            }
+
+            $attr = $attribute->newInstance();
 
             switch (true) {
-                case $attribute instanceof Macro:
-                    $macroName = $attribute->getName() ?? $macroName;
-                    $macro['is_cacheable'] = $attribute->isCacheable();
+                case $attr instanceof Column:
+                    $alias = $attr->getAlias();
+                    $cast = $attr->getCaster();
+                    $default = $attr->getDefault();
+                    $validField = true;
                     break;
 
-                default:
-                    continue 2;
+                case $attr instanceof RelationAttribute:
+                    $relation = $attr;
+
+                    $validField = true;
+                    break;
+
+                case $attr instanceof PrimaryKey:
+                    $isPrimary = true;
+                    break;
             }
         }
 
-        static::$macros[static::class][$macroName] = $macro;
+        if (!$validField) {
+            return;
+        }
+
+        static::$fields[static::class][$classProperty] = new FieldDefinition(
+            $alias,
+            $cast,
+            $default,
+            $isPrimary,
+            $classProperty,
+            $relation,
+            $types
+        );
+    }
+
+    /**
+     * Initializes a macro of the model.
+     *
+     * @param ReflectionClass $class
+     * @param ReflectionProperty $property
+     * @param ReflectionAttribute $macroAttribute
+     *
+     * @throws ModelException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    private static function initializeMacro(ReflectionClass $class, ReflectionProperty $property, ReflectionAttribute $macroAttribute): void
+    {
+        $propertyName = $property->getName();
+        $methodName = str_starts_with($propertyName, 'is') ? $propertyName : 'get' . ucfirst($propertyName);
+
+        if (!$class->hasMethod($methodName)) {
+            throw new ModelException(sprintf('Macro %s in model %s should have a callback method named %s.', $propertyName, static::class, $methodName), ModelException::ERR_MACRO_METHOD_NOT_FOUND);
+        }
+
+        /** @var Macro $macro */
+        $macro = $macroAttribute->newInstance();
+
+        static::$macros[static::class][$propertyName] = new MacroDefinition(
+            $macro->getAlias(),
+            $macro->isCacheable(),
+            $methodName
+        );
     }
 
     /**
      * Initializes the model from a relation.
      *
+     * @throws ModelException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @access private

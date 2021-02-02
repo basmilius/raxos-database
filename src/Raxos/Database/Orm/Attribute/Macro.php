@@ -12,37 +12,40 @@ use Attribute;
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.0
  */
-#[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_PROPERTY)]
 final class Macro
 {
 
     /**
      * Macro constructor.
      *
-     * @param string|null $name
+     * @param string|null $alias
      * @param bool $isCacheable
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private ?string $name = null, private bool $isCacheable = false)
+    public function __construct(
+        private ?string $alias = null,
+        private bool $isCacheable = false
+    )
     {
     }
 
     /**
-     * Gets the name of the macro.
+     * Gets the alias.
      *
      * @return string|null
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function getName(): ?string
+    public final function getAlias(): ?string
     {
-        return $this->name;
+        return $this->alias;
     }
 
     /**
-     * Returns TRUE if the macro is cacheable.
+     * Gets if the macro is cacheable..
      *
      * @return bool
      * @author Bas Milius <bas@mili.us>

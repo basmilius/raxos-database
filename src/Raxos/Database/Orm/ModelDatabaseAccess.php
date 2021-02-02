@@ -177,9 +177,6 @@ trait ModelDatabaseAccess
             ];
         }
 
-        // todo(Bas): Find models that are already in cache. We don't need
-        //  to query those again as we're using existing models.
-
         $query = static::select();
 
         self::addPrimaryKeyInClauses($query, $primaryKeys);
@@ -388,8 +385,8 @@ trait ModelDatabaseAccess
             $primaryKey = [$primaryKey];
         }
 
-        foreach (static::getFields() as $field => ['is_primary' => $isPrimary]) {
-            if (!$isPrimary) {
+        foreach (static::getFields() as $fieldName => $fieldDefinition) {
+            if (!$fieldDefinition->isPrimary) {
                 continue;
             }
 
@@ -399,12 +396,12 @@ trait ModelDatabaseAccess
 
             $value = array_shift($primaryKey);
 
-            $field = static::getFieldName($field);
+            $fieldName = static::getFieldName($fieldName);
 
             if ($index++ === 0) {
-                $query->where(static::column($field), $value);
+                $query->where(static::column($fieldName), $value);
             } else {
-                $query->and(static::column($field), $value);
+                $query->and(static::column($fieldName), $value);
             }
         }
 
