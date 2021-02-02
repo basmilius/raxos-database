@@ -13,6 +13,7 @@ use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\Collection\CollectionException;
+use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use function array_filter;
 use function array_map;
@@ -397,14 +398,12 @@ class Statement
             throw new QueryException('Eager loading is only available for models.', QueryException::ERR_EAGER_NOT_AVAILABLE);
         }
 
-        // todo(Bas): Implement query logging.
-
-//        \Columba\Util\pre([
-//            'query' => $this->query->toSql(),
-//            'trace' => array_map(fn(array $item) => sprintf('%s:%d (%s)', ($item['file'] ?? '-'), ($item['line'] ?? 0), isset($item['class']) ? $item['class'] . $item['type'] . $item['function'] : ($item['function'] ?? 'unknown')), debug_backtrace())
-//        ]);
-
-        $result = $this->pdoStatement->execute();
+        if (($logger = $this->connection->getLogger()) !== null) {
+            $result = Stopwatch::measure($time, fn() => $this->pdoStatement->execute(), Stopwatch::SECONDS);
+            $logger->addQuery(new QueryLogEntry($this->pdoStatement->queryString, $time));
+        } else {
+            $result = $this->pdoStatement->execute();
+        }
 
         if ($result === false) {
             throw $this->throwFromError();

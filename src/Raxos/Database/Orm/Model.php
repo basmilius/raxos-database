@@ -573,7 +573,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         $this->isMacroCall = true;
-        $result = $this->{$macro->method}($this);
+        $result = static::{$macro->method}($this);
         $this->isMacroCall = false;
 
         if ($macro->isCacheable) {
@@ -804,6 +804,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      */
     public static function getTable(): string
     {
+        if (array_key_exists(static::class, static::$tables)) {
+            return static::$tables[static::class];
+        }
+
+        static::initialize();
+
         return static::$tables[static::class] ?? throw new ModelException(sprintf('Model "%s" does not have a table assigned.', static::class), ModelException::ERR_NO_TABLE_ASSIGNED);
     }
 
@@ -1000,7 +1006,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $methodName = str_starts_with($propertyName, 'is') ? $propertyName : 'get' . ucfirst($propertyName);
 
         if (!$class->hasMethod($methodName)) {
-            throw new ModelException(sprintf('Macro %s in model %s should have a callback method named %s.', $propertyName, static::class, $methodName), ModelException::ERR_MACRO_METHOD_NOT_FOUND);
+            throw new ModelException(sprintf('Macro %s in model %s should have a static macro method named %s.', $propertyName, static::class, $methodName), ModelException::ERR_MACRO_METHOD_NOT_FOUND);
         }
 
         /** @var Macro $macro */

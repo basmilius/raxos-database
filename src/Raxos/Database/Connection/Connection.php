@@ -14,6 +14,7 @@ use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Orm\Cache;
 use Raxos\Database\Query\Query;
+use Raxos\Database\Query\QueryLog;
 use Raxos\Database\Query\Statement;
 use Raxos\Foundation\Event\Emitter;
 use function array_key_exists;
@@ -38,6 +39,7 @@ abstract class Connection
     protected Cache $cache;
     protected ?array $columnsPerTable = null;
     protected Dialect $dialect;
+    protected ?QueryLog $logger = null;
     protected ?PDO $pdo = null;
 
     /**
@@ -56,6 +58,17 @@ abstract class Connection
     {
         $this->cache = new Cache();
         $this->dialect = $this->initializeDialect();
+    }
+
+    /**
+     * Enables the built-in query logged.
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function enableQueryLogging(): void
+    {
+        $this->logger = new QueryLog();
     }
 
     /**
@@ -421,6 +434,18 @@ abstract class Connection
     public final function getDialect(): Dialect
     {
         return $this->dialect;
+    }
+
+    /**
+     * Gets the query logger.
+     *
+     * @return QueryLog|null
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function getLogger(): ?QueryLog
+    {
+        return $this->logger;
     }
 
     /**
