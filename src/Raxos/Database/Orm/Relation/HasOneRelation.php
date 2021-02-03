@@ -14,6 +14,8 @@ use function array_unique;
 /**
  * Class HasOneRelation
  *
+ * @template TModel of \Raxos\Database\Orm\Model
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
  * @since 1.0.0
@@ -24,10 +26,8 @@ class HasOneRelation extends Relation
     /**
      * HasOneRelation constructor.
      *
-     * @template M of \Raxos\Database\Orm\Model
-     *
      * @param Connection $connection
-     * @param string $referenceModel
+     * @param class-string<TModel> $referenceModel
      * @param bool $eagerLoad
      * @param string $fieldName
      * @param string $column
