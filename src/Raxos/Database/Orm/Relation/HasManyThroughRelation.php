@@ -100,9 +100,7 @@ class HasManyThroughRelation extends HasManyRelation
         /** @var Model $throughModel */
         $throughModel = $this->throughModel;
 
-        return $referenceModel::query(false)
-            ->select($referenceModel::column('*'))
-            ->from($referenceModel::getTable())
+        return $referenceModel::select()
             ->join($throughModel::getTable(), fn(Query $q) => $q
                 ->on($throughModel::column($this->referenceThroughKey), Literal::with($referenceModel::column($this->referenceKey))))
             ->where($throughModel::column($this->throughKey), $model->{$this->key});

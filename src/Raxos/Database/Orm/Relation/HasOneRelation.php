@@ -98,9 +98,7 @@ class HasOneRelation extends Relation
         /** @var Model $referenceModel */
         $referenceModel = $this->getReferenceModel();
 
-        return $referenceModel::query(false)
-            ->select($referenceModel::column('*'))
-            ->from($referenceModel::getTable())
+        return $referenceModel::select()
             ->where($this->referenceKey, $model->{$this->key});
     }
 
@@ -122,9 +120,7 @@ class HasOneRelation extends Relation
             return;
         }
 
-        $referenceModel::query(false)
-            ->select($referenceModel::column('*'))
-            ->from($referenceModel::getTable())
+        $referenceModel::select()
             ->where($this->referenceKey, ComparatorAwareLiteral::in($values))
             ->array();
     }

@@ -17,6 +17,7 @@ use Raxos\Database\Orm\Relation\Relation;
 use Raxos\Database\Query\Query;
 use Raxos\Foundation\Event\Emitter;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
+use Raxos\Foundation\Util\ArrayUtil;
 use Raxos\Foundation\Util\ReflectionUtil;
 use Raxos\Foundation\Util\Singleton;
 use ReflectionAttribute;
@@ -572,8 +573,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     {
         switch (true) {
             case $relation instanceof HasOneRelation:
-                $column = $relation->getColumn();
-                $referenceColumn = $relation->getReferenceColumn();
+                $column = $relation->getKey();
+                $referenceColumn = $relation->getReferenceKey();
 
                 /** @var self $referenceModel */
                 $referenceModel = $relation->getReferenceModel();
@@ -910,6 +911,28 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $field = static::getField($field);
 
         return $field !== null && $field->relation !== null;
+    }
+
+    /**
+     * Ensures that the given fields are returned as array.
+     *
+     * @param array|string|int $fields
+     *
+     * @return array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    protected static function ensureArrayFields(array|string|int $fields): array
+    {
+        if (!is_array($fields)) {
+            $fields = [$fields];
+        }
+
+        if (ArrayUtil::isSequential($fields)) {
+            $fields = array_fill_keys($fields, true);
+        }
+
+        return $fields;
     }
 
     /**

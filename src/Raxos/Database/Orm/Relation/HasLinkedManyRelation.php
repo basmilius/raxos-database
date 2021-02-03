@@ -101,9 +101,7 @@ class HasLinkedManyRelation extends HasManyRelation
         /** @var Model $referenceModel */
         $referenceModel = $this->getReferenceModel();
 
-        return $referenceModel::query(false)
-            ->select($referenceModel::column('*'))
-            ->from($referenceModel::getTable())
+        return $referenceModel::select()
             ->join($this->linkingTable, fn(Query $q) => $q
                 ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", Literal::with($referenceModel::column($this->referenceKey))))
             ->where("{$this->linkingTable}.{$this->linkingKey}", $model->{$this->key});
@@ -127,12 +125,7 @@ class HasLinkedManyRelation extends HasManyRelation
             return;
         }
 
-        $results = $referenceModel::query(false)
-            ->select([
-                $referenceModel::column('*') => true,
-                '__linking_key' => "group_concat({$this->linkingTable}.{$this->linkingKey})"
-            ])
-            ->from($referenceModel::getTable())
+        $results = $referenceModel::select(['__linking_key' => "group_concat({$this->linkingTable}.{$this->linkingKey})"])
             ->leftJoin($this->linkingTable, fn(Query $q) => $q
                 ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", Literal::with($referenceModel::column($this->referenceKey))))
             ->where("{$this->linkingTable}.{$this->linkingKey}", ComparatorAwareLiteral::in($values))
