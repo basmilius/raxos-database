@@ -12,6 +12,7 @@ use Raxos\Database\Orm\Attribute\{Column, HasMany, HasOne, Immutable, Macro, Pri
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Defenition\FieldDefinition;
 use Raxos\Database\Orm\Defenition\MacroDefinition;
+use Raxos\Database\Orm\Relation\HasOneRelation;
 use Raxos\Database\Orm\Relation\Relation;
 use Raxos\Database\Query\Query;
 use Raxos\Foundation\Event\Emitter;
@@ -28,14 +29,18 @@ use function array_map;
 use function array_unique;
 use function class_exists;
 use function count;
+use function explode;
+use function get_class;
 use function implode;
 use function in_array;
 use function is_array;
 use function is_string;
 use function is_subclass_of;
+use function last;
 use function serialize;
 use function sprintf;
 use function str_starts_with;
+use function trim;
 use function ucfirst;
 use function unserialize;
 
@@ -151,6 +156,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             'data' => $this->data,
             'fields' => $fields,
             'macros' => $macros,
+            'modified' => $this->modified,
             'table' => static::$tables[static::class]
         ];
     }
@@ -527,17 +533,67 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $fieldDefinition = static::getField($field);
 
         if ($fieldDefinition !== null) {
-            if ($fieldDefinition->isPrimary) {
-                throw new ModelException(sprintf('Field "%s" is (part of) the primary key of model "%s" and is therefore not mutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
-            } else if ($fieldDefinition->isImmutable && !$this->isNew) {
-                throw new ModelException(sprintf('Field "%s" in model "%s" is immutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
+            if (static::isRelation($field)) {
+                $relation = static::getRelation($field);
+
+                $this->setValueOfRelation($fieldDefinition, $relation, $value);
+            } else {
+                if ($fieldDefinition->isPrimary) {
+                    throw new ModelException(sprintf('Field "%s" is (part of) the primary key of model "%s" and is therefore not mutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
+                } else if ($fieldDefinition->isImmutable && !$this->isNew) {
+                    throw new ModelException(sprintf('Field "%s" in model "%s" is immutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
+                }
+
+                $this->modified[] = $field;
+
+                parent::setValue($fieldName, $value);
             }
-
-            $this->modified[] = $field;
-
-            parent::setValue($fieldName, $value);
         } else {
             throw new ModelException(sprintf('Field "%s" is not writable on model "%s".', $field, static::class), ModelException::ERR_IMMUTABLE);
+        }
+    }
+
+    /**
+     * Sets the value of a relation if possible.
+     *
+     * @param FieldDefinition $field
+     * @param Relation $relation
+     * @param mixed $value
+     *
+     * @throws ModelException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    protected function setValueOfRelation(FieldDefinition $field, Relation $relation, mixed $value): void
+    {
+        switch(true) {
+            case $relation instanceof HasOneRelation:
+                $column = $relation->getColumn();
+                $referenceColumn = $relation->getReferenceColumn();
+
+                /** @var self $referenceModel */
+                $referenceModel = $relation->getReferenceModel();
+
+                if (!($value instanceof $referenceModel)) {
+                    throw new ModelException(sprintf('%s is not assignable to type %s.', get_class($value), $referenceModel), ModelException::ERR_INVALID_TYPE);
+                }
+
+                $column = explode('.', $column);
+                $column = last($column);
+                $column = trim($column, '`');
+
+                $referenceColumn = explode('.', $referenceColumn);
+                $referenceColumn = last($referenceColumn);
+                $referenceColumn = trim($referenceColumn, '`');
+
+                parent::setValue($column, $value->{$referenceColumn});
+                parent::setValue($relation->getFieldName(), $value);
+
+                $this->modified[] = $column;
+                break;
+
+            default:
+                throw new ModelException(sprintf('Field "%s" is a relationship that has no setters on model "%s".', $field, static::class), ModelException::ERR_IMMUTABLE);
         }
     }
 

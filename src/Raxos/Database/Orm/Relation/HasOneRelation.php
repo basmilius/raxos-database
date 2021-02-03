@@ -49,6 +49,30 @@ class HasOneRelation extends Relation
     }
 
     /**
+     * Gets the column.
+     *
+     * @return string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function getColumn(): string
+    {
+        return $this->column;
+    }
+
+    /**
+     * Gets the referenced column.
+     *
+     * @return string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function getReferenceColumn(): string
+    {
+        return $this->referenceColumn;
+    }
+
+    /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0

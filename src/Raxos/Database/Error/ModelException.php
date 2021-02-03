@@ -24,5 +24,6 @@ final class ModelException extends DatabaseException
     public const ERR_NOT_A_MODEL = 256;
     public const ERR_NOT_SUPPORTED = 512;
     public const ERR_RELATION_NOT_FOUND = 1024;
+    public const ERR_INVALID_TYPE = 2048;
 
 }
