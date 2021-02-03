@@ -566,7 +566,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      */
     protected function setValueOfRelation(FieldDefinition $field, Relation $relation, mixed $value): void
     {
-        switch(true) {
+        switch (true) {
             case $relation instanceof HasOneRelation:
                 $column = $relation->getColumn();
                 $referenceColumn = $relation->getReferenceColumn();
@@ -589,7 +589,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                 parent::setValue($column, $value->{$referenceColumn});
                 parent::setValue($relation->getFieldName(), $value);
 
-                $this->modified[] = $column;
+                $this->modified[] = static::getFieldProperty($column);
                 break;
 
             default:
@@ -730,6 +730,26 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $f = static::getField($field);
 
         return $f->alias ?? $field;
+    }
+
+    /**
+     * Gets the property name of a field.
+     *
+     * @param string $field
+     *
+     * @return string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function getFieldProperty(string $field): string
+    {
+        foreach (static::getFields() as $f) {
+            if (($f->alias ?? $f->property) === $field) {
+                return $f->property;
+            }
+        }
+
+        return $field;
     }
 
     /**
