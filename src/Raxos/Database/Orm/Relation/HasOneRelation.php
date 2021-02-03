@@ -30,8 +30,8 @@ class HasOneRelation extends Relation
      * @param class-string<TModel> $referenceModel
      * @param bool $eagerLoad
      * @param string $fieldName
-     * @param string $column
-     * @param string $referenceColumn
+     * @param string $key
+     * @param string $referenceKey
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -41,8 +41,8 @@ class HasOneRelation extends Relation
         string $referenceModel,
         bool $eagerLoad,
         string $fieldName,
-        protected string $column,
-        protected string $referenceColumn
+        protected string $key,
+        protected string $referenceKey
     )
     {
         parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName);
@@ -55,9 +55,9 @@ class HasOneRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function getColumn(): string
+    public final function getKey(): string
     {
-        return $this->column;
+        return $this->key;
     }
 
     /**
@@ -67,9 +67,9 @@ class HasOneRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function getReferenceColumn(): string
+    public final function getReferenceKey(): string
     {
-        return $this->referenceColumn;
+        return $this->referenceKey;
     }
 
     /**
@@ -81,8 +81,8 @@ class HasOneRelation extends Relation
     {
         $query = $this->getQuery($model);
 
-        if ($this->connection->getCache()->has($this->getReferenceModel(), $model->{$this->column})) {
-            return $this->connection->getCache()->get($this->getReferenceModel(), $model->{$this->column});
+        if ($this->connection->getCache()->has($this->getReferenceModel(), $model->{$this->key})) {
+            return $this->connection->getCache()->get($this->getReferenceModel(), $model->{$this->key});
         }
 
         return $query->single();
@@ -101,7 +101,7 @@ class HasOneRelation extends Relation
         return $referenceModel::query(false)
             ->select($referenceModel::column('*'))
             ->from($referenceModel::getTable())
-            ->where($this->referenceColumn, $model->{$this->column});
+            ->where($this->referenceKey, $model->{$this->key});
     }
 
     /**
@@ -114,7 +114,7 @@ class HasOneRelation extends Relation
         /** @var Model $referenceModel */
         $referenceModel = $this->getReferenceModel();
 
-        $values = array_column($models, $this->column);
+        $values = array_column($models, $this->key);
         $values = array_unique($values);
         $values = array_filter($values, fn($value) => !$this->connection->getCache()->has($this->getReferenceModel(), $value));
 
@@ -125,7 +125,7 @@ class HasOneRelation extends Relation
         $referenceModel::query(false)
             ->select($referenceModel::column('*'))
             ->from($referenceModel::getTable())
-            ->where($this->referenceColumn, ComparatorAwareLiteral::in($values))
+            ->where($this->referenceKey, ComparatorAwareLiteral::in($values))
             ->array();
     }
 

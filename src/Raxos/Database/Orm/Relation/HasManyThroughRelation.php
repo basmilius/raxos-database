@@ -27,11 +27,11 @@ class HasManyThroughRelation extends HasManyRelation
      * @param class-string<TModel> $referenceModel
      * @param bool $eagerLoad
      * @param string $fieldName
-     * @param string $column
-     * @param string $referenceColumn
+     * @param string $key
+     * @param string $referenceKey
      * @param class-string<TModel> $throughModel
-     * @param string $throughColumn
-     * @param string $referenceThroughColumn
+     * @param string $throughKey
+     * @param string $referenceThroughKey
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -41,14 +41,50 @@ class HasManyThroughRelation extends HasManyRelation
         string $referenceModel,
         bool $eagerLoad,
         string $fieldName,
-        string $column,
-        string $referenceColumn,
+        string $key,
+        string $referenceKey,
         protected string $throughModel,
-        protected string $throughColumn,
-        protected string $referenceThroughColumn
+        protected string $throughKey,
+        protected string $referenceThroughKey
     )
     {
-        parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName, $column, $referenceColumn);
+        parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName, $key, $referenceKey);
+    }
+
+    /**
+     * Gets the through key.
+     *
+     * @return string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function getThroughKey(): string
+    {
+        return $this->throughKey;
+    }
+
+    /**
+     * Gets the through model.
+     *
+     * @return class-string<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function getThroughModel(): string
+    {
+        return $this->throughModel;
+    }
+
+    /**
+     * Gets the reference through key.
+     *
+     * @return string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function getReferenceThroughKey(): string
+    {
+        return $this->referenceThroughKey;
     }
 
     /**
@@ -68,8 +104,8 @@ class HasManyThroughRelation extends HasManyRelation
             ->select($referenceModel::column('*'))
             ->from($referenceModel::getTable())
             ->join($throughModel::getTable(), fn(Query $q) => $q
-                ->on($throughModel::column($this->referenceThroughColumn), Literal::with($referenceModel::column($this->referenceColumn))))
-            ->where($throughModel::column($this->throughColumn), $model->{$this->column});
+                ->on($throughModel::column($this->referenceThroughKey), Literal::with($referenceModel::column($this->referenceKey))))
+            ->where($throughModel::column($this->throughKey), $model->{$this->key});
     }
 
     /**

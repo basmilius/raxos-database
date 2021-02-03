@@ -8,7 +8,7 @@ use JetBrains\PhpStorm\ExpectedValues;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Attribute\{Column, HasMany, HasManyThrough, HasOne, Immutable, Macro, PrimaryKey, RelationAttribute, Table};
+use Raxos\Database\Orm\Attribute\{Column, HasLinkedMany, HasMany, HasManyThrough, HasOne, Immutable, Macro, PrimaryKey, RelationAttribute, Table};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Defenition\FieldDefinition;
 use Raxos\Database\Orm\Defenition\MacroDefinition;
@@ -64,6 +64,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     protected const ATTRIBUTES = [
         Column::class,
         Macro::class,
+        HasLinkedMany::class,
         HasMany::class,
         HasManyThrough::class,
         HasOne::class,
@@ -549,6 +550,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
                 parent::setValue($fieldName, $value);
             }
+        } else if (str_starts_with($field, '__')) {
+            parent::setValue($field, $value);
         } else {
             throw new ModelException(sprintf('Field "%s" is not writable on model "%s".', $field, static::class), ModelException::ERR_IMMUTABLE);
         }

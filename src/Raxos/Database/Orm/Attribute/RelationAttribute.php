@@ -6,6 +6,7 @@ namespace Raxos\Database\Orm\Attribute;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Orm\Defenition\FieldDefinition;
+use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\Relation\Relation;
 
 /**
@@ -33,10 +34,8 @@ abstract class RelationAttribute
     /**
      * Creates the relation instance.
      *
-     * @template M of \Raxos\Database\Orm\Model
-     *
      * @param Connection $connection
-     * @param class-string<M> $modelClass
+     * @param class-string<Model> $modelClass
      * @param FieldDefinition $field
      *
      * @return Relation

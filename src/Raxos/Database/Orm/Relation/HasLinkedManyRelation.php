@@ -7,14 +7,13 @@ use Raxos\Database\Connection\Connection;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
-use WeakMap;
-use function array_column;
-use function array_filter;
+use Raxos\Database\Query\Struct\Literal;
 use function array_map;
-use function array_unique;
+use function explode;
+use function in_array;
 
 /**
- * Class HasManyRelation
+ * Class HasLinkedManyRelation
  *
  * @template TModel of \Raxos\Database\Orm\Model
  *
@@ -22,15 +21,11 @@ use function array_unique;
  * @package Raxos\Database\Orm\Relation
  * @since 1.0.0
  */
-class HasManyRelation extends Relation
+class HasLinkedManyRelation extends HasManyRelation
 {
 
-    protected WeakMap $results;
-
     /**
-     * HasManyRelation constructor.
-     *
-     * @template M of \Raxos\Database\Orm\Model
+     * HasLinkedManyRelation constructor.
      *
      * @param Connection $connection
      * @param class-string<TModel> $referenceModel
@@ -38,6 +33,9 @@ class HasManyRelation extends Relation
      * @param string $fieldName
      * @param string $key
      * @param string $referenceKey
+     * @param string $linkingKey
+     * @param string $linkingReferenceKey
+     * @param string $linkingTable
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -47,65 +45,50 @@ class HasManyRelation extends Relation
         string $referenceModel,
         bool $eagerLoad,
         string $fieldName,
-        protected string $key,
-        protected string $referenceKey
+        string $key,
+        string $referenceKey,
+        protected string $linkingKey,
+        protected string $linkingReferenceKey,
+        protected string $linkingTable
     )
     {
-        parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName);
-
-        $this->results = new WeakMap();
+        parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName, $key, $referenceKey);
     }
 
     /**
-     * Gets the key.
+     * Gets the linking key.
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function getKey(): string
+    public final function getLinkingKey(): string
     {
-        return $this->key;
+        return $this->linkingKey;
     }
 
     /**
-     * Gets the reference key.
+     * Gets the linking reference key.
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function getReferenceKey(): string
+    public final function getLinkingReferenceKey(): string
     {
-        return $this->referenceKey;
+        return $this->linkingReferenceKey;
     }
 
     /**
-     * {@inheritdoc}
+     * Gets the linking table.
+     *
+     * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function get(Model $model): array
+    public final function getLinkingTable(): string
     {
-        if (isset($this->results[$model])) {
-            return $this->results[$model];
-        }
-
-        $results = $this
-            ->getQuery($model)
-            ->array();
-
-        $results = array_map(function (Model $model): Model {
-            if ($this->connection->getCache()->has($model::class, $model->getPrimaryKeyValues())) {
-                return $this->connection->getCache()->get($model::class, $model->getPrimaryKeyValues());
-            }
-
-            return $model;
-        }, $results);
-
-        $this->results[$model] = $results;
-
-        return $results;
+        return $this->linkingTable;
     }
 
     /**
@@ -121,7 +104,9 @@ class HasManyRelation extends Relation
         return $referenceModel::query(false)
             ->select($referenceModel::column('*'))
             ->from($referenceModel::getTable())
-            ->where($this->referenceKey, $model->{$this->key});
+            ->join($this->linkingTable, fn(Query $q) => $q
+                ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", Literal::with($referenceModel::column($this->referenceKey))))
+            ->where("{$this->linkingTable}.{$this->linkingKey}", $model->{$this->key});
     }
 
     /**
@@ -143,20 +128,35 @@ class HasManyRelation extends Relation
         }
 
         $results = $referenceModel::query(false)
-            ->select($referenceModel::column('*'))
+            ->select([
+                $referenceModel::column('*') => true,
+                '__linking_key' => "group_concat({$this->linkingTable}.{$this->linkingKey})"
+            ])
             ->from($referenceModel::getTable())
-            ->where($this->referenceKey, ComparatorAwareLiteral::in($values))
+            ->leftJoin($this->linkingTable, fn(Query $q) => $q
+                ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", Literal::with($referenceModel::column($this->referenceKey))))
+            ->where("{$this->linkingTable}.{$this->linkingKey}", ComparatorAwareLiteral::in($values))
+            ->groupBy($referenceModel::column($this->referenceKey))
             ->array();
+
+        $roles = [];
+
+        foreach ($results as $result) {
+            $result->__linking_key = explode(',', $result->__linking_key);
+            $result->__linking_key = array_map('intval', $result->__linking_key);
+        }
 
         foreach ($models as $model) {
             $this->results[$model] = [];
 
             foreach ($results as $result) {
-                if ($result->{$this->referenceKey} !== $model->{$this->key}) {
+                $role = $roles[$result->{$this->referenceKey}] ??= $result;
+
+                if (!in_array($model->{$this->key}, $result->__linking_key)) {
                     continue;
                 }
 
-                $this->results[$model][] = $result;
+                $this->results[$model][] = $role;
             }
         }
     }
