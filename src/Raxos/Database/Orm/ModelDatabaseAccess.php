@@ -213,12 +213,12 @@ trait ModelDatabaseAccess
      *
      * @param array|string|int $primaryKey
      *
-     * @return static|null
+     * @return static
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function getOrFail(array|string|int $primaryKey): ?static
+    public static function getOrFail(array|string|int $primaryKey): static
     {
         return static::get($primaryKey) ?? throw new ModelException(sprintf('Model with primary key "%s" not found.', json_encode($primaryKey)), ModelException::ERR_NOT_FOUND);
     }
@@ -230,7 +230,7 @@ trait ModelDatabaseAccess
      * @param Value|string|int|float|bool|null $comparator
      * @param Value|string|int|float|bool|null $value
      *
-     * @return Query
+     * @return Query<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -247,7 +247,7 @@ trait ModelDatabaseAccess
      *
      * @param bool $isPrepared
      *
-     * @return Query
+     * @return Query<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -266,7 +266,7 @@ trait ModelDatabaseAccess
      *
      * @param string[]|string|int $fields
      *
-     * @return Query
+     * @return Query<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -282,7 +282,7 @@ trait ModelDatabaseAccess
      *
      * @param string[]|string|int $fields
      *
-     * @return Query
+     * @return Query<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -298,7 +298,7 @@ trait ModelDatabaseAccess
      *
      * @param string[]|string|int $fields
      *
-     * @return Query
+     * @return Query<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -315,7 +315,7 @@ trait ModelDatabaseAccess
      * @param string $suffix
      * @param string[]|string|int $fields
      *
-     * @return Query
+     * @return Query<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -354,7 +354,7 @@ trait ModelDatabaseAccess
      * @param Value|string|int|float|bool|null $comparator
      * @param Value|string|int|float|bool|null $value
      *
-     * @return Query
+     * @return Query<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -371,15 +371,14 @@ trait ModelDatabaseAccess
      *
      * @param Query $query
      * @param array|string|int $primaryKey
-     * @param bool $startWithWhere
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    private static function addPrimaryKeyClauses(Query $query, array|string|int $primaryKey, bool $startWithWhere = true): void
+    private static function addPrimaryKeyClauses(Query $query, array|string|int $primaryKey): void
     {
-        $index = $startWithWhere ? 0 : 1;
+        $index = 0;
 
         if (!is_array($primaryKey)) {
             $primaryKey = [$primaryKey];
@@ -415,15 +414,14 @@ trait ModelDatabaseAccess
      *
      * @param Query $query
      * @param array[] $primaryKeys
-     * @param bool $startWithWhere
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    private static function addPrimaryKeyInClauses(Query $query, array $primaryKeys, bool $startWithWhere = true): void
+    private static function addPrimaryKeyInClauses(Query $query, array $primaryKeys): void
     {
-        $index = $startWithWhere ? 0 : 1;
+        $index = 0;
 
         if (!is_array($primaryKeys[0])) {
             $primaryKeys = [$primaryKeys];
@@ -468,7 +466,7 @@ trait ModelDatabaseAccess
      * @param callable $fn
      * @param string[]|string|int $fields
      *
-     * @return Query
+     * @return Query<static>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

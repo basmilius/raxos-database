@@ -35,6 +35,8 @@ use function strlen;
 /**
  * Class QueryBase
  *
+ * @template TResult
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
  * @since 1.0.0
@@ -88,7 +90,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param Value|string|int|float|bool|null $comparator
      * @param Value|string|int|float|bool|null $value
      *
-     * @return $this
+     * @return static<TResult>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -210,7 +212,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param array|string|int|null $data
      * @param string|null $separator
      *
-     * @return $this
+     * @return static<TResult>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -231,7 +233,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param bool $is
      * @param callable $fn
      *
-     * @return $this
+     * @return static<TResult>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -250,7 +252,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param bool $is
      * @param callable $fn
      *
-     * @return $this
+     * @return static<TResult>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -269,7 +271,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      *
      * @param string|string[] $relations
      *
-     * @return $this
+     * @return static<TResult>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -291,7 +293,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      *
      * @param QueryBase $query
      *
-     * @return $this
+     * @return static<TResult>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -314,7 +316,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param callable $fn
      * @param bool $patch
      *
-     * @return $this
+     * @return static<TResult>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -339,7 +341,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     /**
      * Closes a parenthesis group.
      *
-     * @return $this
+     * @return static<TResult>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -355,7 +357,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param string|null $comparator
      * @param Value|string|int|float|bool|null $value
      *
-     * @return $this
+     * @return static<TResult>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -370,7 +372,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      *
      * @param string $expression
      *
-     * @return $this
+     * @return static<TResult>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -416,7 +418,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      *
      * @param string $class
      *
-     * @return $this
+     * @return static<TResult>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -430,7 +432,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     /**
      * Removes the associated model.
      *
-     * @return $this
+     * @return static<TResult>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -511,7 +513,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param int $fetchMode
      * @param array $options
      *
-     * @return array
+     * @return array<TResult>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -530,7 +532,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param int $fetchMode
      * @param array $options
      *
-     * @return ArrayList|ModelArrayList
+     * @return ArrayList<TResult>|ModelArrayList<TResult>
      * @throws CollectionException
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
@@ -550,7 +552,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param int $fetchMode
      * @param array $options
      *
-     * @return Generator
+     * @return Generator<TResult>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -591,6 +593,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     *
+     * @psalm-return TResult
      */
     public function single(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array|null
     {
@@ -651,7 +655,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     /**
      * Resets the builder.
      *
-     * @return $this
+     * @return static<TResult>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

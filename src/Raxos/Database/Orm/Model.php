@@ -8,7 +8,7 @@ use JetBrains\PhpStorm\ExpectedValues;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Attribute\{Column, HasMany, HasOne, Macro, PrimaryKey, RelationAttribute, Table};
+use Raxos\Database\Orm\Attribute\{Column, HasMany, HasOne, Immutable, Macro, PrimaryKey, RelationAttribute, Table};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Defenition\FieldDefinition;
 use Raxos\Database\Orm\Defenition\MacroDefinition;
@@ -61,6 +61,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         Macro::class,
         HasMany::class,
         HasOne::class,
+        Immutable::class,
         PrimaryKey::class,
         Table::class
     ];
@@ -527,7 +528,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
         if ($fieldDefinition !== null) {
             if ($fieldDefinition->isPrimary) {
-                throw new ModelException(sprintf('Field "%s" is part of the primary key of model "%s" and is therefore not writable.', $field, static::class), ModelException::ERR_IMMUTABLE);
+                throw new ModelException(sprintf('Field "%s" is (part of) the primary key of model "%s" and is therefore not mutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
+            } else if ($fieldDefinition->isImmutable && !$this->isNew) {
+                throw new ModelException(sprintf('Field "%s" in model "%s" is immutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
             }
 
             $this->modified[] = $field;
@@ -956,6 +959,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $cast = null;
         $classProperty = $property->getName();
         $default = null;
+        $isImmutable = false;
         $isPrimary = false;
         $relation = null;
         $types = ReflectionUtil::getTypes($property->getType()) ?? [];
@@ -982,7 +986,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                     $validField = true;
                     break;
 
+                case $attr instanceof Immutable:
+                    $isImmutable = true;
+                    break;
+
                 case $attr instanceof PrimaryKey:
+                    $isImmutable = true;
                     $isPrimary = true;
                     break;
             }
@@ -996,6 +1005,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $alias,
             $cast,
             $default,
+            $isImmutable,
             $isPrimary,
             $classProperty,
             $relation,

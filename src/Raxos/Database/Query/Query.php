@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpUnused */
 declare(strict_types=1);
 
 namespace Raxos\Database\Query;
@@ -24,6 +25,9 @@ use function trim;
 /**
  * Class Query
  *
+ * @template-covariant TModel
+ * @extends QueryBase<TModel>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
  * @since 1.0.0
@@ -38,7 +42,7 @@ abstract class Query extends QueryBase
      * @param Value|string|int|float|bool|null $comparator
      * @param Value|string|int|float|bool|null $value
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -53,7 +57,7 @@ abstract class Query extends QueryBase
      *
      * @param string $field
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -68,7 +72,7 @@ abstract class Query extends QueryBase
      *
      * @param string $field
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -83,7 +87,7 @@ abstract class Query extends QueryBase
      *
      * @param string $table
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -97,7 +101,7 @@ abstract class Query extends QueryBase
      *
      * @param string $table
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -111,7 +115,7 @@ abstract class Query extends QueryBase
      *
      * @param string[]|string $tables
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -131,7 +135,7 @@ abstract class Query extends QueryBase
      *
      * @param string[]|string $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -153,7 +157,7 @@ abstract class Query extends QueryBase
      * @param Value|string|int|float|bool|null $comparator
      * @param Value|string|int|float|bool|null $value
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -169,7 +173,7 @@ abstract class Query extends QueryBase
      * @param int $limit
      * @param int $offset
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -189,7 +193,7 @@ abstract class Query extends QueryBase
      *
      * @param int $offset
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -205,7 +209,7 @@ abstract class Query extends QueryBase
      * @param Value|string|int|float|bool $comparator
      * @param Value|string|int|float|bool|null $right
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -220,7 +224,7 @@ abstract class Query extends QueryBase
      *
      * @param string[]|string $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -242,7 +246,7 @@ abstract class Query extends QueryBase
      * @param Value|string|int|float|bool|null $comparator
      * @param Value|string|int|float|bool|null $value
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -257,7 +261,7 @@ abstract class Query extends QueryBase
      *
      * @param string $field
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -272,7 +276,7 @@ abstract class Query extends QueryBase
      *
      * @param string $field
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -287,7 +291,7 @@ abstract class Query extends QueryBase
      *
      * @param Value[]|string[]|Value|string $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -322,7 +326,7 @@ abstract class Query extends QueryBase
      *
      * @param string $field
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -339,7 +343,7 @@ abstract class Query extends QueryBase
      *
      * @param string $field
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -357,7 +361,7 @@ abstract class Query extends QueryBase
      * @param string $field
      * @param Value|string|int|float|bool|null $value
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -390,7 +394,7 @@ abstract class Query extends QueryBase
      *
      * @param Query $query
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -406,7 +410,7 @@ abstract class Query extends QueryBase
      *
      * @param Query $query
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -423,7 +427,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param array|null $pairs
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -448,7 +452,7 @@ abstract class Query extends QueryBase
      *
      * @param array $values
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -470,7 +474,7 @@ abstract class Query extends QueryBase
      * @param Value|string|int|float|bool|null $comparator
      * @param Value|string|int|float|bool|null $value
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -485,7 +489,7 @@ abstract class Query extends QueryBase
      *
      * @param string $field
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -500,7 +504,7 @@ abstract class Query extends QueryBase
      *
      * @param string $field
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -516,7 +520,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param string[] $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -533,7 +537,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param string[] $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -550,7 +554,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param array $pairs
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -573,7 +577,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param array $pairs
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -596,7 +600,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param string[] $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -613,7 +617,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param array $pairs
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -635,7 +639,7 @@ abstract class Query extends QueryBase
      *
      * @param string[]|string|int $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -650,7 +654,7 @@ abstract class Query extends QueryBase
      *
      * @param string[]|string|int $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -665,7 +669,7 @@ abstract class Query extends QueryBase
      *
      * @param string[]|string|int $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -681,7 +685,7 @@ abstract class Query extends QueryBase
      * @param string $suffix
      * @param string[]|string|int $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -697,7 +701,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param callable|null $fn
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -712,7 +716,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param callable|null $fn
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -727,7 +731,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param callable|null $fn
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -742,7 +746,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param callable|null $fn
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -757,7 +761,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param callable|null $fn
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -772,7 +776,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param callable|null $fn
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -787,7 +791,7 @@ abstract class Query extends QueryBase
      * @param string $name
      * @param Query $query
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -803,7 +807,7 @@ abstract class Query extends QueryBase
      * @param string $name
      * @param Query $query
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -820,7 +824,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param array $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -847,7 +851,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param callable|null $fn
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -868,7 +872,7 @@ abstract class Query extends QueryBase
      * @param string $clause
      * @param array|string|int $fields
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -937,7 +941,7 @@ abstract class Query extends QueryBase
      * @param string $name
      * @param Query $query
      *
-     * @return $this
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -955,7 +959,7 @@ abstract class Query extends QueryBase
      *
      * @param string $table
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -966,7 +970,7 @@ abstract class Query extends QueryBase
      *
      * @param string $table
      *
-     * @return $this
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
