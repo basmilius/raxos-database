@@ -113,21 +113,39 @@ abstract class Query extends QueryBase
     /**
      * Adds a `from $table` expression.
      *
-     * @param string[]|string $tables
+     * @param static|string[]|string $tables
+     * @param string|null $alias
      *
      * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function from(array|string $tables): static
+    public function from(self|array|string $tables, ?string $alias = null): static
     {
-        if (is_string($tables)) {
-            $tables = [$tables];
+        if ($tables instanceof self) {
+            $this->addPiece('from');
+            $this->parenthesisOpen();
+            $this->raw($tables->toSql());
+            $this->parenthesisClose();
+
+            if ($alias !== null) {
+                $this->addPiece('as', $alias);
+            }
+
+            return $this;
+        } else {
+            if (is_string($tables)) {
+                $tables = [$tables];
+            }
+
+            $tables = array_map(fn(string $table): string => $this->dialect->escapeTable($table), $tables);
+
+            if ($alias !== null && count($tables) === 1) {
+                $tables = array_map(fn(string $table): string => "{$table} as {$alias}", $tables);
+            }
+
+            return $this->addPiece('from', $tables, $this->dialect->tableSeparator);
         }
-
-        $tables = array_map(fn(string $table): string => $this->dialect->escapeTable($table), $tables);
-
-        return $this->addPiece('from', $tables, $this->dialect->tableSeparator);
     }
 
     /**

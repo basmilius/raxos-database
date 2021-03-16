@@ -481,6 +481,26 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
+     * Returns the result row count found based on the current query. The
+     * select part of the query is removed.
+     *
+     * @return int
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function resultCount(): int
+    {
+        $result = $this->connection
+            ->query()
+            ->select('count(*)')
+            ->from($this, 'n')
+            ->single();
+
+        return (int)$result['count(*)'];
+    }
+
+    /**
      * Returns the total rows found based on the current query. Any limit
      * clause is ignored and the select part is removed. This is useful for
      * queries used for pagination and such.
@@ -490,7 +510,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function foundRows(): int
+    public function totalCount(): int
     {
         $selectIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'select');
         $limitIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'limit');
@@ -500,9 +520,13 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
         $query->pieces = $this->pieces;
         $query->pieces[$selectIndex][1] = 'count(*)';
 
-        array_splice($query->pieces, $limitIndex, 1);
+        if ($limitIndex !== null) {
+            array_splice($query->pieces, $limitIndex, 1);
+        }
 
-        $result = $query->single();
+        $result = $query
+            ->withoutModel()
+            ->single();
 
         return (int)$result['count(*)'];
     }
