@@ -16,6 +16,7 @@ use Raxos\Foundation\Collection\CollectionException;
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use function array_filter;
+use function array_key_exists;
 use function array_map;
 use function in_array;
 use function is_array;
@@ -266,7 +267,14 @@ class Statement
         }
 
         if ($modelClass::cache()->has($this->modelClass, $primaryKeyValue)) {
-            return $modelClass::cache()->get($this->modelClass, $primaryKeyValue);
+            $instance = $modelClass::cache()->get($this->modelClass, $primaryKeyValue);
+
+            // note: This is for relation resolving.
+            if (array_key_exists('__linking_key', $result)) {
+                $instance->__linking_key = $result['__linking_key'];
+            }
+
+            return $instance;
         }
 
         /** @var Model $model */

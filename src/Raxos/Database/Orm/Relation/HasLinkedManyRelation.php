@@ -140,7 +140,7 @@ class HasLinkedManyRelation extends HasManyRelation
         }
 
         foreach ($models as $model) {
-            $this->results[$model] = [];
+            $this->results[$model] ??= [];
 
             foreach ($results as $result) {
                 $role = $roles[$result->{$this->referenceKey}] ??= $result;

@@ -95,12 +95,12 @@ class HasManyRelation extends Relation
             ->getQuery($model)
             ->array();
 
-        $results = array_map(function (Model $model): Model {
-            if ($this->connection->getCache()->has($model::class, $model->getPrimaryKeyValues())) {
-                return $this->connection->getCache()->get($model::class, $model->getPrimaryKeyValues());
+        $results = array_map(function (Model $referenceModel): Model {
+            if ($this->connection->getCache()->has($referenceModel::class, $referenceModel->getPrimaryKeyValues())) {
+                return $this->connection->getCache()->get($referenceModel::class, $referenceModel->getPrimaryKeyValues());
             }
 
-            return $model;
+            return $referenceModel;
         }, $results);
 
         $this->results[$model] = $results;
