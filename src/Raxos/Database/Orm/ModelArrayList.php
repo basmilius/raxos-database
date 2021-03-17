@@ -8,6 +8,9 @@ use Raxos\Foundation\Collection\ArrayList;
 /**
  * Class ModelArrayList
  *
+ * @template-covariant T
+ * @extends ArrayList<T>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.0

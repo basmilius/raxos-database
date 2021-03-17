@@ -8,7 +8,8 @@ use JetBrains\PhpStorm\ExpectedValues;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Attribute\{Column, HasLinkedMany, HasMany, HasManyThrough, HasOne, Immutable, Macro, PrimaryKey, RelationAttribute, Table};
+use Raxos\Database\Orm\Attribute\
+{Caster, Column, HasLinkedMany, HasMany, HasManyThrough, HasOne, Immutable, Macro, PrimaryKey, RelationAttribute, Table};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Defenition\FieldDefinition;
 use Raxos\Database\Orm\Defenition\MacroDefinition;
@@ -63,6 +64,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     public const EVENT_UPDATE = 'update';
 
     protected const ATTRIBUTES = [
+    	Caster::class,
         Column::class,
         Macro::class,
         HasLinkedMany::class,
@@ -1076,6 +1078,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $attr = $attribute->newInstance();
 
             switch (true) {
+				case $attr instanceof Caster:
+					$cast = $attr->getCaster();
+					break;
+
                 case $attr instanceof Column:
                     $alias = $attr->getAlias();
                     $cast = $attr->getCaster();

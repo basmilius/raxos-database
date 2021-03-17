@@ -5,6 +5,7 @@ namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use WeakMap;
@@ -85,7 +86,7 @@ class HasManyRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function get(Model $model): array
+    public function get(Model $model): ModelArrayList
     {
         if (isset($this->results[$model])) {
             return $this->results[$model];
@@ -103,9 +104,7 @@ class HasManyRelation extends Relation
             return $referenceModel;
         }, $results);
 
-        $this->results[$model] = $results;
-
-        return $results;
+        return $this->results[$model] = new ModelArrayList($results);
     }
 
     /**
@@ -145,15 +144,17 @@ class HasManyRelation extends Relation
             ->array();
 
         foreach ($models as $model) {
-            $this->results[$model] = [];
+            $references = [];
 
             foreach ($results as $result) {
                 if ($result->{$this->referenceKey} !== $model->{$this->key}) {
                     continue;
                 }
 
-                $this->results[$model][] = $result;
+                $references[] = $result;
             }
+
+            $this->results[$model] = new ModelArrayList($references);
         }
     }
 
