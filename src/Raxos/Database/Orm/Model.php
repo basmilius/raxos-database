@@ -8,7 +8,7 @@ use JetBrains\PhpStorm\ExpectedValues;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, HasLinkedMany, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, PrimaryKey, RelationAttribute, Table, Visible};
+use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, CustomRelation, HasLinkedMany, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, PrimaryKey, RelationAttribute, Table, Visible};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Defenition\FieldDefinition;
 use Raxos\Database\Orm\Defenition\MacroDefinition;
@@ -22,6 +22,7 @@ use Raxos\Foundation\Util\ReflectionUtil;
 use Raxos\Foundation\Util\Singleton;
 use ReflectionClass;
 use ReflectionProperty;
+use stdClass;
 use function array_diff;
 use function array_key_exists;
 use function array_keys;
@@ -65,6 +66,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         Alias::class,
         Caster::class,
         Column::class,
+        CustomRelation::class,
         Macro::class,
         HasLinkedMany::class,
         HasMany::class,
@@ -95,6 +97,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
     private array $macroCache = [];
     private bool $isMacroCall = false;
+    private self $reference;
 
     /**
      * ModelBase constructor.
@@ -109,6 +112,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      */
     public function __construct(array $data = [], protected bool $isNew = true, ?self $master = null)
     {
+        if ($master === null) {
+            $this->reference = $this;
+        } else {
+            $this->reference = $master->reference;
+        }
+
         parent::__construct($data, $master);
 
         self::initialize();
@@ -198,6 +207,19 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         } else {
             return $values;
         }
+    }
+
+    /**
+     * Gets the reference of the model.
+     *
+     * @return stdClass
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     * @internal
+     */
+    public final function getReference(): stdClass
+    {
+        return $this->reference;
     }
 
     /**
@@ -707,27 +729,56 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      */
     public function serialize(): string
     {
+        $relations = [];
+
+        foreach (self::getFields() as $field) {
+            $name = $field->alias ?? $field->property;
+
+            if ($this->isHidden($name) || !$this->isVisible($name)) {
+                continue;
+            }
+
+            $relations[$name] = $this->{$field->property};
+        }
+
         return serialize([
             $this->data,
             $this->hidden,
-            $this->visible
+            $this->visible,
+            $this->isNew,
+            $relations
         ]);
     }
 
     /**
      * {@inheritdoc}
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function unserialize(mixed $data): void
     {
+        self::initialize();
+        $this->prepareModel();
+
         [
             $this->data,
             $this->hidden,
-            $this->visible
+            $this->visible,
+            $this->isNew,
+            $relations
         ] = unserialize($data);
 
-        $this->prepareModel();
+        foreach ($relations as $relation) {
+            /** @var ModelArrayList|self $relation */
+            if ($relation instanceof ModelArrayList) {
+                foreach ($relation as $r) {
+                    $r::cache()->set($r);
+                }
+            } else {
+                $relation::cache()->set($relation);
+            }
+        }
     }
 
     /**
@@ -872,9 +923,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
         $relation = $relationType->create(static::connection(), static::class, $definition);
 
-        static::$relations[static::class][$field] = $relation;
-
-        return $relation;
+        return static::$relations[static::class][$field] = $relation;
     }
 
     /**
@@ -1039,6 +1088,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         static::initializeFields($class);
+
+        // note: This will make models based on another model possible.
+        if (($parentClass = $class->getParentClass())->getName() !== self::class) {
+            static::initializeFields($parentClass);
+        }
+
         static::$initialized[static::class] = true;
     }
 

@@ -79,13 +79,17 @@ class HasOneRelation extends Relation
      */
     public function get(Model $model): Model
     {
-        $query = $this->getQuery($model);
+        $cache = $this->connection->getCache();
+        $pk = $model->{$this->key};
+        $referenceModel = $this->getReferenceModel();
 
-        if ($this->connection->getCache()->has($this->getReferenceModel(), $model->{$this->key})) {
-            return $this->connection->getCache()->get($this->getReferenceModel(), $model->{$this->key});
+        if ($cache->has($referenceModel, $pk)) {
+            return $cache->get($referenceModel, $pk);
         }
 
-        return $query->single();
+        return $this
+            ->getQuery($model)
+            ->single();
     }
 
     /**

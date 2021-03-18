@@ -10,6 +10,7 @@ use Raxos\Database\Query\Struct\AfterExpressionInterface;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Value;
 use Raxos\Foundation\Util\ArrayUtil;
+use Stringable;
 use function array_keys;
 use function array_map;
 use function array_values;
@@ -38,16 +39,16 @@ abstract class Query extends QueryBase
     /**
      * Adds an `and $field $comparator $value` expression.
      *
-     * @param Value|string|int|float|bool|null $field
-     * @param Value|string|int|float|bool|null $comparator
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $field
+     * @param Stringable|Value|string|int|float|bool|null $comparator
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function and(Value|string|int|float|bool|null $field = null, Value|string|int|float|bool|null $comparator = null, Value|string|int|float|bool|null $value = null): static
+    public function and(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         return $this->addExpression('and', $field, $comparator, $value);
     }
@@ -117,6 +118,7 @@ abstract class Query extends QueryBase
      * @param string|null $alias
      *
      * @return static<TModel>
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -171,16 +173,16 @@ abstract class Query extends QueryBase
     /**
      * Adds a `having $field $comparator $value` expression.
      *
-     * @param Value|string|int|float|bool|null $field
-     * @param Value|string|int|float|bool|null $comparator
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $field
+     * @param Stringable|Value|string|int|float|bool|null $comparator
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function having(Value|string|int|float|bool|null $field = null, Value|string|int|float|bool|null $comparator = null, Value|string|int|float|bool|null $value = null): static
+    public function having(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         return $this->addExpression('having', $field, $comparator, $value);
     }
@@ -225,14 +227,14 @@ abstract class Query extends QueryBase
      *
      * @param Value|string|int|float|bool $left
      * @param Value|string|int|float|bool $comparator
-     * @param Value|string|int|float|bool|null $right
+     * @param Stringable|Value|string|int|float|bool|null $right
      *
      * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function on(Value|string|int|float|bool $left, Value|string|int|float|bool $comparator, Value|string|int|float|bool|null $right = null): static
+    public function on(Value|string|int|float|bool $left, Value|string|int|float|bool $comparator, Stringable|Value|string|int|float|bool|null $right = null): static
     {
         return $this->addExpression('on', $left, $comparator, $right);
     }
@@ -260,16 +262,16 @@ abstract class Query extends QueryBase
     /**
      * Adds a `or $field $comparator $value` expression.
      *
-     * @param Value|string|int|float|bool|null $field
-     * @param Value|string|int|float|bool|null $comparator
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $field
+     * @param Stringable|Value|string|int|float|bool|null $comparator
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function or(Value|string|int|float|bool|null $field = null, Value|string|int|float|bool|null $comparator = null, Value|string|int|float|bool|null $value = null): static
+    public function or(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         return $this->addExpression('or', $field, $comparator, $value);
     }
@@ -377,14 +379,14 @@ abstract class Query extends QueryBase
      * Adds a `set $field = $value` expression.
      *
      * @param string $field
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function set(string $field, Value|string|int|float|bool|null $value): static
+    public function set(string $field, Stringable|Value|string|int|float|bool|null $value): static
     {
         $value = $this->addParam($value);
         $expression = $this->dialect->escapeFields($field) . ' = ' . $value;
@@ -477,7 +479,7 @@ abstract class Query extends QueryBase
      */
     public function values(array $values): static
     {
-        $values = array_map(fn(Value|string|int|float|bool|null $value) => $this->addParam($value), $values);
+        $values = array_map(fn(Stringable|Value|string|int|float|bool|null $value) => $this->addParam($value), $values);
 
         $this->addPiece($this->isClauseDefined('values') ? ', ' : 'values');
         $this->parenthesis(fn() => $this->addPiece('', $values, $this->dialect->fieldSeparator));
@@ -488,16 +490,16 @@ abstract class Query extends QueryBase
     /**
      * Adds an `where $field $comparator $value` expression.
      *
-     * @param Value|string|int|float|bool|null $field
-     * @param Value|string|int|float|bool|null $comparator
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $field
+     * @param Stringable|Value|string|int|float|bool|null $comparator
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function where(Value|string|int|float|bool|null $field = null, Value|string|int|float|bool|null $comparator = null, Value|string|int|float|bool|null $value = null): static
+    public function where(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         return $this->addExpression('where', $field, $comparator, $value);
     }

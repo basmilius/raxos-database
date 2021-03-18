@@ -8,10 +8,10 @@ use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
+use Raxos\Foundation\Collection\CollectionException;
 use WeakMap;
 use function array_column;
 use function array_filter;
-use function array_map;
 use function array_unique;
 
 /**
@@ -83,28 +83,25 @@ class HasManyRelation extends Relation
 
     /**
      * {@inheritdoc}
+     * @throws CollectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function get(Model $model): ModelArrayList
     {
-        if (isset($this->results[$model])) {
-            return $this->results[$model];
-        }
-
-        $results = $this
+        return $this->results[$model->getReference()] ??= $this
             ->getQuery($model)
-            ->array();
+            ->arrayList()
+            ->map(function (Model $referenceModel): Model {
+                $cache = $this->connection->getCache();
+                $pk = $referenceModel->getPrimaryKeyValues();
 
-        $results = array_map(function (Model $referenceModel): Model {
-            if ($this->connection->getCache()->has($referenceModel::class, $referenceModel->getPrimaryKeyValues())) {
-                return $this->connection->getCache()->get($referenceModel::class, $referenceModel->getPrimaryKeyValues());
-            }
+                if ($cache->has($referenceModel::class, $pk)) {
+                    return $cache->get($referenceModel::class, $pk);
+                }
 
-            return $referenceModel;
-        }, $results);
-
-        return $this->results[$model] = new ModelArrayList($results);
+                return $referenceModel;
+            });
     }
 
     /**
@@ -131,7 +128,7 @@ class HasManyRelation extends Relation
         /** @var Model $referenceModel */
         $referenceModel = $this->getReferenceModel();
 
-        $values = array_filter($models, fn(Model $model) => !isset($this->results[$model]));
+        $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getReference()]));
         $values = array_column($values, $this->key);
         $values = array_unique($values);
 
@@ -154,7 +151,7 @@ class HasManyRelation extends Relation
                 $references[] = $result;
             }
 
-            $this->results[$model] = new ModelArrayList($references);
+            $this->results[$model->getReference()] = new ModelArrayList($references);
         }
     }
 

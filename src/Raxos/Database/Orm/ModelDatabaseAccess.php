@@ -12,6 +12,7 @@ use Raxos\Database\Error\QueryException;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Value;
+use Stringable;
 use function array_map;
 use function array_shift;
 use function count;
@@ -226,9 +227,9 @@ trait ModelDatabaseAccess
     /**
      * Sets up a having query for the model.
      *
-     * @param Value|string|int|float|bool|null $field
-     * @param Value|string|int|float|bool|null $comparator
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $field
+     * @param Stringable|Value|string|int|float|bool|null $comparator
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return Query<static>
      * @throws DatabaseException
@@ -236,7 +237,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see Query::having()
      */
-    public static function having(Value|string|int|float|bool|null $field = null, Value|string|int|float|bool|null $comparator = null, Value|string|int|float|bool|null $value = null): Query
+    public static function having(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): Query
     {
         return static::select()
             ->having($field, $comparator, $value);
@@ -350,9 +351,9 @@ trait ModelDatabaseAccess
     /**
      * Sets up a where query for the model.
      *
-     * @param Value|string|int|float|bool|null $field
-     * @param Value|string|int|float|bool|null $comparator
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $field
+     * @param Stringable|Value|string|int|float|bool|null $comparator
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return Query<static>
      * @throws DatabaseException
@@ -360,7 +361,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see Query::where()
      */
-    public static function where(Value|string|int|float|bool|null $field = null, Value|string|int|float|bool|null $comparator = null, Value|string|int|float|bool|null $value = null): Query
+    public static function where(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): Query
     {
         return static::select()
             ->where($field, $comparator, $value);

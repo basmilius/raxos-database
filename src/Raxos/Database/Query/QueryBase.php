@@ -86,16 +86,16 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * Adds an expression to the query.
      *
      * @param string $clause
-     * @param Value|string|int|float|bool|null $field
-     * @param Value|string|int|float|bool|null $comparator
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $field
+     * @param Stringable|Value|string|int|float|bool|null $comparator
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return static<TResult>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function addExpression(string $clause, Value|string|int|float|bool|null $field = null, Value|string|int|float|bool|null $comparator = null, Value|string|int|float|bool|null $value = null): static
+    public function addExpression(string $clause, Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         $afters = [];
         $befores = [];
@@ -174,14 +174,14 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * Adds a param and returns its name or when not in prepared mode, returns the
      * value as string or int.
      *
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return string|int
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function addParam(Value|string|int|float|bool|null $value): string|int
+    public function addParam(Stringable|Value|string|int|float|bool|null $value): string|int
     {
         if ($value instanceof Value) {
             $value = $value->get($this);
@@ -197,6 +197,10 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
 
         if (is_bool($value)) {
             return $value ? 1 : 0;
+        }
+
+        if ($value instanceof Stringable) {
+            $value = (string)$value;
         }
 
         $name = 'p' . static::$index . '_' . count($this->params);
@@ -355,14 +359,14 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      *
      * @param string|null $field
      * @param string|null $comparator
-     * @param Value|string|int|float|bool|null $value
+     * @param Stringable|Value|string|int|float|bool|null $value
      *
      * @return static<TResult>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function parenthesisOpen(?string $field = null, ?string $comparator = null, Value|string|int|float|bool|null $value = null): static
+    public function parenthesisOpen(?string $field = null, ?string $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         return $this->addExpression('(', $field, $comparator, $value);
     }

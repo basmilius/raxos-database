@@ -5,6 +5,7 @@ namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Literal;
@@ -117,7 +118,7 @@ class HasLinkedManyRelation extends HasManyRelation
         /** @var Model $referenceModel */
         $referenceModel = $this->getReferenceModel();
 
-        $values = array_filter($models, fn(Model $model) => !isset($this->results[$model]));
+        $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getReference()]));
         $values = array_column($values, $this->key);
         $values = array_unique($values);
 
@@ -132,7 +133,7 @@ class HasLinkedManyRelation extends HasManyRelation
             ->groupBy($referenceModel::column($this->referenceKey))
             ->array();
 
-        $roles = [];
+        $entries = [];
 
         foreach ($results as $result) {
             $result->__linking_key = explode(',', $result->__linking_key);
@@ -140,17 +141,23 @@ class HasLinkedManyRelation extends HasManyRelation
         }
 
         foreach ($models as $model) {
-            $this->results[$model] ??= [];
+            if (isset($this->results[$model->getReference()])) {
+                $references = $this->results[$model->getReference()]->toArray();
+            } else {
+                $references = [];
+            }
 
             foreach ($results as $result) {
-                $role = $roles[$result->{$this->referenceKey}] ??= $result;
+                $entry = $entries[$result->{$this->referenceKey}] ??= $result;
 
                 if (!in_array($model->{$this->key}, $result->__linking_key)) {
                     continue;
                 }
 
-                $this->results[$model][] = $role;
+                $references[] = $entry;
             }
+
+            $this->results[$model->getReference()] = new ModelArrayList($references);
         }
     }
 
