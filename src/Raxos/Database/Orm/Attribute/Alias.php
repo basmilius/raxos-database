@@ -6,38 +6,38 @@ namespace Raxos\Database\Orm\Attribute;
 use Attribute;
 
 /**
- * Class Macro
+ * Class Alias
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Macro
+final class Alias
 {
 
     /**
-     * Macro constructor.
+     * Alias constructor.
      *
-     * @param bool $isCacheable
+     * @param string $alias
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private bool $isCacheable = false)
+    public function __construct(private string $alias)
     {
     }
 
     /**
-     * Gets if the macro is cacheable..
+     * Gets the alias.
      *
-     * @return bool
+     * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function isCacheable(): bool
+    public final function getAlias(): string
     {
-        return $this->isCacheable;
+        return $this->alias;
     }
 
 }

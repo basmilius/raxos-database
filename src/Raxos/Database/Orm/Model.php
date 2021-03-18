@@ -8,8 +8,7 @@ use JetBrains\PhpStorm\ExpectedValues;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Attribute\
-{Caster, Column, HasLinkedMany, HasMany, HasManyThrough, HasOne, Immutable, Macro, PrimaryKey, RelationAttribute, Table};
+use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, HasLinkedMany, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, PrimaryKey, RelationAttribute, Table, Visible};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Defenition\FieldDefinition;
 use Raxos\Database\Orm\Defenition\MacroDefinition;
@@ -21,7 +20,6 @@ use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use Raxos\Foundation\Util\ReflectionUtil;
 use Raxos\Foundation\Util\Singleton;
-use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
 use function array_diff;
@@ -64,25 +62,32 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     public const EVENT_UPDATE = 'update';
 
     protected const ATTRIBUTES = [
-    	Caster::class,
+        Alias::class,
+        Caster::class,
         Column::class,
         Macro::class,
         HasLinkedMany::class,
         HasMany::class,
         HasManyThrough::class,
         HasOne::class,
+        Hidden::class,
         Immutable::class,
         PrimaryKey::class,
-        Table::class
+        Table::class,
+        Visible::class
     ];
 
     protected static string $connectionId = 'default';
 
-    private static array $fields = [];
     private static array $initialized = [];
-    private static array $macros = [];
     private static array $relations = [];
     private static array $tables = [];
+
+    /** @var FieldDefinition[][] */
+    private static array $fields = [];
+
+    /** @var MacroDefinition[][] */
+    private static array $macros = [];
 
     protected array $modified = [];
     protected array $hidden = [];
@@ -416,10 +421,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             }
 
             if (static::isRelation($fieldName)) {
-                if ($this->isVisible($fieldName)) {
+                if ($this->isVisible($alias)) {
                     $relation = static::getRelation($fieldName);
 
-                    $data[$fieldName] = $relation->get($this);
+                    $data[$alias] = $relation->get($this);
                 }
             } else if ($this->isNew && $fieldDefinition->isPrimary) {
                 $data[$alias] = null;
@@ -661,10 +666,26 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     {
         foreach (static::$fields[static::class] as $name => $field) {
             unset($this->{$name});
+
+            if ($field->isHidden) {
+                $this->hidden[] = $field->alias ?? $name;
+            }
+
+            if ($field->isVisible) {
+                $this->visible[] = $field->alias ?? $name;
+            }
         }
 
         foreach (static::$macros[static::class] as $name => $macro) {
             unset($this->{$name});
+
+            if ($macro->isHidden) {
+                $this->hidden[] = $macro->alias ?? $name;
+            }
+
+            if ($macro->isVisible) {
+                $this->visible[] = $macro->alias ?? $name;
+            }
         }
     }
 
@@ -1040,8 +1061,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                 continue;
             }
 
-            if (!empty($macro = $property->getAttributes(Macro::class))) {
-                static::initializeMacro($class, $property, $macro[0]);
+            if (!empty($property->getAttributes(Macro::class))) {
+                static::initializeMacro($class, $property);
             } else {
                 static::initializeField($property);
             }
@@ -1066,6 +1087,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         $default = null;
         $isImmutable = false;
         $isPrimary = false;
+        $isHidden = false;
+        $isVisible = false;
         $relation = null;
         $types = ReflectionUtil::getTypes($property->getType()) ?? [];
         $validField = false;
@@ -1078,13 +1101,15 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $attr = $attribute->newInstance();
 
             switch (true) {
-				case $attr instanceof Caster:
-					$cast = $attr->getCaster();
-					break;
+                case $attr instanceof Alias:
+                    $alias = $attr->getAlias();
+                    break;
+
+                case $attr instanceof Caster:
+                    $cast = $attr->getCaster();
+                    break;
 
                 case $attr instanceof Column:
-                    $alias = $attr->getAlias();
-                    $cast = $attr->getCaster();
                     $default = $attr->getDefault();
                     $validField = true;
                     break;
@@ -1102,6 +1127,15 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                 case $attr instanceof PrimaryKey:
                     $isImmutable = true;
                     $isPrimary = true;
+                    $validField = true;
+                    break;
+
+                case $attr instanceof Hidden:
+                    $isHidden = true;
+                    break;
+
+                case $attr instanceof Visible:
+                    $isVisible = true;
                     break;
             }
         }
@@ -1116,6 +1150,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $default,
             $isImmutable,
             $isPrimary,
+            $isHidden,
+            $isVisible,
             $classProperty,
             $relation,
             $types
@@ -1127,14 +1163,14 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      *
      * @param ReflectionClass $class
      * @param ReflectionProperty $property
-     * @param ReflectionAttribute $macroAttribute
      *
      * @throws ModelException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    private static function initializeMacro(ReflectionClass $class, ReflectionProperty $property, ReflectionAttribute $macroAttribute): void
+    private static function initializeMacro(ReflectionClass $class, ReflectionProperty $property): void
     {
+        $attributes = $property->getAttributes();
         $propertyName = $property->getName();
         $methodName = str_starts_with($propertyName, 'is') ? $propertyName : 'get' . ucfirst($propertyName);
 
@@ -1142,12 +1178,42 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             throw new ModelException(sprintf('Macro %s in model %s should have a static macro method named %s.', $propertyName, static::class, $methodName), ModelException::ERR_MACRO_METHOD_NOT_FOUND);
         }
 
-        /** @var Macro $macro */
-        $macro = $macroAttribute->newInstance();
+        $alias = null;
+        $isCacheable = false;
+        $isHidden = false;
+        $isVisible = false;
+
+        foreach ($attributes as $attribute) {
+            if (!in_array($attribute->getName(), self::ATTRIBUTES)) {
+                continue;
+            }
+
+            $attr = $attribute->newInstance();
+
+            switch (true) {
+                case $attr instanceof Alias:
+                    $alias = $attr->getAlias();
+                    break;
+
+                case $attr instanceof Macro:
+                    $isCacheable = $attr->isCacheable();
+                    break;
+
+                case $attr instanceof Hidden:
+                    $isHidden = true;
+                    break;
+
+                case $attr instanceof Visible:
+                    $isVisible = true;
+                    break;
+            }
+        }
 
         static::$macros[static::class][$propertyName] = new MacroDefinition(
-            $macro->getAlias(),
-            $macro->isCacheable(),
+            $alias,
+            $isCacheable,
+            $isHidden,
+            $isVisible,
             $methodName
         );
     }

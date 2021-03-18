@@ -21,6 +21,8 @@ final class MacroDefinition implements Arrayable
      *
      * @param string|null $alias
      * @param bool $isCacheable
+     * @param bool $isHidden
+     * @param bool $isVisible
      * @param string $method
      *
      * @author Bas Milius <bas@mili.us>
@@ -29,6 +31,8 @@ final class MacroDefinition implements Arrayable
     public function __construct(
         public ?string $alias,
         public bool $isCacheable,
+        public bool $isHidden,
+        public bool $isVisible,
         public string $method
     )
     {
@@ -42,6 +46,8 @@ final class MacroDefinition implements Arrayable
     #[ArrayShape([
         'alias' => 'string|null',
         'is_cacheable' => 'bool',
+        'is_hidden' => 'bool',
+        'is_visible' => 'bool',
         'method' => 'string'
     ])]
     public final function toArray(): array
@@ -49,6 +55,8 @@ final class MacroDefinition implements Arrayable
         return [
             'alias' => $this->alias,
             'is_cacheable' => $this->isCacheable,
+            'is_hidden' => $this->isHidden,
+            'is_visible' => $this->isVisible,
             'method' => $this->method
         ];
     }

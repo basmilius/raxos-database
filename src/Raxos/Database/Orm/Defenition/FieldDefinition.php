@@ -25,6 +25,8 @@ final class FieldDefinition implements Arrayable
      * @param mixed $default
      * @param bool $isImmutable
      * @param bool $isPrimary
+     * @param bool $isHidden
+     * @param bool $isVisible
      * @param string $property
      * @param RelationAttribute|null $relation
      * @param array $types
@@ -38,6 +40,8 @@ final class FieldDefinition implements Arrayable
         public mixed $default,
         public bool $isImmutable,
         public bool $isPrimary,
+        public bool $isHidden,
+        public bool $isVisible,
         public string $property,
         public ?RelationAttribute $relation,
         public array $types
@@ -56,6 +60,8 @@ final class FieldDefinition implements Arrayable
         'default' => 'mixed',
         'is_immutable' => 'bool',
         'is_primary' => 'bool',
+        'is_hidden' => 'bool',
+        'is_visible' => 'bool',
         'property' => 'string',
         'relation' => '\Raxos\Database\Orm\Attribute\RelationAttribute|null',
         'types' => 'array'
@@ -66,7 +72,10 @@ final class FieldDefinition implements Arrayable
             'alias' => $this->alias,
             'cast' => $this->cast,
             'default' => $this->default,
+            'is_immutable' => $this->isImmutable,
             'is_primary' => $this->isPrimary,
+            'is_hidden' => $this->isHidden,
+            'is_visible' => $this->isVisible,
             'property' => $this->property,
             'relation' => $this->relation,
             'types' => $this->types
