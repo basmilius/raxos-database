@@ -642,6 +642,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     *
+     * @psalm-return TResult
      */
     public function singleOrFail(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array
     {

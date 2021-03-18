@@ -501,7 +501,7 @@ abstract class Query extends QueryBase
      */
     public function where(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
-        return $this->addExpression('where', $field, $comparator, $value);
+        return $this->addExpression($this->isClauseDefined('where') ? 'and' : 'where', $field, $comparator, $value);
     }
 
     /**
