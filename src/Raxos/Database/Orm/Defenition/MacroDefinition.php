@@ -16,6 +16,8 @@ use Raxos\Foundation\Collection\Arrayable;
 final class MacroDefinition implements Arrayable
 {
 
+    public string $name;
+
     /**
      * MacroDefinition constructor.
      *
@@ -24,6 +26,7 @@ final class MacroDefinition implements Arrayable
      * @param bool $isHidden
      * @param bool $isVisible
      * @param string $method
+     * @param string $property
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -33,9 +36,11 @@ final class MacroDefinition implements Arrayable
         public bool $isCacheable,
         public bool $isHidden,
         public bool $isVisible,
-        public string $method
+        public string $method,
+        public string $property
     )
     {
+        $this->name = $alias ?? $property;
     }
 
     /**
@@ -48,7 +53,8 @@ final class MacroDefinition implements Arrayable
         'is_cacheable' => 'bool',
         'is_hidden' => 'bool',
         'is_visible' => 'bool',
-        'method' => 'string'
+        'method' => 'string',
+        'property' => 'string'
     ])]
     public final function toArray(): array
     {
@@ -57,7 +63,8 @@ final class MacroDefinition implements Arrayable
             'is_cacheable' => $this->isCacheable,
             'is_hidden' => $this->isHidden,
             'is_visible' => $this->isVisible,
-            'method' => $this->method
+            'method' => $this->method,
+            'property' => $this->property
         ];
     }
 

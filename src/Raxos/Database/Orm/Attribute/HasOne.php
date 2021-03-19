@@ -92,7 +92,7 @@ class HasOne extends RelationAttribute
             $connection,
             $referenceModel,
             $this->eagerLoad,
-            $field->property,
+            $field->name,
             $this->column ?? $referenceModel::getTable() . '_' . $primaryKey,
             $this->referenceColumn ?? $referenceModel::column($primaryKey)
         );

@@ -385,8 +385,8 @@ trait ModelDatabaseAccess
             $primaryKey = [$primaryKey];
         }
 
-        foreach (static::getFields() as $fieldName => $fieldDefinition) {
-            if (!$fieldDefinition->isPrimary) {
+        foreach (static::getFields() as $field) {
+            if (!$field->isPrimary) {
                 continue;
             }
 
@@ -395,8 +395,7 @@ trait ModelDatabaseAccess
             }
 
             $value = array_shift($primaryKey);
-
-            $fieldName = static::getFieldName($fieldName);
+            $fieldName = $field->name;
 
             if ($index++ === 0) {
                 $query->where(static::column($fieldName), $value);

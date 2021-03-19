@@ -157,7 +157,7 @@ class HasLinkedMany extends RelationAttribute
             $connection,
             $referenceType,
             $this->eagerLoad,
-            $field->property,
+            $field->name,
             $this->key ?? $primaryKey,
             $this->referenceKey ?? $referencePrimaryKey,
             $this->linkingKey ?? $modelClass::getTable() . '_' . $primaryKey,

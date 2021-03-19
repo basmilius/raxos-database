@@ -582,11 +582,20 @@ abstract class Query extends QueryBase
      */
     public function insertIntoValues(string $table, array $pairs): static
     {
-        $fields = array_keys($pairs);
-        $values = array_values($pairs);
+        if (empty($pairs)) {
+            throw new QueryException('There must be at least one item.', QueryException::ERR_MISSING_FIELDS);
+        }
 
-        $this->insertInto($table, $fields);
-        $this->values($values);
+        if (ArrayUtil::isSequential($pairs)) {
+            $this->insertInto($table, array_keys($pairs[0]));
+
+            foreach ($pairs as $pair) {
+                $this->values(array_values($pair));
+            }
+        } else {
+            $this->insertInto($table, array_keys($pairs));
+            $this->values(array_values($pairs));
+        }
 
         return $this;
     }
@@ -605,11 +614,20 @@ abstract class Query extends QueryBase
      */
     public function insertIgnoreIntoValues(string $table, array $pairs): static
     {
-        $fields = array_keys($pairs);
-        $values = array_values($pairs);
+        if (empty($pairs)) {
+            throw new QueryException('There must be at least one item.', QueryException::ERR_MISSING_FIELDS);
+        }
 
-        $this->insertIgnoreInto($table, $fields);
-        $this->values($values);
+        if (ArrayUtil::isSequential($pairs)) {
+            $this->insertIgnoreInto($table, array_keys($pairs[0]));
+
+            foreach ($pairs as $pair) {
+                $this->values(array_values($pair));
+            }
+        } else {
+            $this->insertIgnoreInto($table, array_keys($pairs));
+            $this->values(array_values($pairs));
+        }
 
         return $this;
     }

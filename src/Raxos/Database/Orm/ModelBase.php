@@ -56,6 +56,18 @@ abstract class ModelBase extends stdClass implements JsonSerializable, Serializa
     }
 
     /**
+     * Gets the master model instance.
+     *
+     * @return static
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function getModelMaster(): static
+    {
+        return $this->master ?? $this;
+    }
+
+    /**
      * Gets the value of the given field.
      *
      * @param string $field

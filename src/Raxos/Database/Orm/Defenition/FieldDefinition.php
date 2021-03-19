@@ -17,6 +17,8 @@ use Raxos\Foundation\Collection\Arrayable;
 final class FieldDefinition implements Arrayable
 {
 
+    public string $name;
+
     /**
      * FieldDefinition constructor.
      *
@@ -47,6 +49,7 @@ final class FieldDefinition implements Arrayable
         public array $types
     )
     {
+        $this->name = $alias ?? $property;
     }
 
     /**

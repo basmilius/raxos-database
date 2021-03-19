@@ -495,11 +495,14 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      */
     public function resultCount(): int
     {
-        $result = $this->connection
+        $query = $this->connection
             ->query()
             ->select('count(*)')
-            ->from($this, 'n')
-            ->single();
+            ->from($this, '__n__');
+
+        $query->params = $this->params;
+
+        $result = $query->single();
 
         return (int)$result['count(*)'];
     }
@@ -516,21 +519,20 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      */
     public function totalCount(): int
     {
-        $selectIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'select');
         $limitIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'limit');
 
-        $query = new static($this->connection, $this->isPrepared);
-        $query->params = $this->params;
-        $query->pieces = $this->pieces;
-        $query->pieces[$selectIndex][1] = 'count(*)';
-
         if ($limitIndex !== null) {
-            array_splice($query->pieces, $limitIndex, 1);
+            array_splice($this->pieces, $limitIndex, 1);
         }
 
-        $result = $query
-            ->withoutModel()
-            ->single();
+        $query = $this->connection
+            ->query()
+            ->select('count(*)')
+            ->from($this, '__n__');
+
+        $query->params = $this->params;
+
+        $result = $query->single();
 
         return (int)$result['count(*)'];
     }
@@ -617,7 +619,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param int $fetchMode
      * @param array $options
      *
-     * @return Model|stdClass|array|null
+     * @return Model|stdClass|array|null|mixed
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -638,7 +640,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param int $fetchMode
      * @param array $options
      *
-     * @return Model|stdClass|array
+     * @return Model|stdClass|array|mixed
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0

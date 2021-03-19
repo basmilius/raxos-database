@@ -89,7 +89,7 @@ class HasManyRelation extends Relation
      */
     public function get(Model $model): ModelArrayList
     {
-        return $this->results[$model->getReference()] ??= $this
+        return $this->results[$model->getModelMaster()] ??= $this
             ->getQuery($model)
             ->arrayList()
             ->map(function (Model $referenceModel): Model {
@@ -128,7 +128,7 @@ class HasManyRelation extends Relation
         /** @var Model $referenceModel */
         $referenceModel = $this->getReferenceModel();
 
-        $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getReference()]));
+        $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getModelMaster()]));
         $values = array_column($values, $this->key);
         $values = array_unique($values);
 
@@ -151,7 +151,7 @@ class HasManyRelation extends Relation
                 $references[] = $result;
             }
 
-            $this->results[$model->getReference()] = new ModelArrayList($references);
+            $this->results[$model->getModelMaster()] = new ModelArrayList($references);
         }
     }
 

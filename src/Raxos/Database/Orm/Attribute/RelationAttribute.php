@@ -38,7 +38,7 @@ abstract class RelationAttribute
      * @param class-string<Model> $modelClass
      * @param FieldDefinition $field
      *
-     * @return CustomRelation
+     * @return Relation
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0

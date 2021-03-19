@@ -54,7 +54,7 @@ abstract class Dialect
      */
     public function escapeFields(string $fields): string
     {
-        if (str_contains($fields, '(') || str_contains($fields, ' ') || str_contains($fields, ':=')) {
+        if (str_contains($fields, $this->escapers[0]) || str_contains($fields, '(') || str_contains($fields, ' ') || str_contains($fields, ':=')) {
             return $fields;
         }
 

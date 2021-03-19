@@ -110,7 +110,7 @@ class HasMany extends RelationAttribute
             $connection,
             $referenceModel,
             $this->eagerLoad,
-            $field->property,
+            $field->name,
             $this->column ?? $primaryKey,
             $this->referenceColumn ?? $modelClass::getTable() . '_' . $primaryKey,
         );

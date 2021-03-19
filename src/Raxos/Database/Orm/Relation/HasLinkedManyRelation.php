@@ -118,7 +118,7 @@ class HasLinkedManyRelation extends HasManyRelation
         /** @var Model $referenceModel */
         $referenceModel = $this->getReferenceModel();
 
-        $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getReference()]));
+        $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getModelMaster()]));
         $values = array_column($values, $this->key);
         $values = array_unique($values);
 
@@ -141,8 +141,8 @@ class HasLinkedManyRelation extends HasManyRelation
         }
 
         foreach ($models as $model) {
-            if (isset($this->results[$model->getReference()])) {
-                $references = $this->results[$model->getReference()]->toArray();
+            if (isset($this->results[$model->getModelMaster()])) {
+                $references = $this->results[$model->getModelMaster()]->toArray();
             } else {
                 $references = [];
             }
@@ -157,7 +157,7 @@ class HasLinkedManyRelation extends HasManyRelation
                 $references[] = $entry;
             }
 
-            $this->results[$model->getReference()] = new ModelArrayList($references);
+            $this->results[$model->getModelMaster()] = new ModelArrayList($references);
         }
     }
 
