@@ -24,7 +24,7 @@ final class Macro
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private bool $isCacheable = false)
+    public function __construct(private bool $isCacheable = true)
     {
     }
 

@@ -46,12 +46,12 @@ abstract class Relation
      *
      * @param Model $model
      *
-     * @return Model|Model[]
+     * @return Model|Model[]|null
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function get(Model $model): Model|ModelArrayList;
+    public abstract function get(Model $model): Model|ModelArrayList|null;
 
     /**
      * Gets the query.
@@ -110,7 +110,7 @@ abstract class Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function isEagerLoadEnabled(): bool
+    public function isEagerLoadEnabled(): bool
     {
         return $this->eagerLoad;
     }

@@ -18,7 +18,6 @@ use stdClass;
 use function array_filter;
 use function array_key_exists;
 use function array_map;
-use function Columba\Util\pre;
 use function in_array;
 use function is_array;
 use function is_int;
@@ -434,7 +433,7 @@ class Statement
             $models = [$models];
         }
 
-        if (empty($models) || empty($this->eagerLoad)) {
+        if (empty($models)) {
             return;
         }
 

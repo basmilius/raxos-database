@@ -11,9 +11,9 @@ use Raxos\Database\Orm\Relation\Relation;
 /**
  * Class CustomRelation
  *
- * @author Bas Milius <bas@glybe.nl>
+ * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 2.0.0
+ * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final class CustomRelation extends RelationAttribute
@@ -25,8 +25,8 @@ final class CustomRelation extends RelationAttribute
      * @param string $relationClass
      * @param bool $eagerLoad
      *
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public function __construct(
         private string $relationClass,
@@ -38,8 +38,8 @@ final class CustomRelation extends RelationAttribute
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public final function create(Connection $connection, string $modelClass, FieldDefinition $field): Relation
     {

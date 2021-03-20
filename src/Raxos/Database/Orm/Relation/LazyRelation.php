@@ -13,9 +13,9 @@ use Raxos\Database\Query\Query;
 /**
  * Class LazyRelation
  *
- * @author Bas Milius <bas@glybe.nl>
+ * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 2.0.0
+ * @since 1.0.0
  */
 final class LazyRelation extends Relation
 {
@@ -40,7 +40,7 @@ final class LazyRelation extends Relation
         Connection $connection
     )
     {
-        parent::__construct($connection, '', false, $field->name);
+        parent::__construct($connection, '', $attribute->isEagerLoadEnabled(), $field->name);
     }
 
     /**
@@ -48,7 +48,7 @@ final class LazyRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function get(Model $model): Model|ModelArrayList
+    public function get(Model $model): Model|ModelArrayList|null
     {
         $this->relation ??= $this->attribute->create($this->connection, $this->modelClass, $this->field);
 

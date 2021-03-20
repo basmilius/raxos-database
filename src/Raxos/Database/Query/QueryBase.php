@@ -29,6 +29,7 @@ use function is_array;
 use function is_bool;
 use function is_int;
 use function is_string;
+use function sprintf;
 use function str_ends_with;
 use function strlen;
 
@@ -293,6 +294,20 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
+     * Removes eager loading from the query.
+     *
+     * @return static<TResult>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function eagerLoadReset(): static
+    {
+        $this->eagerLoad = [];
+
+        return $this;
+    }
+
+    /**
      * Merges the given query with the current one.
      *
      * @param QueryBase $query
@@ -415,6 +430,55 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     public function isModelQuery(): bool
     {
         return $this->modelClass !== null;
+    }
+
+    /**
+     * Removes the given clause from the query.
+     *
+     * @param string $clause
+     *
+     * @return static<TResult>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function removeClause(string $clause): static
+    {
+        $index = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === $clause);
+
+        if ($index !== null) {
+            array_splice($this->pieces, $index, 1);
+
+            while (isset($this->pieces[$index]) && $this->pieces[$index][0] === ',') {
+                array_splice($this->pieces, $index, 1);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Replaces the given clause using the given function. The function
+     * receives the array piece.
+     *
+     * @param string $clause
+     * @param callable $fn
+     *
+     * @return static<TResult>
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function replaceClause(string $clause, callable $fn): static
+    {
+        $index = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === $clause);
+
+        if ($index === null) {
+            throw new QueryException(sprintf('Clause "%s" is not defined in the query.', $clause), QueryException::ERR_CLAUSE_NOT_DEFINED);
+        }
+
+        $this->pieces[$index] = $fn($this->pieces[$index]);
+
+        return $this;
     }
 
     /**

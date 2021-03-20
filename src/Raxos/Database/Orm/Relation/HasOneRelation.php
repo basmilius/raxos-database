@@ -77,10 +77,15 @@ class HasOneRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function get(Model $model): Model
+    public function get(Model $model): ?Model
     {
         $cache = $this->connection->getCache();
         $pk = $model->{$this->key};
+
+        if ($pk === null) {
+            return null;
+        }
+
         $referenceModel = $this->getReferenceModel();
 
         if ($cache->has($referenceModel, $pk)) {
@@ -118,6 +123,7 @@ class HasOneRelation extends Relation
 
         $values = array_column($models, $this->key);
         $values = array_unique($values);
+        $values = array_filter($values);
         $values = array_filter($values, fn($value) => !$this->connection->getCache()->has($this->getReferenceModel(), $value));
 
         if (empty($values)) {
