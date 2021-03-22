@@ -23,6 +23,7 @@ use function array_unique;
 use function class_exists;
 use function count;
 use function explode;
+use function extension_loaded;
 use function get_class;
 use function implode;
 use function in_array;
@@ -31,6 +32,7 @@ use function is_string;
 use function is_subclass_of;
 use function last;
 use function serialize;
+use function spl_object_id;
 use function sprintf;
 use function str_starts_with;
 use function trim;
@@ -1273,6 +1275,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      */
     public function __debugInfo(): ?array
     {
+        if (extension_loaded('xdebug')) {
+            // note: debugInfo gets called by xdebug many times and that
+            //  breaks our code.
+            return $this->data;
+        }
+
         return $this->toArray();
     }
 
