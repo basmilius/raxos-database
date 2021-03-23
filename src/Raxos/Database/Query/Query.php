@@ -184,7 +184,35 @@ abstract class Query extends QueryBase
      */
     public function having(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
-        return $this->addExpression('having', $field, $comparator, $value);
+        return $this->addExpression($this->isClauseDefined('having') ? 'and' : 'having', $field, $comparator, $value);
+    }
+
+    /**
+     * Adds a `having $field is not null` expression.
+     *
+     * @param string $field
+     *
+     * @return $this
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function havingNotNull(string $field): static
+    {
+        return $this->having($field, ComparatorAwareLiteral::isNotNull());
+    }
+
+    /**
+     * Adds a `having $field is null` expression.
+     *
+     * @param string $field
+     *
+     * @return $this
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function havingNull(string $field): static
+    {
+        return $this->having($field, ComparatorAwareLiteral::isNull());
     }
 
     /**

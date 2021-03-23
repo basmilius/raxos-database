@@ -7,7 +7,6 @@ use Raxos\Database\Query\Struct\BetweenComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\InComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Literal;
-use function is_string;
 
 /**
  * Returns a `$value` literal.

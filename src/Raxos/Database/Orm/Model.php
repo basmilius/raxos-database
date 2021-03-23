@@ -430,8 +430,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     *
-     * @noinspection PhpUnhandledExceptionInspection
      */
     public function toArray(): array
     {
