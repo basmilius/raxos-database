@@ -32,7 +32,6 @@ use function is_string;
 use function is_subclass_of;
 use function last;
 use function serialize;
-use function spl_object_id;
 use function sprintf;
 use function str_starts_with;
 use function trim;
@@ -87,6 +86,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     protected array $hidden = [];
     protected array $visible = [];
 
+    private array $castedFields = [];
     private array $macroCache = [];
     private bool $isMacroCall = false;
 
@@ -121,6 +121,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     public function clone(): static
     {
         $clone = parent::clone();
+        $clone->castedFields = &$this->castedFields;
         $clone->isNew = &$this->isNew;
 
         return $clone;
@@ -488,10 +489,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             if (!$fieldExists && array_key_exists($fieldName, $data)) {
                 $data[$fieldName] = $field->default;
             }
-
-            if ($field->cast !== null) {
-                $data[$fieldName] = static::castField($field->cast, 'decode', $data[$fieldName]);
-            }
         }
     }
 
@@ -522,6 +519,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
         if (static::isRelation($def)) {
             return static::getRelation($def)->get($this);
+        }
+
+        if ($def instanceof FieldDefinition && $def->cast !== null && !in_array($def->property, $this->castedFields)) {
+            $this->data[$def->name] = static::castField($def->cast, 'decode', $this->data[$def->name]);
+            $this->castedFields[] = $def->property;
         }
 
         return parent::getValue($def?->name ?? $field);
