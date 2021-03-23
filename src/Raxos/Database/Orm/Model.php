@@ -726,6 +726,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $this->hidden,
             $this->visible,
             $this->isNew,
+            $this->castedFields,
             $relations
         ]);
     }
@@ -746,6 +747,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $this->hidden,
             $this->visible,
             $this->isNew,
+            $this->castedFields,
             $relations
         ] = unserialize($data);
 
@@ -753,6 +755,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
         if (static::cache()->has(static::class, $pk)) {
             $this->master = static::cache()->get(static::class, $pk);
+            $this->castedFields = &$this->master->castedFields;
+            $this->data = &$this->master->data;
+            $this->isNew = &$this->master->isNew;
         } else {
             $this->master = null;
         }
