@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
+use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 use Raxos\Foundation\Collection\Arrayable;
 use function array_map;
@@ -50,6 +51,10 @@ final class QueryLog implements Arrayable, JsonSerializable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[ArrayShape([
+        'queries' => 'array',
+        'total_query_time' => 'float'
+    ])]
     public final function toArray(): array
     {
         return [
@@ -63,6 +68,10 @@ final class QueryLog implements Arrayable, JsonSerializable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[ArrayShape([
+        'queries' => 'array',
+        'total_query_time' => 'float'
+    ])]
     public final function jsonSerialize(): array
     {
         return $this->toArray();

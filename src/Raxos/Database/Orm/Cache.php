@@ -81,9 +81,8 @@ class Cache implements DebugInfoInterface
         $keys = array_map(fn(array|string|int $key) => $this->key($key), $keys);
         $results = array_map(fn(string $key) => $this->get($modelClass, $key), $keys);
         $results = array_filter($results, fn(?Model $model) => $model !== null);
-        $results = array_values($results);
 
-        return $results;
+        return array_values($results);
     }
 
     /**
