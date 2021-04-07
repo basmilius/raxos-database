@@ -382,7 +382,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             $fieldName = $def?->name ?? $field;
             $value = parent::getValue($fieldName);
 
-            if ($def?->cast !== null) {
+            if ($def instanceof FieldDefinition && $def->cast !== null) {
                 $value = static::castField($def->cast, 'encode', $value);
             }
 
@@ -557,7 +557,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             if (static::isRelation($def)) {
                 $this->setValueOfRelation($def, static::getRelation($def), $value);
             } else {
-                if ($def->isPrimary) {
+                if ($def->isPrimary && !$this->isNew) {
                     throw new ModelException(sprintf('Field "%s" is (part of) the primary key of model "%s" and is therefore not mutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
                 } else if ($def->isImmutable && !$this->isNew) {
                     throw new ModelException(sprintf('Field "%s" in model "%s" is immutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
