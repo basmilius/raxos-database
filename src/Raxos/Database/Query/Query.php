@@ -703,7 +703,7 @@ abstract class Query extends QueryBase
     /**
      * Adds a `select $fields` expression.
      *
-     * @param string[]|string|int $fields
+     * @param array<static|string|int|bool>|string|int $fields
      *
      * @return static<TModel>
      * @throws DatabaseException
