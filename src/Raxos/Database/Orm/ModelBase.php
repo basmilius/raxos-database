@@ -3,9 +3,12 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
+use ArrayAccess;
 use JsonSerializable;
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
+use Raxos\Foundation\Access\ArrayAccessible;
+use Raxos\Foundation\Access\ObjectAccessible;
 use Serializable;
 use stdClass;
 use function array_key_exists;
@@ -18,8 +21,11 @@ use function sprintf;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class ModelBase extends stdClass implements JsonSerializable, Serializable
+abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializable, Serializable
 {
+
+    use ArrayAccessible;
+    use ObjectAccessible;
 
     /**
      * ModelBase constructor.
@@ -159,57 +165,5 @@ abstract class ModelBase extends stdClass implements JsonSerializable, Serializa
      * @since 1.0.0
      */
     public abstract function unserialize(mixed $data): void;
-
-    /**
-     * @param string $name
-     *
-     * @return mixed
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @see ModelBase::getValue()
-     */
-    public final function __get(string $name): mixed
-    {
-        return $this->getValue($name);
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return bool
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @see ModelBase::hasValue()
-     */
-    public final function __isset(string $name): bool
-    {
-        return $this->hasValue($name);
-    }
-
-    /**
-     * @param string $name
-     * @param mixed $value
-     *
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @see ModelBase::setValue()
-     */
-    public final function __set(string $name, mixed $value): void
-    {
-        $this->setValue($name, $value);
-    }
-
-    /**
-     * @param string $name
-     *
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @see ModelBase::unsetValue()
-     */
-    public final function __unset(string $name): void
-    {
-        $this->unsetValue($name);
-    }
 
 }
