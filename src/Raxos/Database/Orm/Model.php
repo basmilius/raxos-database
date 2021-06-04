@@ -16,6 +16,7 @@ use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\{ArrayUtil, ReflectionUtil, Singleton};
 use ReflectionClass;
 use ReflectionProperty;
+use Stringable;
 use function array_diff;
 use function array_key_exists;
 use function array_map;
@@ -31,6 +32,7 @@ use function is_array;
 use function is_string;
 use function is_subclass_of;
 use function iterator_to_array;
+use function json_encode;
 use function last;
 use function serialize;
 use function sprintf;
@@ -46,7 +48,7 @@ use function unserialize;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class Model extends ModelBase implements DebugInfoInterface
+abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 {
 
     use Emitter;
@@ -594,12 +596,16 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @param Relation $relation
      * @param mixed $value
      *
-     * @throws ModelException
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     protected function setValueOfRelation(FieldDefinition $field, Relation $relation, mixed $value): void
     {
+        if ($relation instanceof LazyRelation) {
+            $relation = $relation->getRelation();
+        }
+
         switch (true) {
             case $relation instanceof HasOneRelation:
                 $column = $relation->getKey();
@@ -627,7 +633,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
                 break;
 
             default:
-                throw new ModelException(sprintf('Field "%s" is a relationship that has no setters on model "%s".', $field, static::class), ModelException::ERR_IMMUTABLE);
+                throw new ModelException(sprintf('Field "%s" is a relationship that has no setters on model "%s".', $field->name, static::class), ModelException::ERR_IMMUTABLE);
         }
     }
 
@@ -1024,6 +1030,19 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
+     * Copies various settings from the given master model.
+     *
+     * @param string $masterModel
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    private static function copySettings(string $masterModel): void
+    {
+        static::$tables[static::class] = static::$tables[$masterModel] ?? null;
+    }
+
+    /**
      * Initializes the model.
      *
      * @throws ModelException
@@ -1070,7 +1089,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         // note: This will make models based on another model possible.
-        if (($parentClass = $class->getParentClass())->getName() !== self::class) {
+        if (($parentClass = $class->getParentClass())->name !== self::class) {
+            /** @var self&string $parentModel */
+            $parentModel = $parentClass->name;
+            $parentModel::initialize();
+
+            static::copySettings($parentModel);
             static::initializeFields($parentClass);
         }
 
@@ -1283,13 +1307,17 @@ abstract class Model extends ModelBase implements DebugInfoInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @access private
+     * @internal
+     * @private
      */
     static function createInstance(mixed $result, string $masterModel = null): static
     {
         if ($masterModel !== null) {
+            static::copySettings($masterModel);
+
             static::$polymorphicClassMap[static::class] = [];
             static::$polymorphicColumn[static::class] = null;
-            static::$tables[static::class] = static::$tables[$masterModel];
         }
 
         if (($typeColumn = static::$polymorphicColumn[static::class]) !== null) {
@@ -1358,6 +1386,23 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         }
 
         return $this->toArray();
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function __toString(): string
+    {
+        $primaryKeyValues = $this->getPrimaryKeyValues();
+
+        if (is_array($primaryKeyValues)) {
+            return sprintf('%s(%s)', static::class, json_encode($primaryKeyValues));
+        } else {
+            return sprintf('%s(%s)', static::class, (string)$primaryKeyValues);
+        }
     }
 
 }
