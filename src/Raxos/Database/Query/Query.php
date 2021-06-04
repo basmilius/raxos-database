@@ -193,6 +193,7 @@ abstract class Query extends QueryBase
      * @param string $field
      *
      * @return $this
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -207,6 +208,7 @@ abstract class Query extends QueryBase
      * @param string $field
      *
      * @return $this
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

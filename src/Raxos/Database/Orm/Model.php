@@ -6,7 +6,7 @@ namespace Raxos\Database\Orm;
 use Generator;
 use JetBrains\PhpStorm\{ArrayShape, ExpectedValues, Pure};
 use Raxos\Database\Error\{DatabaseException, ModelException};
-use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, CustomRelation, HasLinkedMany, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, PrimaryKey, RelationAttribute, Table, Visible};
+use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, CustomRelation, HasLinkedMany, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttribute, Table, Visible};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Defenition\{FieldDefinition, MacroDefinition};
 use Raxos\Database\Orm\Relation\{HasOneRelation, LazyRelation, Relation};
@@ -30,6 +30,7 @@ use function in_array;
 use function is_array;
 use function is_string;
 use function is_subclass_of;
+use function iterator_to_array;
 use function last;
 use function serialize;
 use function sprintf;
@@ -67,6 +68,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
         HasOne::class,
         Hidden::class,
         Immutable::class,
+        Polymorphic::class,
         PrimaryKey::class,
         Table::class,
         Visible::class
@@ -76,6 +78,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
     private static array $alias = [];
     private static array $initialized = [];
+    private static array $polymorphicClassMap = [];
+    private static array $polymorphicColumn = [];
     private static array $relations = [];
     private static array $tables = [];
 
@@ -172,8 +176,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     ])]
     public function getDebugInformation(): array
     {
-        $fields = static::getFields();
-        $macros = static::getMacros();
+        $fields = iterator_to_array(static::getFields());
+        $macros = iterator_to_array(static::getMacros());
 
         foreach ($fields as &$field) {
             $field = $field->toArray();
@@ -428,6 +432,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
     /**
      * {@inheritdoc}
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -694,6 +699,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
     /**
      * {@inheritdoc}
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1032,6 +1038,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
         static::$alias[static::class] = [];
         static::$fields[static::class] = [];
+        static::$polymorphicColumn[static::class] = null;
+        static::$polymorphicClassMap[static::class] = [];
         static::$relations[static::class] = [];
 
         $class = new ReflectionClass(static::class);
@@ -1046,6 +1054,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             }
 
             switch (true) {
+                case $attributeName === Polymorphic::class:
+                    $p = $attribute->newInstance();
+                    static::$polymorphicColumn[static::class] = $p->getColumn();
+                    static::$polymorphicClassMap[static::class] = $p->getMap();
+                    break;
+
                 case $attributeName === Table::class:
                     static::$tables[static::class] = $attribute->getArguments()[0];
                     break;
@@ -1055,12 +1069,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface
             }
         }
 
-        static::initializeFields($class);
-
         // note: This will make models based on another model possible.
         if (($parentClass = $class->getParentClass())->getName() !== self::class) {
             static::initializeFields($parentClass);
         }
+
+        static::initializeFields($class);
 
         static::$initialized[static::class] = true;
     }
@@ -1259,6 +1273,62 @@ abstract class Model extends ModelBase implements DebugInfoInterface
     }
 
     /**
+     * Creates a new instance of the current model class with the given
+     * column attributes.
+     *
+     * @param mixed $result
+     * @param string|null $masterModel
+     *
+     * @return static
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    static function createInstance(mixed $result, string $masterModel = null): static
+    {
+        if ($masterModel !== null) {
+            static::$polymorphicClassMap[static::class] = [];
+            static::$polymorphicColumn[static::class] = null;
+            static::$tables[static::class] = static::$tables[$masterModel];
+        }
+
+        if (($typeColumn = static::$polymorphicColumn[static::class]) !== null) {
+            /** @var static&string $polymorphicClassName */
+            $polymorphicClassName = static::$polymorphicClassMap[static::class][$result[$typeColumn]] ?? null;
+
+            if ($polymorphicClassName !== null) {
+                return $polymorphicClassName::createInstance($result, static::class);
+            }
+        }
+
+        $primaryKey = static::getPrimaryKey();
+
+        if (is_array($primaryKey)) {
+            $primaryKeyValue = array_map(fn(string $key) => $result[$key], $primaryKey);
+        } else if (!empty($primaryKey)) {
+            $primaryKeyValue = $result[$primaryKey];
+        } else {
+            $primaryKeyValue = null;
+        }
+
+        if ($primaryKeyValue !== null && static::cache()->has(static::class, $primaryKeyValue)) {
+            $instance = static::cache()->get(static::class, $primaryKeyValue);
+
+            // node: This is for relation resolving.
+            if (array_key_exists('__linking_key', $result)) {
+                $instance->__linking_key = $result['__linking_key'];
+            }
+
+            return $instance;
+        }
+
+        $instance = new static($result, false);
+        $instance::cache()->set($instance);
+
+        return $instance;
+    }
+
+    /**
      * Initializes the model from a relation.
      *
      * @throws ModelException
@@ -1275,6 +1345,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface
 
     /**
      * {@inheritdoc}
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

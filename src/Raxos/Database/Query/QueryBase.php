@@ -688,6 +688,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      *
+     * @noinspection PhpDocSignatureInspection
      * @psalm-return TResult
      */
     public function single(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array|null
@@ -709,6 +710,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      *
+     * @noinspection PhpDocSignatureInspection
      * @psalm-return TResult
      */
     public function singleOrFail(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array

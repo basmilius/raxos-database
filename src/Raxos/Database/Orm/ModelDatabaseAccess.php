@@ -430,11 +430,7 @@ trait ModelDatabaseAccess
         $primaryKeyFields = static::getPrimaryKey();
 
         if (is_string($primaryKeyFields)) {
-            if ($index === 0) {
-                $query->where(static::column($primaryKeyFields), ComparatorAwareLiteral::in(array_shift($primaryKeys)));
-            } else {
-                $query->and(static::column($primaryKeyFields), ComparatorAwareLiteral::in(array_shift($primaryKeys)));
-            }
+            $query->where(static::column($primaryKeyFields), ComparatorAwareLiteral::in(array_shift($primaryKeys)));
         } else {
             $primaryKeyFields = array_map([static::class, 'column'], $primaryKeyFields);
 

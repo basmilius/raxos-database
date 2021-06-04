@@ -16,8 +16,8 @@ use Raxos\Foundation\Collection\CollectionException;
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use function array_filter;
-use function array_key_exists;
 use function array_map;
+use function class_exists;
 use function in_array;
 use function is_array;
 use function is_int;
@@ -256,32 +256,14 @@ class Statement
             throw new QueryException('Cannot create model instance, no model was assigned to the query.', QueryException::ERR_INVALID_MODEL);
         }
 
-        /** @var Model $modelClass */
+        /** @var Model&string $modelClass */
         $modelClass = $this->modelClass;
-        $primaryKey = $modelClass::getPrimaryKey();
 
-        if (is_array($primaryKey)) {
-            $primaryKeyValue = array_map(fn(string $key) => $result[$key], $primaryKey);
-        } else {
-            $primaryKeyValue = $result[$primaryKey];
+        if (!class_exists($modelClass)) {
+            throw new QueryException('Cannot create model instance, the assigned model does not exist.', QueryException::ERR_INVALID_MODEL);
         }
 
-        if ($modelClass::cache()->has($this->modelClass, $primaryKeyValue)) {
-            $instance = $modelClass::cache()->get($this->modelClass, $primaryKeyValue);
-
-            // note: This is for relation resolving.
-            if (array_key_exists('__linking_key', $result)) {
-                $instance->__linking_key = $result['__linking_key'];
-            }
-
-            return $instance;
-        }
-
-        /** @var Model $model */
-        $model = new $this->modelClass($result, false);
-        $model::cache()->set($model);
-
-        return $model;
+        return $modelClass::createInstance($result);
     }
 
     /**
