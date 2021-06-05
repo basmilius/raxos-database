@@ -18,7 +18,6 @@ use stdClass;
 use function array_filter;
 use function array_map;
 use function class_exists;
-use function in_array;
 use function is_array;
 use function is_int;
 
@@ -31,9 +30,6 @@ use function is_int;
  */
 class Statement
 {
-
-    // todo(Bas): arrayList()
-    // todo(Bas): eager loading when models are implemented
 
     private array $eagerLoad = [];
     private PDOStatement $pdoStatement;
@@ -419,17 +415,9 @@ class Statement
             return;
         }
 
-        /** @var Model $modelClass */
+        /** @var Model&string $modelClass */
         $modelClass = $this->modelClass;
-        $relations = $modelClass::getRelations();
-
-        foreach ($relations as $relation) {
-            if (!$relation->isEagerLoadEnabled() && !in_array($relation->getFieldName(), $this->eagerLoad)) {
-                continue;
-            }
-
-            $relation->eagerLoad($models);
-        }
+        $modelClass::eagerLoadRelationships($models, $this->eagerLoad);
     }
 
     /**

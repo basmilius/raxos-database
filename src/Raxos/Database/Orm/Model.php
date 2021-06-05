@@ -20,6 +20,7 @@ use Stringable;
 use function array_diff;
 use function array_key_exists;
 use function array_map;
+use function array_shift;
 use function array_unique;
 use function class_exists;
 use function count;
@@ -1354,6 +1355,68 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         $instance::cache()->set($instance);
 
         return $instance;
+    }
+
+    /**
+     * Eager loads the relationships of the given models.
+     *
+     * @param Model[] $models
+     * @param string[] $forceEagerLoad
+     *
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @access private
+     * @internal
+     * @private
+     */
+    static function eagerLoadRelationships(array $models, array $forceEagerLoad = []): void
+    {
+        /** @var Relation[] $relations */
+        $relations = static::getRelations();
+        $didRelations = [];
+
+        // note: first we need to determine which relations are in the current model,
+        //  for polymorphic relations it's mroe performant to combine the relations
+        //  of the underlying types into one big query.
+        foreach ($relations as $relation) {
+            if (!$relation->isEagerLoadEnabled() && !in_array($relation->getFieldName(), $forceEagerLoad)) {
+                continue;
+            }
+
+            $relation->eagerLoad($models);
+            $didRelations[] = $relation->getFieldName();
+        }
+
+        $classGroups = [];
+
+        while (!empty($models)) {
+            $model = array_shift($models);
+
+            $classGroups[$model::class] ??= [];
+            $classGroups[$model::class][] = $model;
+        }
+
+        /**
+         * @var static&string $modelClass
+         * @var static[] $models
+         */
+        foreach ($classGroups as $modelClass => $models) {
+            /** @var Relation[] $relations */
+            $relations = $modelClass::getRelations();
+
+            foreach ($relations as $relation) {
+                if (in_array($relation->getFieldName(), $didRelations)) {
+                    continue;
+                }
+
+                if (!$relation->isEagerLoadEnabled() && !in_array($relation->getFieldName(), $forceEagerLoad)) {
+                    continue;
+                }
+
+                $relation->eagerLoad($models);
+            }
+        }
     }
 
     /**
