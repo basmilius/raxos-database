@@ -173,16 +173,17 @@ class Cache implements DebugInfoInterface
      * Caches the given model.
      *
      * @param Model $model
+     * @param string|null $modelClass
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function set(Model $model): void
+    public function set(Model $model, ?string $modelClass = null): void
     {
         $key = $this->key($model->getPrimaryKeyValues());
 
-        $this->instances[$model::class][$key] = $model;
+        $this->instances[$modelClass ?? $model::class][$key] = $model;
     }
 
     /**

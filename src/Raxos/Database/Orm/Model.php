@@ -1052,7 +1052,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     private static function initialize(): void
     {
-        if (array_key_exists(static::class, static::$initialized)) {
+        if (isset(static::$initialized[static::class])) {
             return;
         }
 
@@ -1063,7 +1063,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         static::$relations[static::class] = [];
 
         $class = new ReflectionClass(static::class);
-
         $attributes = $class->getAttributes();
 
         foreach ($attributes as $attribute) {
@@ -1352,7 +1351,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         $instance = new static($result, false);
-        $instance::cache()->set($instance);
+        $instance::cache()->set($instance, $masterModel);
 
         return $instance;
     }
