@@ -468,8 +468,10 @@ trait ModelDatabaseAccess
      */
     private static function baseSelect(callable $fn, array|string|int $fields): Query
     {
-        return $fn(static::getDefaultFields($fields))
-            ->from(static::getTable());
+        return static::getDefaultJoins(
+            $fn(static::getDefaultFields($fields))
+                ->from(static::getTable())
+        );
     }
 
 }

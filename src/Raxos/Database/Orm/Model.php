@@ -1012,6 +1012,20 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     }
 
     /**
+     * Gets the joins that should be added to every select query.
+     *
+     * @param Query $query
+     *
+     * @return Query
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    protected static function getDefaultJoins(Query $query): Query
+    {
+        return $query;
+    }
+
+    /**
      * Casts the given value using the given caster class.
      *
      * @param string $casterClass
