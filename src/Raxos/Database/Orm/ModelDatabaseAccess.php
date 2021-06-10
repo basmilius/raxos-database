@@ -155,14 +155,7 @@ trait ModelDatabaseAccess
 
         self::addPrimaryKeyClauses($query, $primaryKey);
 
-        $result = static::query(false)
-            ->withoutModel()
-            ->select([
-                'exists' => SubQueryLiteral::exists($query)
-            ])
-            ->single();
-
-        return $result['exists'] === 1;
+        return $query->resultCount() >= 1;
     }
 
     /**
