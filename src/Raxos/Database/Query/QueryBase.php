@@ -583,10 +583,12 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      */
     public function totalCount(): int
     {
-        $limitIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'limit');
-
-        if ($limitIndex !== null) {
+        if (($limitIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'limit')) !== null) {
             array_splice($this->pieces, $limitIndex, 1);
+        }
+
+        if (($offsetIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'offset')) !== null) {
+            array_splice($this->pieces, $offsetIndex, 1);
         }
 
         $query = $this->connection
