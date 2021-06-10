@@ -11,6 +11,7 @@ use Raxos\Database\Error\ModelException;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
+use Raxos\Database\Query\Struct\SubQueryLiteral;
 use Raxos\Database\Query\Struct\Value;
 use Stringable;
 use function array_map;
@@ -19,6 +20,7 @@ use function count;
 use function is_array;
 use function is_string;
 use function json_encode;
+use function Raxos\Database\Query\literal;
 
 /**
  * Trait ModelDatabaseAccess
@@ -148,12 +150,19 @@ trait ModelDatabaseAccess
             return true;
         }
 
-        $query = static::select(1)
+        $query = static::select()
             ->withoutModel();
 
         self::addPrimaryKeyClauses($query, $primaryKey);
 
-        return $query->single() !== null;
+        $result = static::query(false)
+            ->withoutModel()
+            ->select([
+                'exists' => SubQueryLiteral::exists($query)
+            ])
+            ->single();
+
+        return $result['exists'] === 1;
     }
 
     /**
@@ -398,9 +407,9 @@ trait ModelDatabaseAccess
             $fieldName = $field->name;
 
             if ($index++ === 0) {
-                $query->where(static::column($fieldName), $value);
+                $query->where(static::column($fieldName), literal($value));
             } else {
-                $query->and(static::column($fieldName), $value);
+                $query->and(static::column($fieldName), literal($value));
             }
         }
 
