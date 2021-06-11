@@ -80,15 +80,15 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
     protected static string $connectionId = 'default';
 
-    private static array $alias = [];
-    private static array $initialized = [];
-    private static array $polymorphicClassMap = [];
-    private static array $polymorphicColumn = [];
-    private static array $relations = [];
-    private static array $tables = [];
+    private static array $__alias = [];
+    private static array $__initialized = [];
+    private static array $__polymorphicClassMap = [];
+    private static array $__polymorphicColumn = [];
+    private static array $__relations = [];
+    private static array $__tables = [];
 
     /** @var FieldDefinition[][]|MacroDefinition[][] */
-    private static array $fields = [];
+    private static array $__fields = [];
 
     protected array $modified = [];
     protected array $hidden = [];
@@ -198,7 +198,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             'fields' => $fields,
             'macros' => $macros,
             'modified' => $this->modified,
-            'table' => static::$tables[static::class]
+            'table' => static::$__tables[static::class]
         ];
     }
 
@@ -518,7 +518,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     protected function getValue(string $field): mixed
     {
-        $def = static::getField(static::$alias[static::class][$field] ?? $field);
+        $def = static::getField(static::$__alias[static::class][$field] ?? $field);
 
         if (!$this->isMacroCall && $def instanceof MacroDefinition) {
             return $this->callMacro($def);
@@ -543,7 +543,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     protected function hasValue(string $field): bool
     {
-        $def = static::getField(static::$alias[static::class][$field] ?? $field);
+        $def = static::getField(static::$__alias[static::class][$field] ?? $field);
 
         if ($def instanceof FieldDefinition || $def instanceof MacroDefinition) {
             return true;
@@ -560,7 +560,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     protected function setValue(string $field, mixed $value): void
     {
-        $def = static::getField(static::$alias[static::class][$field] ?? $field);
+        $def = static::getField(static::$__alias[static::class][$field] ?? $field);
 
         if ($def instanceof FieldDefinition) {
             if (static::isRelation($def)) {
@@ -631,7 +631,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 parent::setValue($column, $value->{$referenceColumn});
                 parent::setValue($relation->getFieldName(), $value);
 
-                $this->modified[] = static::$alias[static::class][$column] ?? $column;
+                $this->modified[] = static::$__alias[static::class][$column] ?? $column;
                 break;
 
             default:
@@ -647,7 +647,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     protected function unsetValue(string $field): void
     {
-        $def = static::getField(static::$alias[static::class][$field] ?? $field);
+        $def = static::getField(static::$__alias[static::class][$field] ?? $field);
 
         if ($def instanceof MacroDefinition) {
             throw new ModelException(sprintf('Field "%s" is a macro and cannot be unset.', $field), ModelException::ERR_IMMUTABLE);
@@ -692,7 +692,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     private function prepareModel(): void
     {
-        foreach (static::$fields[static::class] as $field) {
+        foreach (static::$__fields[static::class] as $field) {
             unset($this->{$field->property});
 
             if ($field->isHidden) {
@@ -836,7 +836,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     public static function getField(string $field): FieldDefinition|MacroDefinition|null
     {
-        return static::$fields[static::class][$field] ?? null;
+        return static::$__fields[static::class][$field] ?? null;
     }
 
     /**
@@ -848,7 +848,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     public static function getFields(): Generator
     {
-        foreach (static::$fields[static::class] ?? [] as $def) {
+        foreach (static::$__fields[static::class] ?? [] as $def) {
             if ($def instanceof FieldDefinition) {
                 yield $def;
             }
@@ -864,7 +864,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     public static function getMacros(): Generator
     {
-        foreach (static::$fields[static::class] ?? [] as $def) {
+        foreach (static::$__fields[static::class] ?? [] as $def) {
             if ($def instanceof MacroDefinition) {
                 yield $def;
             }
@@ -916,8 +916,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     public static function getRelation(FieldDefinition $field): Relation
     {
-        if (array_key_exists($field->property, static::$relations[static::class])) {
-            return static::$relations[static::class][$field->property];
+        if (array_key_exists($field->property, static::$__relations[static::class])) {
+            return static::$__relations[static::class][$field->property];
         }
 
         if ($field->relation === null) {
@@ -926,7 +926,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
         $relationType = $field->relation ?? throw new ModelException(sprintf('Model %s does not have a relation named %s.', static::class, $field), ModelException::ERR_RELATION_NOT_FOUND);
 
-        return static::$relations[static::class][$field->property] = new LazyRelation(
+        return static::$__relations[static::class][$field->property] = new LazyRelation(
             $relationType,
             static::class,
             $field,
@@ -962,13 +962,13 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     public static function getTable(): string
     {
-        if (array_key_exists(static::class, static::$tables)) {
-            return static::$tables[static::class];
+        if (array_key_exists(static::class, static::$__tables)) {
+            return static::$__tables[static::class];
         }
 
         static::initialize();
 
-        return static::$tables[static::class] ?? throw new ModelException(sprintf('Model "%s" does not have a table assigned.', static::class), ModelException::ERR_NO_TABLE_ASSIGNED);
+        return static::$__tables[static::class] ?? throw new ModelException(sprintf('Model "%s" does not have a table assigned.', static::class), ModelException::ERR_NO_TABLE_ASSIGNED);
     }
 
     /**
@@ -1076,7 +1076,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     private static function copySettings(string $masterModel): void
     {
-        static::$tables[static::class] = static::$tables[$masterModel] ?? null;
+        static::$__tables[static::class] = static::$__tables[$masterModel] ?? null;
     }
 
     /**
@@ -1088,15 +1088,15 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     private static function initialize(): void
     {
-        if (isset(static::$initialized[static::class])) {
+        if (isset(static::$__initialized[static::class])) {
             return;
         }
 
-        static::$alias[static::class] = [];
-        static::$fields[static::class] = [];
-        static::$polymorphicColumn[static::class] = null;
-        static::$polymorphicClassMap[static::class] = [];
-        static::$relations[static::class] = [];
+        static::$__alias[static::class] = [];
+        static::$__fields[static::class] = [];
+        static::$__polymorphicColumn[static::class] = null;
+        static::$__polymorphicClassMap[static::class] = [];
+        static::$__relations[static::class] = [];
 
         $class = new ReflectionClass(static::class);
         $attributes = $class->getAttributes();
@@ -1111,12 +1111,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             switch (true) {
                 case $attributeName === Polymorphic::class:
                     $p = $attribute->newInstance();
-                    static::$polymorphicColumn[static::class] = $p->getColumn();
-                    static::$polymorphicClassMap[static::class] = $p->getMap();
+                    static::$__polymorphicColumn[static::class] = $p->getColumn();
+                    static::$__polymorphicClassMap[static::class] = $p->getMap();
                     break;
 
                 case $attributeName === Table::class:
-                    static::$tables[static::class] = $attribute->getArguments()[0];
+                    static::$__tables[static::class] = $attribute->getArguments()[0];
                     break;
 
                 default:
@@ -1136,7 +1136,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
         static::initializeFields($class);
 
-        static::$initialized[static::class] = true;
+        static::$__initialized[static::class] = true;
     }
 
     /**
@@ -1254,10 +1254,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         if ($alias !== null) {
-            static::$alias[static::class][$alias] = $property->name;
+            static::$__alias[static::class][$alias] = $property->name;
         }
 
-        static::$fields[static::class][$property->name] = new FieldDefinition(
+        static::$__fields[static::class][$property->name] = new FieldDefinition(
             $alias,
             $cast,
             $default,
@@ -1319,10 +1319,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         if ($alias !== null) {
-            static::$alias[static::class][$alias] = $property->name;
+            static::$__alias[static::class][$alias] = $property->name;
         }
 
-        static::$fields[static::class][$property->name] = new MacroDefinition(
+        static::$__fields[static::class][$property->name] = new MacroDefinition(
             $alias,
             $isCacheable,
             $isHidden,
@@ -1352,13 +1352,13 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         if ($masterModel !== null) {
             static::copySettings($masterModel);
 
-            static::$polymorphicClassMap[static::class] = [];
-            static::$polymorphicColumn[static::class] = null;
+            static::$__polymorphicClassMap[static::class] = [];
+            static::$__polymorphicColumn[static::class] = null;
         }
 
-        if (($typeColumn = static::$polymorphicColumn[static::class]) !== null) {
+        if (($typeColumn = static::$__polymorphicColumn[static::class]) !== null) {
             /** @var static&string $polymorphicClassName */
-            $polymorphicClassName = static::$polymorphicClassMap[static::class][$result[$typeColumn]] ?? null;
+            $polymorphicClassName = static::$__polymorphicClassMap[static::class][$result[$typeColumn]] ?? null;
 
             if ($polymorphicClassName !== null) {
                 return $polymorphicClassName::createInstance($result, static::class);
