@@ -20,6 +20,7 @@ use Stringable;
 use function array_diff;
 use function array_key_exists;
 use function array_map;
+use function array_merge;
 use function array_shift;
 use function array_unique;
 use function class_exists;
@@ -810,6 +811,21 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     }
 
     /**
+     * Extends the given fields with the given extended fields.
+     *
+     * @param array|string|int $fields
+     * @param array $extendedFields
+     *
+     * @return array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    protected static function extendFields(array|string|int $fields, array $extendedFields): array
+    {
+        return array_merge(static::ensureArrayFields($fields), $extendedFields);
+    }
+
+    /**
      * Gets a defined field.
      *
      * @param string $field
@@ -1003,8 +1019,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      * @param array|string|int $fields
      *
      * @return array|string|int
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     *
+     * @noinspection PhpDocRedundantThrowsInspection
      */
     protected static function getDefaultFields(array|string|int $fields): array|string|int
     {
@@ -1017,8 +1036,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      * @param Query $query
      *
      * @return Query
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     *
+     * @noinspection PhpDocRedundantThrowsInspection
      */
     protected static function getDefaultJoins(Query $query): Query
     {
