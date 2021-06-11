@@ -30,16 +30,16 @@ abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializab
     /**
      * ModelBase constructor.
      *
-     * @param array $data
-     * @param static|null $master
+     * @param array $__data
+     * @param static|null $__master
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(protected array $data = [], protected ?self $master = null)
+    public function __construct(protected array $__data = [], protected ?self $__master = null)
     {
-        if ($this->master !== null) {
-            $this->data = &$this->master->data;
+        if ($this->__master !== null) {
+            $this->__data = &$this->__master->__data;
         }
     }
 
@@ -54,11 +54,11 @@ abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializab
     {
         $master = $this;
 
-        if ($this->master !== null) {
-            $master = $this->master;
+        if ($this->__master !== null) {
+            $master = $this->__master;
         }
 
-        return new static(master: $master);
+        return new static(__master: $master);
     }
 
     /**
@@ -70,7 +70,7 @@ abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializab
      */
     public final function getModelMaster(): static
     {
-        return $this->master ?? $this;
+        return $this->__master ?? $this;
     }
 
     /**
@@ -85,8 +85,8 @@ abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializab
      */
     protected function getValue(string $field): mixed
     {
-        if (array_key_exists($field, $this->data)) {
-            return $this->data[$field];
+        if (array_key_exists($field, $this->__data)) {
+            return $this->__data[$field];
         }
 
         throw new ModelException(sprintf('Field "%s" does not exists in "%s".', $field, static::class), ModelException::ERR_FIELD_NOT_FOUND);
@@ -103,7 +103,7 @@ abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializab
      */
     protected function hasValue(string $field): bool
     {
-        return array_key_exists($field, $this->data);
+        return array_key_exists($field, $this->__data);
     }
 
     /**
@@ -117,7 +117,7 @@ abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializab
      */
     protected function setValue(string $field, mixed $value): void
     {
-        $this->data[$field] = $value;
+        $this->__data[$field] = $value;
     }
 
     /**
@@ -130,7 +130,7 @@ abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializab
      */
     protected function unsetValue(string $field): void
     {
-        unset($this->data[$field]);
+        unset($this->__data[$field]);
     }
 
     /**
@@ -142,7 +142,7 @@ abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializab
      */
     public function toArray(): array
     {
-        return $this->data;
+        return $this->__data;
     }
 
     /**

@@ -90,9 +90,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     /** @var FieldDefinition[][]|MacroDefinition[][] */
     private static array $__fields = [];
 
-    protected array $modified = [];
-    protected array $hidden = [];
-    protected array $visible = [];
+    protected array $__modified = [];
+    protected array $__hidden = [];
+    protected array $__visible = [];
 
     private array $castedFields = [];
     private array $macroCache = [];
@@ -101,23 +101,23 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     /**
      * ModelBase constructor.
      *
-     * @param array $data
+     * @param array $__data
      * @param bool $isNew
-     * @param Model|null $master
+     * @param Model|null $__master
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(array $data = [], protected bool $isNew = true, ?self $master = null)
+    public function __construct(array $__data = [], protected bool $isNew = true, ?self $__master = null)
     {
-        parent::__construct($data, $master);
+        parent::__construct($__data, $__master);
 
         self::initialize();
         $this->prepareModel();
 
-        if ($this->master === null) {
-            $this->onInitialize($this->data);
+        if ($this->__master === null) {
+            $this->onInitialize($this->__data);
         }
     }
 
@@ -160,7 +160,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     public function getData(string $key): mixed
     {
-        return $this->data[$key] ?? null;
+        return $this->__data[$key] ?? null;
     }
 
     /**
@@ -194,10 +194,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
         return [
             'type' => static::class,
-            'data' => $this->data,
+            'data' => $this->__data,
             'fields' => $fields,
             'macros' => $macros,
-            'modified' => $this->modified,
+            'modified' => $this->__modified,
             'table' => static::$__tables[static::class]
         ];
     }
@@ -240,7 +240,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      */
     public function isModified(): bool
     {
-        return !empty($this->modified);
+        return !empty($this->__modified);
     }
 
     /**
@@ -255,7 +255,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     #[Pure]
     public function isHidden(string $field): bool
     {
-        return in_array($field, $this->hidden);
+        return in_array($field, $this->__hidden);
     }
 
     /**
@@ -270,7 +270,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     #[Pure]
     public function isVisible(string $field): bool
     {
-        return in_array($field, $this->visible);
+        return in_array($field, $this->__visible);
     }
 
     /**
@@ -289,8 +289,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         $clone = $this->clone();
-        $clone->hidden = array_unique([...$this->hidden, ...$fields]);
-        $clone->visible = array_diff($this->visible, $clone->hidden);
+        $clone->__hidden = array_unique([...$this->__hidden, ...$fields]);
+        $clone->__visible = array_diff($this->__visible, $clone->__hidden);
 
         return $clone;
     }
@@ -311,8 +311,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         $clone = $this->clone();
-        $clone->visible = array_unique([...$this->visible, ...$fields]);
-        $clone->hidden = array_diff($this->hidden, $clone->visible);
+        $clone->__visible = array_unique([...$this->__visible, ...$fields]);
+        $clone->__hidden = array_diff($this->__hidden, $clone->__visible);
 
         return $clone;
     }
@@ -345,8 +345,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         $clone = $this->clone();
-        $clone->hidden = $hidden;
-        $clone->visible = $fields;
+        $clone->__hidden = $hidden;
+        $clone->__visible = $fields;
 
         return $clone;
     }
@@ -385,7 +385,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     {
         $pairs = [];
 
-        foreach ($this->modified as $field) {
+        foreach ($this->__modified as $field) {
             $def = static::getField($field);
             $fieldName = $def?->name ?? $field;
             $value = parent::getValue($fieldName);
@@ -418,7 +418,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 /** @var array $data */
                 $data = $query->single();
                 $this->onInitialize($data);
-                $this->data = $data;
+                $this->__data = $data;
             }
 
             static::cache()->set($this);
@@ -529,7 +529,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         if ($def instanceof FieldDefinition && $def->cast !== null && !in_array($def->property, $this->castedFields)) {
-            $this->data[$def->name] = static::castField($def->cast, 'decode', $this->data[$def->name]);
+            $this->__data[$def->name] = static::castField($def->cast, 'decode', $this->__data[$def->name]);
             $this->castedFields[] = $def->property;
         }
 
@@ -572,7 +572,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                     throw new ModelException(sprintf('Field "%s" in model "%s" is immutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
                 }
 
-                $this->modified[] = $def->property;
+                $this->__modified[] = $def->property;
 
                 parent::setValue($def->name, $value);
             }
@@ -581,7 +581,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 throw new ModelException(sprintf('Field "%s" is a non-writable macro on model "%s".', $field, static::class), ModelException::ERR_IMMUTABLE);
             }
 
-            $this->modified[] = $def->property;
+            $this->__modified[] = $def->property;
 
             parent::setValue($def->name, $value);
         } else if (str_starts_with($field, '__')) {
@@ -631,7 +631,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 parent::setValue($column, $value->{$referenceColumn});
                 parent::setValue($relation->getFieldName(), $value);
 
-                $this->modified[] = static::$__alias[static::class][$column] ?? $column;
+                $this->__modified[] = static::$__alias[static::class][$column] ?? $column;
                 break;
 
             default:
@@ -696,11 +696,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             unset($this->{$field->property});
 
             if ($field->isHidden) {
-                $this->hidden[] = $field->name;
+                $this->__hidden[] = $field->name;
             }
 
             if ($field->isVisible) {
-                $this->visible[] = $field->name;
+                $this->__visible[] = $field->name;
             }
         }
     }
@@ -736,9 +736,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         return serialize([
-            $this->data,
-            $this->hidden,
-            $this->visible,
+            $this->__data,
+            $this->__hidden,
+            $this->__visible,
             $this->isNew,
             $this->castedFields,
             $relations
@@ -757,9 +757,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         $this->prepareModel();
 
         [
-            $this->data,
-            $this->hidden,
-            $this->visible,
+            $this->__data,
+            $this->__hidden,
+            $this->__visible,
             $this->isNew,
             $this->castedFields,
             $relations
@@ -768,12 +768,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         $pk = $this->getPrimaryKeyValues();
 
         if (static::cache()->has(static::class, $pk)) {
-            $this->master = static::cache()->get(static::class, $pk);
-            $this->castedFields = &$this->master->castedFields;
-            $this->data = &$this->master->data;
-            $this->isNew = &$this->master->isNew;
+            $this->__master = static::cache()->get(static::class, $pk);
+            $this->castedFields = &$this->__master->castedFields;
+            $this->__data = &$this->__master->__data;
+            $this->isNew = &$this->__master->isNew;
         } else {
-            $this->master = null;
+            $this->__master = null;
         }
 
         foreach ($relations as $relation) {
@@ -1477,7 +1477,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         if (extension_loaded('xdebug')) {
             // note: debugInfo gets called by xdebug many times and that
             //  breaks our code.
-            return $this->data;
+            return $this->__data;
         }
 
         return $this->toArray();
