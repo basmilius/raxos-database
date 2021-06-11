@@ -1194,16 +1194,15 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         $validField = false;
 
         foreach ($attributes as $attribute) {
-            $attributeName = $attribute->getName();
-            $attributeArguments = $attribute->getArguments();
+            $attr = $attribute->newInstance();
 
             switch (true) {
-                case $attributeName === Alias::class:
-                    $alias = $attributeArguments[0] ?? null;
+                case $attr instanceof Alias:
+                    $alias = $attr->getAlias();
                     break;
 
-                case $attributeName === Caster::class:
-                    $cast = $attributeArguments[0] ?? null;
+                case $attr instanceof Caster:
+                    $cast = $attr->getCaster();
 
                     if (!isset($knownCasters[$cast])) {
                         if (!class_exists($cast)) {
@@ -1218,32 +1217,31 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                     }
                     break;
 
-                case $attributeName === Column::class:
-                    $default = $attributeArguments[0] ?? null;
+                case $attr instanceof Column:
+                    $default = $attr->getDefault();
                     $validField = true;
                     break;
 
-                case is_subclass_of($attributeName, RelationAttribute::class):
-                    /** @var RelationAttribute $relation */
-                    $relation = $attribute->newInstance();
+                case $attr instanceof RelationAttribute:
+                    $relation = $attr;
                     $validField = true;
                     break;
 
-                case $attributeName === Immutable::class:
+                case $attr instanceof Immutable:
                     $isImmutable = true;
                     break;
 
-                case $attributeName === PrimaryKey::class:
+                case $attr instanceof PrimaryKey:
                     $isImmutable = true;
                     $isPrimary = true;
                     $validField = true;
                     break;
 
-                case $attributeName === Hidden::class:
+                case $attr instanceof Hidden:
                     $isHidden = true;
                     break;
 
-                case $attributeName === Visible::class:
+                case $attr instanceof Visible:
                     $isVisible = true;
                     break;
             }
@@ -1296,23 +1294,22 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         $isVisible = false;
 
         foreach ($attributes as $attribute) {
-            $attributeName = $attribute->getName();
-            $attributeArguments = $attribute->getArguments();
+            $attr = $attribute->newInstance();
 
             switch (true) {
-                case $attributeName === Alias::class:
-                    $alias = $attributeArguments[0] ?? null;
+                case $attr instanceof Alias:
+                    $alias = $attr->getAlias();
                     break;
 
-                case $attributeName === Macro::class:
-                    $isCacheable = $attributeArguments[0] ?? false;
+                case $attr instanceof Macro:
+                    $isCacheable = $attr->isCacheable();
                     break;
 
-                case $attributeName === Hidden::class:
+                case $attr instanceof Hidden:
                     $isHidden = true;
                     break;
 
-                case $attributeName === Visible::class:
+                case $attr instanceof Visible:
                     $isVisible = true;
                     break;
             }
