@@ -589,7 +589,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     public function totalCount(): int
     {
         if (($selectIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'select')) !== null) {
-            $this->pieces[$selectIndex][1] = [1];
+            $this->pieces[$selectIndex][1] = 1;
         }
 
         if (($limitIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'limit')) !== null) {
