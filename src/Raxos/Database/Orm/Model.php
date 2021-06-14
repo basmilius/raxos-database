@@ -576,6 +576,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                     throw new ModelException(sprintf('Field "%s" in model "%s" is immutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
                 }
 
+                // note: assume that the data is valid and does not need casting.
+                if ($def->cast !== null && !in_array($def->property, $this->castedFields)) {
+                    $this->castedFields[] = $def->property;
+                }
+
                 $this->__modified[] = $def->property;
 
                 parent::setValue($def->name, $value);
