@@ -533,6 +533,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $this->castedFields[] = $def->property;
         }
 
+        if ($def instanceof FieldDefinition && $def->default !== null && !array_key_exists($def->name, $this->__data)) {
+            return $def->default;
+        }
+
         return parent::getValue($def?->name ?? $field);
     }
 
