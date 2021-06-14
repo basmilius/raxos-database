@@ -592,12 +592,12 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
             $this->pieces[$selectIndex][1] = 1;
         }
 
-        if (($limitIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'limit')) !== null) {
-            array_splice($this->pieces, $limitIndex, 1);
-        }
+        $removeClauses = ['limit', 'offset', 'order by'];
 
-        if (($offsetIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'offset')) !== null) {
-            array_splice($this->pieces, $offsetIndex, 1);
+        foreach ($removeClauses as $clause) {
+            if (($pieceIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === $clause)) !== null) {
+                array_splice($this->pieces, $pieceIndex, 1);
+            }
         }
 
         /** @var self $query */
