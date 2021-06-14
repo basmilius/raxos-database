@@ -556,9 +556,12 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     *
+     * @noinspection PhpRedundantVariableDocTypeInspection
      */
     public function resultCount(): int
     {
+        /** @var self $query */
         $query = $this->connection
             ->query()
             ->select('count(*)')
@@ -580,9 +583,15 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     *
+     * @noinspection PhpRedundantVariableDocTypeInspection
      */
     public function totalCount(): int
     {
+        if (($selectIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'select')) !== null) {
+            $this->pieces[$selectIndex][1] = [1];
+        }
+
         if (($limitIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'limit')) !== null) {
             array_splice($this->pieces, $limitIndex, 1);
         }
@@ -591,6 +600,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
             array_splice($this->pieces, $offsetIndex, 1);
         }
 
+        /** @var self $query */
         $query = $this->connection
             ->query()
             ->select('count(*)')
