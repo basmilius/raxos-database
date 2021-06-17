@@ -417,6 +417,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
                 /** @var array $data */
                 $data = $query->single();
+                $this->castedFields = [];
                 $this->onInitialize($data);
                 $this->__data = $data;
             }
