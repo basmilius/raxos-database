@@ -252,6 +252,71 @@ trait ModelDatabaseAccess
     }
 
     /**
+     * Sets up a `having exists $query` query for the model.
+     *
+     * @param Query $query
+     *
+     * @return Query<static>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     */
+    public static function havingExists(Query $query): Query
+    {
+        return static::select()
+            ->havingExists($query);
+    }
+
+    /**
+     * Sets up a `having $field in $options` query for the model.
+     *
+     * @param string $field
+     * @param array $options
+     *
+     * @return Query<static>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     */
+    public static function havingIn(string $field, array $options): Query
+    {
+        return static::select()
+            ->havingIn($field, $options);
+    }
+
+    /**
+     * Sets up a `having $field not null` query for the model.
+     *
+     * @param string $field
+     *
+     * @return Query<static>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     */
+    public static function havingNotNull(string $field): Query
+    {
+        return static::query()
+            ->havingNotNull($field);
+    }
+
+    /**
+     * Sets up a `having $field is null` query for the model.
+     *
+     * @param string $field
+     *
+     * @return Query<static>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     */
+    public static function havingNull(string $field): Query
+    {
+        return static::query()
+            ->havingNull($field);
+    }
+
+    /**
      * Starts a new query for the current model.
      *
      * @param bool $isPrepared
@@ -373,6 +438,71 @@ trait ModelDatabaseAccess
     {
         return static::select()
             ->where($field, $comparator, $value);
+    }
+
+    /**
+     * Sets up a `where exists $query` query for the model.
+     *
+     * @param Query $query
+     *
+     * @return Query<static>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     */
+    public static function whereExists(Query $query): Query
+    {
+        return static::select()
+            ->whereExists($query);
+    }
+
+    /**
+     * Sets up a `where $field in $options` query for the model.
+     *
+     * @param string $field
+     * @param array $options
+     *
+     * @return Query<static>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     */
+    public static function whereIn(string $field, array $options): Query
+    {
+        return static::select()
+            ->whereIn($field, $options);
+    }
+
+    /**
+     * Sets up a `where $field not null` query for the model.
+     *
+     * @param string $field
+     *
+     * @return Query<static>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     */
+    public static function whereNotNull(string $field): Query
+    {
+        return static::query()
+            ->whereNotNull($field);
+    }
+
+    /**
+     * Sets up a `where $field is null` query for the model.
+     *
+     * @param string $field
+     *
+     * @return Query<static>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@glybe.nl>
+     * @since 2.0.0
+     */
+    public static function whereNull(string $field): Query
+    {
+        return static::query()
+            ->whereNull($field);
     }
 
     /**
