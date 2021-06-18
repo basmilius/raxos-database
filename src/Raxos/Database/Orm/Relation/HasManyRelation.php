@@ -8,6 +8,7 @@ use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
+use Raxos\Database\Query\Struct\Literal;
 use Raxos\Foundation\Collection\CollectionException;
 use WeakMap;
 use function array_column;
@@ -131,14 +132,22 @@ class HasManyRelation extends Relation
         $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getModelMaster()]));
         $values = array_column($values, $this->key);
         $values = array_unique($values);
+        $values = array_filter($values, fn($value) => !$this->connection->getCache()->has($this->getReferenceModel(), $value));
+        $values = array_values($values);
 
         if (empty($values)) {
             return;
         }
 
-        $results = $referenceModel::select()
-            ->where($this->referenceKey, ComparatorAwareLiteral::in($values))
-            ->array();
+        if (!isset($values[1])) {
+            $results = $referenceModel::select()
+                ->where($this->referenceKey, Literal::with($values[0]))
+                ->array();
+        } else {
+            $results = $referenceModel::select()
+                ->where($this->referenceKey, ComparatorAwareLiteral::in($values))
+                ->array();
+        }
 
         foreach ($models as $model) {
             $references = [];

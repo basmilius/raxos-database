@@ -73,6 +73,7 @@ final class QueryLog implements Arrayable, JsonSerializable
      */
     #[ArrayShape([
         'queries' => 'array',
+        'total_queries' => 'int',
         'total_query_time' => 'float'
     ])]
     public final function jsonSerialize(): array

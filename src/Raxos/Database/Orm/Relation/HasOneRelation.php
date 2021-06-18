@@ -7,9 +7,12 @@ use Raxos\Database\Connection\Connection;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
+use Raxos\Database\Query\Struct\Literal;
 use function array_column;
 use function array_filter;
 use function array_unique;
+use function array_values;
+use function count;
 
 /**
  * Class HasOneRelation
@@ -123,16 +126,22 @@ class HasOneRelation extends Relation
 
         $values = array_column($models, $this->key);
         $values = array_unique($values);
-        $values = array_filter($values);
         $values = array_filter($values, fn($value) => !$this->connection->getCache()->has($this->getReferenceModel(), $value));
+        $values = array_values($values);
 
         if (empty($values)) {
             return;
         }
 
-        $referenceModel::select()
-            ->where($this->referenceKey, ComparatorAwareLiteral::in($values))
-            ->array();
+        if (!isset($values[1])) {
+            $referenceModel::select()
+                ->where($this->referenceKey, Literal::with($values[0]))
+                ->array();
+        } else {
+            $referenceModel::select()
+                ->where($this->referenceKey, ComparatorAwareLiteral::in($values))
+                ->array();
+        }
     }
 
 }
