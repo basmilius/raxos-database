@@ -8,6 +8,7 @@ use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Query\Struct\AfterExpressionInterface;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
+use Raxos\Database\Query\Struct\SubQueryLiteral;
 use Raxos\Database\Query\Struct\Value;
 use Raxos\Foundation\Util\ArrayUtil;
 use Stringable;
@@ -51,6 +52,37 @@ abstract class Query extends QueryBase
     public function and(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         return $this->addExpression('and', $field, $comparator, $value);
+    }
+
+    /**
+     * Adds a `and exists $query` expression.
+     *
+     * @param Query $query
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function andExists(self $query): static
+    {
+        return $this->and(SubQueryLiteral::exists($query));
+    }
+
+    /**
+     * Adds a `and $field in ($options)` expression.
+     *
+     * @param string $field
+     * @param array $options
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function andIn(string $field, array $options): static
+    {
+        return $this->and($field, ComparatorAwareLiteral::in($options));
     }
 
     /**
@@ -188,6 +220,37 @@ abstract class Query extends QueryBase
     }
 
     /**
+     * Adds a `having exists $query` expression.
+     *
+     * @param Query $query
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function havingExists(self $query): static
+    {
+        return $this->having(SubQueryLiteral::exists($query));
+    }
+
+    /**
+     * Adds a `having $field in ($options)` expression.
+     *
+     * @param string $field
+     * @param array $options
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function havingIn(string $field, array $options): static
+    {
+        return $this->having($field, ComparatorAwareLiteral::in($options));
+    }
+
+    /**
      * Adds a `having $field is not null` expression.
      *
      * @param string $field
@@ -304,6 +367,37 @@ abstract class Query extends QueryBase
     public function or(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         return $this->addExpression('or', $field, $comparator, $value);
+    }
+
+    /**
+     * Adds a `or exists $query` expression.
+     *
+     * @param Query $query
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function orExists(self $query): static
+    {
+        return $this->or(SubQueryLiteral::exists($query));
+    }
+
+    /**
+     * Adds a `or $field in ($options)` expression.
+     *
+     * @param string $field
+     * @param array $options
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function orIn(string $field, array $options): static
+    {
+        return $this->or($field, ComparatorAwareLiteral::in($options));
     }
 
     /**
@@ -532,6 +626,37 @@ abstract class Query extends QueryBase
     public function where(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         return $this->addExpression($this->isClauseDefined('where') ? 'and' : 'where', $field, $comparator, $value);
+    }
+
+    /**
+     * Adds a `where exists $query` expression.
+     *
+     * @param Query $query
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function whereExists(self $query): static
+    {
+        return $this->where(SubQueryLiteral::exists($query));
+    }
+
+    /**
+     * Adds a `where $field in ($options)` expression.
+     *
+     * @param string $field
+     * @param array $options
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function whereIn(string $field, array $options): static
+    {
+        return $this->where($field, ComparatorAwareLiteral::in($options));
     }
 
     /**

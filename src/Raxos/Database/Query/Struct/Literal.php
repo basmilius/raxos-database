@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Query\Struct;
 
 use Raxos\Database\Query\QueryBase;
+use Stringable;
 use function addslashes;
 
 /**
@@ -13,7 +14,7 @@ use function addslashes;
  * @package Raxos\Database\Query\Struct
  * @since 1.0.0
  */
-class Literal extends Value
+class Literal extends Value implements Stringable
 {
 
     /**
@@ -66,6 +67,16 @@ class Literal extends Value
     public static function with(string|int|float|bool $value): self
     {
         return new Literal($value);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function __toString(): string
+    {
+        return (string)$this->value;
     }
 
 }

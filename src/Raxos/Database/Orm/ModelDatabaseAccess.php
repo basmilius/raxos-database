@@ -11,7 +11,7 @@ use Raxos\Database\Error\ModelException;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
-use Raxos\Database\Query\Struct\SubQueryLiteral;
+use Raxos\Database\Query\Struct\Literal;
 use Raxos\Database\Query\Struct\Value;
 use Stringable;
 use function array_map;
@@ -83,19 +83,25 @@ trait ModelDatabaseAccess
      *
      * @param string $column
      * @param string|null $table
+     * @param bool $literal
      *
-     * @return string
+     * @return Literal|string
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function column(string $column, ?string $table = null): string
+    public static function column(string $column, ?string $table = null, bool $literal = false): Literal|string
     {
         $table ??= static::getTable();
-
-        return static::connection()
+        $column = static::connection()
             ->getDialect()
             ->escapeFields("{$table}.{$column}");
+
+        if ($literal) {
+            return new Literal($column);
+        }
+
+        return $column;
     }
 
     /**
