@@ -234,13 +234,23 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     /**
      * Returns TRUE if the model is modified.
      *
+     * @param string|null $field
+     *
      * @return bool
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function isModified(): bool
+    public function isModified(?string $field = null): bool
     {
-        return !empty($this->__modified);
+        if (empty($this->__modified)) {
+            return false;
+        }
+
+        if ($this->field !== null && !in_array($field, $this->__modified)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
