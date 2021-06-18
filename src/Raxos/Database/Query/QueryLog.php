@@ -8,6 +8,7 @@ use JsonSerializable;
 use Raxos\Foundation\Collection\Arrayable;
 use function array_map;
 use function array_sum;
+use function count;
 
 /**
  * Class QueryLog
@@ -53,13 +54,15 @@ final class QueryLog implements Arrayable, JsonSerializable
      */
     #[ArrayShape([
         'queries' => 'array',
+        'total_queries' => 'int',
         'total_query_time' => 'float'
     ])]
     public final function toArray(): array
     {
         return [
-            'queries' => $this->queries,
-            'total_query_time' => array_sum(array_map(fn(QueryLogEntry $e) => $e->getQueryTime(), $this->queries))
+            'total_query_time' => array_sum(array_map(fn(QueryLogEntry $e) => $e->getQueryTime(), $this->queries)),
+            'total_queries' => count($this->queries),
+            'queries' => $this->queries
         ];
     }
 

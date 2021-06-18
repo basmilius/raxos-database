@@ -6,10 +6,16 @@ namespace Raxos\Database\Query;
 use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 use Raxos\Foundation\Collection\Arrayable;
+use function array_combine;
 use function array_key_exists;
+use function array_keys;
 use function array_shift;
+use function count;
 use function debug_backtrace;
 use function sprintf;
+use function str_pad;
+use function strlen;
+use const STR_PAD_LEFT;
 
 /**
  * Class QueryLogEntry
@@ -90,7 +96,10 @@ final class QueryLogEntry implements Arrayable, JsonSerializable
         return [
             'query_time' => $this->queryTime,
             'sql' => $this->sql,
-            'trace' => array_map(fn(array $item) => $this->formatTraceEntry($item), $this->trace)
+            'trace' => array_combine(
+                array_map(fn(int $key) => str_pad((string)$key, strlen((string)count($this->trace)), pad_type: STR_PAD_LEFT), array_keys($this->trace)),
+                array_map(fn(array $item) => $this->formatTraceEntry($item), $this->trace)
+            )
         ];
     }
 
@@ -130,7 +139,7 @@ final class QueryLogEntry implements Arrayable, JsonSerializable
             $call = $item['function'];
         }
 
-        return sprintf('%s:%d (%s)', $file ?? '?', $line ?? -1, $call ?? '::unknown');
+        return sprintf('%s (%s:%d)', str_pad(($call ?? '::unknown') . ' ', 72, '-'), $file ?? '?', $line ?? -1);
     }
 
 }
