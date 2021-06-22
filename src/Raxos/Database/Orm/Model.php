@@ -90,9 +90,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     /** @var FieldDefinition[][]|MacroDefinition[][] */
     private static array $__fields = [];
 
-    protected array $__modified = [];
-    protected array $__hidden = [];
-    protected array $__visible = [];
+    private array $modified = [];
+    private array $hidden = [];
+    private array $visible = [];
 
     private array $castedFields = [];
     private array $macroCache = [];
@@ -197,7 +197,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             'data' => $this->__data,
             'fields' => $fields,
             'macros' => $macros,
-            'modified' => $this->__modified,
+            'modified' => $this->modified,
             'table' => static::$__tables[static::class]
         ];
     }
@@ -240,13 +240,14 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public function isModified(?string $field = null): bool
     {
-        if (empty($this->__modified)) {
+        if (empty($this->modified)) {
             return false;
         }
 
-        if ($this->field !== null && !in_array($field, $this->__modified)) {
+        if ($field !== null && !in_array($field, $this->modified)) {
             return false;
         }
 
@@ -265,7 +266,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     #[Pure]
     public function isHidden(string $field): bool
     {
-        return in_array($field, $this->__hidden);
+        return in_array($field, $this->hidden);
     }
 
     /**
@@ -280,7 +281,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     #[Pure]
     public function isVisible(string $field): bool
     {
-        return in_array($field, $this->__visible);
+        return in_array($field, $this->visible);
     }
 
     /**
@@ -299,8 +300,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         $clone = $this->clone();
-        $clone->__hidden = array_unique([...$this->__hidden, ...$fields]);
-        $clone->__visible = array_diff($this->__visible, $clone->__hidden);
+        $clone->hidden = array_unique([...$this->hidden, ...$fields]);
+        $clone->visible = array_diff($this->visible, $clone->hidden);
 
         return $clone;
     }
@@ -321,8 +322,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         $clone = $this->clone();
-        $clone->__visible = array_unique([...$this->__visible, ...$fields]);
-        $clone->__hidden = array_diff($this->__hidden, $clone->__visible);
+        $clone->visible = array_unique([...$this->visible, ...$fields]);
+        $clone->hidden = array_diff($this->hidden, $clone->visible);
 
         return $clone;
     }
@@ -355,8 +356,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         $clone = $this->clone();
-        $clone->__hidden = $hidden;
-        $clone->__visible = $fields;
+        $clone->hidden = $hidden;
+        $clone->visible = $fields;
 
         return $clone;
     }
@@ -395,7 +396,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     {
         $pairs = [];
 
-        foreach ($this->__modified as $field) {
+        foreach ($this->modified as $field) {
             $def = static::getField($field);
             $fieldName = $def?->name ?? $field;
             $value = parent::getValue($fieldName);
@@ -592,7 +593,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                     $this->castedFields[] = $def->property;
                 }
 
-                $this->__modified[] = $def->property;
+                $this->modified[] = $def->property;
 
                 parent::setValue($def->name, $value);
             }
@@ -601,7 +602,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 throw new ModelException(sprintf('Field "%s" is a non-writable macro on model "%s".', $field, static::class), ModelException::ERR_IMMUTABLE);
             }
 
-            $this->__modified[] = $def->property;
+            $this->modified[] = $def->property;
 
             parent::setValue($def->name, $value);
         } else if (str_starts_with($field, '__')) {
@@ -651,7 +652,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 parent::setValue($column, $value->{$referenceColumn});
                 parent::setValue($relation->getFieldName(), $value);
 
-                $this->__modified[] = static::$__alias[static::class][$column] ?? $column;
+                $this->modified[] = static::$__alias[static::class][$column] ?? $column;
                 break;
 
             default:
@@ -716,11 +717,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             unset($this->{$field->property});
 
             if ($field->isHidden) {
-                $this->__hidden[] = $field->name;
+                $this->hidden[] = $field->name;
             }
 
             if ($field->isVisible) {
-                $this->__visible[] = $field->name;
+                $this->visible[] = $field->name;
             }
         }
     }
@@ -757,8 +758,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
         return serialize([
             $this->__data,
-            $this->__hidden,
-            $this->__visible,
+            $this->hidden,
+            $this->visible,
             $this->isNew,
             $this->castedFields,
             $relations
@@ -778,8 +779,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
         [
             $this->__data,
-            $this->__hidden,
-            $this->__visible,
+            $this->hidden,
+            $this->visible,
             $this->isNew,
             $this->castedFields,
             $relations
@@ -1397,7 +1398,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
             // node: This is for relation resolving.
             if (array_key_exists('__linking_key', $result)) {
-                $instance->__linking_key = $result['__linking_key'];
+                $instance->{'__linking_key'} = $result['__linking_key'];
             }
 
             return $instance;
@@ -1414,6 +1415,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      *
      * @param Model[] $models
      * @param string[] $forceEagerLoad
+     * @param string[] $eagerLoadDisable
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
@@ -1422,7 +1424,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      * @internal
      * @private
      */
-    static function eagerLoadRelationships(array $models, array $forceEagerLoad = []): void
+    static function eagerLoadRelationships(array $models, array $forceEagerLoad = [], array $eagerLoadDisable = []): void
     {
         /** @var Relation[] $relations */
         $relations = static::getRelations();
@@ -1432,12 +1434,14 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         //  for polymorphic relations it's mroe performant to combine the relations
         //  of the underlying types into one big query.
         foreach ($relations as $relation) {
-            if (!$relation->isEagerLoadEnabled() && !in_array($relation->getFieldName(), $forceEagerLoad)) {
+            $fieldName = $relation->getFieldName();
+
+            if ((!$relation->isEagerLoadEnabled() && !in_array($fieldName, $forceEagerLoad)) || in_array($fieldName, $eagerLoadDisable)) {
                 continue;
             }
 
             $relation->eagerLoad($models);
-            $didRelations[] = $relation->getFieldName();
+            $didRelations[] = $fieldName;
         }
 
         $classGroups = [];
@@ -1458,11 +1462,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $relations = $modelClass::getRelations();
 
             foreach ($relations as $relation) {
-                if (in_array($relation->getFieldName(), $didRelations)) {
-                    continue;
-                }
+                $fieldName = $relation->getFieldName();
 
-                if (!$relation->isEagerLoadEnabled() && !in_array($relation->getFieldName(), $forceEagerLoad)) {
+                if (in_array($fieldName, $didRelations) || (!$relation->isEagerLoadEnabled() && !in_array($fieldName, $forceEagerLoad)) || in_array($fieldName, $eagerLoadDisable)) {
                     continue;
                 }
 

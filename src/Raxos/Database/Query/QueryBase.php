@@ -51,6 +51,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
 
     protected string $currentClause = '';
     protected array $eagerLoad = [];
+    protected array $eagerLoadDisable = [];
     protected ?string $modelClass = null;
     protected array $params = [];
     protected array $pieces = [];
@@ -294,6 +295,28 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
+     * Disables eager loading for the given relation(s).
+     *
+     * @param string|string[] $relations
+     *
+     * @return static<TResult>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function eagerLoadDisable(string|array $relations): static
+    {
+        if (is_string($relations)) {
+            $this->eagerLoadDisable[] = $relations;
+        } else {
+            foreach ($relations as $relation) {
+                $this->eagerLoadDisable[] = $relation;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Removes eager loading from the query.
      *
      * @return static<TResult>
@@ -303,6 +326,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     public function eagerLoadReset(): static
     {
         $this->eagerLoad = [];
+        $this->eagerLoadDisable = [];
 
         return $this;
     }
@@ -592,13 +616,9 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
             $this->pieces[$selectIndex][1] = 1;
         }
 
-        $removeClauses = ['limit', 'offset', 'order by'];
-
-        foreach ($removeClauses as $clause) {
-            if (($pieceIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === $clause)) !== null) {
-                array_splice($this->pieces, $pieceIndex, 1);
-            }
-        }
+        $this->removeClause('limit');
+        $this->removeClause('offset');
+        $this->removeClause('order by');
 
         /** @var self $query */
         $query = $this->connection
@@ -754,6 +774,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
         }
 
         $statement->eagerLoad($this->eagerLoad);
+        $statement->eagerLoadDisable($this->eagerLoadDisable);
 
         foreach ($this->params as [$name, $value]) {
             $statement->bind($name, $value);

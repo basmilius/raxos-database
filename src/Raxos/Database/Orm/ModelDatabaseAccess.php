@@ -296,7 +296,7 @@ trait ModelDatabaseAccess
      */
     public static function havingNotNull(string $field): Query
     {
-        return static::query()
+        return static::select()
             ->havingNotNull($field);
     }
 
@@ -312,7 +312,7 @@ trait ModelDatabaseAccess
      */
     public static function havingNull(string $field): Query
     {
-        return static::query()
+        return static::select()
             ->havingNull($field);
     }
 
@@ -485,7 +485,7 @@ trait ModelDatabaseAccess
      */
     public static function whereNotNull(string $field): Query
     {
-        return static::query()
+        return static::select()
             ->whereNotNull($field);
     }
 
@@ -501,7 +501,7 @@ trait ModelDatabaseAccess
      */
     public static function whereNull(string $field): Query
     {
-        return static::query()
+        return static::select()
             ->whereNull($field);
     }
 

@@ -10,7 +10,6 @@ use Raxos\Database\Error\ModelException;
 use Raxos\Foundation\Access\ArrayAccessible;
 use Raxos\Foundation\Access\ObjectAccessible;
 use Serializable;
-use stdClass;
 use function array_key_exists;
 use function sprintf;
 
@@ -21,7 +20,7 @@ use function sprintf;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class ModelBase extends stdClass implements ArrayAccess, JsonSerializable, Serializable
+abstract class ModelBase implements ArrayAccess, JsonSerializable, Serializable
 {
 
     use ArrayAccessible;

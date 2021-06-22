@@ -32,6 +32,7 @@ class Statement
 {
 
     private array $eagerLoad = [];
+    private array $eagerLoadDisable = [];
     private PDOStatement $pdoStatement;
     private string $sql;
 
@@ -276,6 +277,19 @@ class Statement
     }
 
     /**
+     * Disable eager loading for the given relationships.
+     *
+     * @param string[] $relationships
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public final function eagerLoadDisable(array $relationships): void
+    {
+        $this->eagerLoadDisable = $relationships;
+    }
+
+    /**
      * Fetches a single row.
      *
      * @param int $fetchMode
@@ -417,7 +431,7 @@ class Statement
 
         /** @var Model&string $modelClass */
         $modelClass = $this->modelClass;
-        $modelClass::eagerLoadRelationships($models, $this->eagerLoad);
+        $modelClass::eagerLoadRelationships($models, $this->eagerLoad, $this->eagerLoadDisable);
     }
 
     /**
