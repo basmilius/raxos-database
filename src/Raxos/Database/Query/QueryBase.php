@@ -612,21 +612,23 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      */
     public function totalCount(): int
     {
-        if (($selectIndex = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === 'select')) !== null) {
-            $this->pieces[$selectIndex][1] = 1;
-        }
+        $original = clone $this;
+        $original->replaceClause('select', function (array $piece): array {
+            $piece[1] = 1;
 
-        $this->removeClause('limit');
-        $this->removeClause('offset');
-        $this->removeClause('order by');
+            return $piece;
+        });
+        $original->removeClause('limit');
+        $original->removeClause('offset');
+        $original->removeClause('order by');
 
         /** @var self $query */
-        $query = $this->connection
+        $query = $original->connection
             ->query()
             ->select('count(*)')
-            ->from($this, '__n__');
+            ->from($original, '__n__');
 
-        $query->params = $this->params;
+        $query->params = $original->params;
 
         $result = $query->single();
 
