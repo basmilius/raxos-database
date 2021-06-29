@@ -126,7 +126,7 @@ class HasOneRelation extends Relation
 
         $values = array_column($models, $this->key);
         $values = array_unique($values);
-        $values = array_filter($values, fn($value) => !$this->connection->getCache()->has($this->getReferenceModel(), $value));
+        $values = array_filter($values, fn($value) => $value !== null && !$this->connection->getCache()->has($this->getReferenceModel(), $value));
         $values = array_values($values);
 
         if (empty($values)) {
