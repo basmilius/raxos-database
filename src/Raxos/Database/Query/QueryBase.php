@@ -22,16 +22,17 @@ use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
 use Stringable;
+use function array_column;
 use function array_splice;
 use function count;
 use function implode;
+use function in_array;
 use function is_array;
 use function is_bool;
 use function is_int;
 use function is_string;
 use function sprintf;
 use function str_ends_with;
-use function strlen;
 
 /**
  * Class QueryBase
@@ -99,33 +100,6 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      */
     public function addExpression(string $clause, Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
-        $afters = [];
-        $befores = [];
-
-        if ($field instanceof AfterExpressionInterface) {
-            $afters[] = $field;
-        }
-
-        if ($comparator instanceof AfterExpressionInterface) {
-            $afters[] = $comparator;
-        }
-
-        if ($value instanceof AfterExpressionInterface) {
-            $afters[] = $value;
-        }
-
-        if ($field instanceof BeforeExpressionInterface) {
-            $befores[] = $field;
-        }
-
-        if ($comparator instanceof BeforeExpressionInterface) {
-            $befores[] = $comparator;
-        }
-
-        if ($value instanceof BeforeExpressionInterface) {
-            $befores[] = $value;
-        }
-
         if ($value === null && $comparator !== null) {
             $value = $comparator;
             $comparator = '=';
@@ -145,7 +119,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
             if (is_string($field)) {
                 $field = $this->dialect->escapeFields($field);
             } else if ($field instanceof Value) {
-                $field = $field->get($this);
+                $field = $value->get($this);
             }
 
             if ($comparator === null && $value !== null) {
@@ -156,17 +130,23 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
                 $expression = "{$field} {$comparator} {$value}";
             }
         } else {
-            $expression = '';
+            $expression = null;
         }
 
-        foreach ($befores as $handler) {
-            $handler->before($this);
+        $args = [$field, $comparator, $value];
+
+        foreach ($args as $arg) {
+            if ($arg instanceof BeforeExpressionInterface) {
+                $arg->before($this);
+            }
         }
 
         $this->addPiece($clause, $expression);
 
-        foreach ($afters as $handler) {
-            $handler->after($this);
+        foreach ($args as $arg) {
+            if ($arg instanceof AfterExpressionInterface) {
+                $arg->after($this);
+            }
         }
 
         return $this;
@@ -226,7 +206,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     {
         $this->pieces[] = [$clause, $data, $separator];
 
-        if (strlen($clause) > 1) {
+        if (isset($clause[2])) {
             $this->currentClause = $clause;
         }
 
@@ -435,13 +415,9 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      */
     public function isClauseDefined(string $clause): bool
     {
-        foreach ($this->pieces as [$c]) {
-            if ($c === $clause) {
-                return true;
-            }
-        }
+        $clauses = array_column($this->pieces, 0);
 
-        return false;
+        return in_array($clause, $clauses);
     }
 
     /**
@@ -544,32 +520,35 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      */
     public function toSql(): string
     {
-        $query = '';
+        $pieces = [];
 
         foreach ($this->pieces as [$clause, $data, $separator]) {
             if (is_array($data)) {
-                $data = implode($separator, $data);
+                $data = implode($separator ?? ',', $data);
             }
 
             $addSpace = !empty($query) && !str_ends_with($query, '(') && !str_ends_with($query, ' ');
-            $pieces = [];
 
             if (!empty($clause)) {
-                $pieces[] = $clause;
-
                 if ($clause[0] === ',' || $clause[0] === ')') {
                     $addSpace = false;
                 }
+
+                if ($addSpace) {
+                    $pieces[] = ' ';
+                }
+
+                $pieces[] = $clause;
+            } else if ($addSpace) {
+                $pieces[] = ' ';
             }
 
             if (!empty($data)) {
                 $pieces[] = $data;
             }
-
-            $query .= ($addSpace ? ' ' : '') . implode(' ', $pieces);
         }
 
-        return $query;
+        return implode(' ', $pieces);
     }
 
     /**
@@ -580,8 +559,6 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     *
-     * @noinspection PhpRedundantVariableDocTypeInspection
      */
     public function resultCount(): int
     {
@@ -607,17 +584,19 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     *
-     * @noinspection PhpRedundantVariableDocTypeInspection
      */
     public function totalCount(): int
     {
         $original = clone $this;
-        $original->replaceClause('select', function (array $piece): array {
-            $piece[1] = 1;
 
-            return $piece;
-        });
+        if (!$original->isClauseDefined('having')) {
+            $original->replaceClause('select', function (array $piece): array {
+                $piece[1] = 1;
+
+                return $piece;
+            });
+        }
+
         $original->removeClause('limit');
         $original->removeClause('offset');
         $original->removeClause('order by');

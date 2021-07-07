@@ -1074,13 +1074,9 @@ abstract class Query extends QueryBase
     {
         if (empty($fields)) {
             return $this->addPiece($clause, '*');
-        }
-
-        if (is_int($fields)) {
+        } else if (is_int($fields)) {
             return $this->addPiece($clause, $fields);
-        }
-
-        if (is_string($fields)) {
+        } else if (is_string($fields)) {
             return $this->addPiece($clause, $this->dialect->escapeFields($fields));
         }
 

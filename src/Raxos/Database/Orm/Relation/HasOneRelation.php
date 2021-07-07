@@ -12,7 +12,6 @@ use function array_column;
 use function array_filter;
 use function array_unique;
 use function array_values;
-use function count;
 
 /**
  * Class HasOneRelation
