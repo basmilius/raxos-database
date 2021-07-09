@@ -1035,6 +1035,49 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     }
 
     /**
+     * Restores the settings of the model from the given settings.
+     *
+     * @param array $modelSettings
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function restoreModelSettings(array $modelSettings): void
+    {
+        [
+            static::$__alias[static::class],
+            static::$__fields[static::class],
+            static::$__polymorphicClassMap[static::class],
+            static::$__polymorphicColumn[static::class],
+            static::$__tables[static::class]
+        ] = $modelSettings;
+
+        static::$__initialized[static::class] = true;
+        static::$__relations[static::class] = [];
+    }
+
+    /**
+     * Returns the settings of the model.
+     *
+     * @return array
+     * @throws ModelException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function saveModelSettings(): array
+    {
+        static::initialize();
+
+        return [
+            static::$__alias[static::class],
+            static::$__fields[static::class],
+            static::$__polymorphicClassMap[static::class],
+            static::$__polymorphicColumn[static::class],
+            static::$__tables[static::class]
+        ];
+    }
+
+    /**
      * Gets the fields that should be selected by default.
      *
      * @param array|string|int $fields

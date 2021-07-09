@@ -166,4 +166,26 @@ class HasLinkedMany extends RelationAttribute
         );
     }
 
+    /**
+     * Restores the state of the class from exported data.
+     *
+     * @param array $state
+     *
+     * @return self
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function __set_state(array $state): self
+    {
+        return new self(
+            $state['referenceType'],
+            $state['linkingTable'],
+            $state['key'],
+            $state['referenceKey'],
+            $state['linkingKey'],
+            $state['linkingReferenceKey'],
+            $state['eagerLoad']
+        );
+    }
+
 }

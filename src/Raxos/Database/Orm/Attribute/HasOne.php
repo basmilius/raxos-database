@@ -98,4 +98,22 @@ class HasOne extends RelationAttribute
         );
     }
 
+    /**
+     * Restores the state of the class from exported data.
+     *
+     * @param array $state
+     *
+     * @return self
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public static function __set_state(array $state): self
+    {
+        return new self(
+            $state['column'],
+            $state['referenceColumn'],
+            $state['eagerLoad']
+        );
+    }
+
 }
