@@ -18,6 +18,8 @@ use function array_map;
 use function array_shift;
 use function count;
 use function is_array;
+use function is_float;
+use function is_int;
 use function is_string;
 use function json_encode;
 use function Raxos\Database\Query\literal;
@@ -535,10 +537,14 @@ trait ModelDatabaseAccess
             $value = array_shift($primaryKey);
             $fieldName = $field->name;
 
+            if (is_int($value) || is_float($value)) {
+                $value = literal($value);
+            }
+
             if ($index++ === 0) {
-                $query->where(static::column($fieldName), literal($value));
+                $query->where(static::column($fieldName), $value);
             } else {
-                $query->and(static::column($fieldName), literal($value));
+                $query->and(static::column($fieldName), $value);
             }
         }
 
