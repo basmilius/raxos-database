@@ -25,6 +25,7 @@ use function array_shift;
 use function array_unique;
 use function class_exists;
 use function count;
+use function end;
 use function explode;
 use function extension_loaded;
 use function get_class;
@@ -35,7 +36,6 @@ use function is_string;
 use function is_subclass_of;
 use function iterator_to_array;
 use function json_encode;
-use function last;
 use function serialize;
 use function sprintf;
 use function str_starts_with;
@@ -642,11 +642,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 }
 
                 $column = explode('.', $column);
-                $column = last($column);
+                $column = end($column);
                 $column = trim($column, '`');
 
                 $referenceColumn = explode('.', $referenceColumn);
-                $referenceColumn = last($referenceColumn);
+                $referenceColumn = end($referenceColumn);
                 $referenceColumn = trim($referenceColumn, '`');
 
                 parent::setValue($column, $value->{$referenceColumn});

@@ -334,7 +334,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Wraps the given function in parenthesis.
+     * Wraps the given function in parentheses.
      *
      * @param callable $fn
      * @param bool $patch
@@ -696,7 +696,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      * @param int $fetchMode
      * @param array $options
      *
-     * @return Model|stdClass|array|null|mixed
+     * @return static|stdClass|array|null
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -713,7 +713,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
 
     /**
      * Executes the query and returns the first result. When no result is found
-     * an query exception is thrown.
+     * a query exception is thrown.
      *
      * @param int $fetchMode
      * @param array $options
