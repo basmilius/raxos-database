@@ -562,7 +562,6 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      */
     public function resultCount(): int
     {
-        /** @var self $query */
         $query = $this->connection
             ->query()
             ->select('count(*)')
@@ -601,7 +600,6 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
         $original->removeClause('offset');
         $original->removeClause('order by');
 
-        /** @var self $query */
         $query = $original->connection
             ->query()
             ->select('count(*)')

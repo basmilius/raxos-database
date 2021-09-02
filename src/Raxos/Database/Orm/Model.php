@@ -34,7 +34,6 @@ use function in_array;
 use function is_array;
 use function is_string;
 use function is_subclass_of;
-use function iterator_to_array;
 use function json_encode;
 use function serialize;
 use function sprintf;
@@ -180,16 +179,18 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     ])]
     public function getDebugInformation(): array
     {
-        $fields = iterator_to_array(static::getFields());
-        $macros = iterator_to_array(static::getMacros());
+        $fields = [];
+        $macros = [];
 
-        foreach ($fields as &$field) {
+        foreach (static::getFields() as $field) {
             $field = $field->toArray();
             $field['types'] = implode('|', $field['types']);
+
+            $fields[] = $field;
         }
 
-        foreach ($macros as &$macro) {
-            $macro = sprintf('%s::%s() [%s]', static::class, $macro->method, $macro->isCacheable ? 'cacheable' : 'dynamic');
+        foreach (static::getMacros() as $macro) {
+            $macros[] = sprintf('%s::%s() [%s]', static::class, $macro->method, $macro->isCacheable ? 'cacheable' : 'dynamic');
         }
 
         return [
