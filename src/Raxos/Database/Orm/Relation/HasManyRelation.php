@@ -124,6 +124,21 @@ class HasManyRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    public function getRaw(string $modelClass, bool $isPrepared): Query
+    {
+        /** @var Model $modelClass */
+        /** @var Model $referenceModel */
+        $referenceModel = $this->getReferenceModel();
+
+        return $referenceModel::select(isPrepared: $isPrepared)
+            ->where($this->referenceKey, $modelClass::column($this->key, literal: true));
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     public function eagerLoad(array $models): void
     {
         /** @var Model $referenceModel */

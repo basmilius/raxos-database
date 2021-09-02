@@ -260,8 +260,8 @@ trait ModelDatabaseAccess
      *
      * @return Query<static>
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function havingExists(Query $query): Query
     {
@@ -277,8 +277,8 @@ trait ModelDatabaseAccess
      *
      * @return Query<static>
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function havingIn(string $field, array $options): Query
     {
@@ -293,8 +293,8 @@ trait ModelDatabaseAccess
      *
      * @return Query<static>
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function havingNotNull(string $field): Query
     {
@@ -309,8 +309,8 @@ trait ModelDatabaseAccess
      *
      * @return Query<static>
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function havingNull(string $field): Query
     {
@@ -341,6 +341,7 @@ trait ModelDatabaseAccess
      * Starts a new simple select query for the current model.
      *
      * @param string[]|string|int $fields
+     * @param bool $isPrepared
      *
      * @return Query<static>
      * @throws DatabaseException
@@ -348,15 +349,16 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see Query::select()
      */
-    public static function select(array|string|int $fields = []): Query
+    public static function select(array|string|int $fields = [], bool $isPrepared = true): Query
     {
-        return self::baseSelect(fn(array|string|int $fields) => static::query()->select($fields), $fields);
+        return self::baseSelect(fn(array|string|int $fields) => static::query($isPrepared)->select($fields), $fields);
     }
 
     /**
      * Starts a new select found rows query for the current model.
      *
      * @param string[]|string|int $fields
+     * @param bool $isPrepared
      *
      * @return Query<static>
      * @throws DatabaseException
@@ -364,15 +366,16 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see Query::selectFoundRows()
      */
-    public static function selectFoundRows(array|string|int $fields = []): Query
+    public static function selectFoundRows(array|string|int $fields = [], bool $isPrepared = true): Query
     {
-        return self::baseSelect(fn(array|string|int $fields) => static::query()->selectFoundRows($fields), $fields);
+        return self::baseSelect(fn(array|string|int $fields) => static::query($isPrepared)->selectFoundRows($fields), $fields);
     }
 
     /**
      * Starts a new select distinct query for the current model.
      *
      * @param string[]|string|int $fields
+     * @param bool $isPrepared
      *
      * @return Query<static>
      * @throws DatabaseException
@@ -380,9 +383,9 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see Query::selectDistinct()
      */
-    public static function selectDistinct(array|string|int $fields = []): Query
+    public static function selectDistinct(array|string|int $fields = [], bool $isPrepared = true): Query
     {
-        return self::baseSelect(fn(array|string|int $fields) => static::query()->selectDistinct($fields), $fields);
+        return self::baseSelect(fn(array|string|int $fields) => static::query($isPrepared)->selectDistinct($fields), $fields);
     }
 
     /**
@@ -390,6 +393,7 @@ trait ModelDatabaseAccess
      *
      * @param string $suffix
      * @param string[]|string|int $fields
+     * @param bool $isPrepared
      *
      * @return Query<static>
      * @throws DatabaseException
@@ -397,9 +401,9 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see Query::selectSuffix()
      */
-    public static function selectSuffix(string $suffix, array|string|int $fields = []): Query
+    public static function selectSuffix(string $suffix, array|string|int $fields = [], bool $isPrepared = true): Query
     {
-        return self::baseSelect(fn(array|string|int $fields) => static::query()->selectSuffix($suffix, $fields), $fields);
+        return self::baseSelect(fn(array|string|int $fields) => static::query($isPrepared)->selectSuffix($suffix, $fields), $fields);
     }
 
     /**
@@ -449,8 +453,8 @@ trait ModelDatabaseAccess
      *
      * @return Query<static>
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function whereExists(Query $query): Query
     {
@@ -466,8 +470,8 @@ trait ModelDatabaseAccess
      *
      * @return Query<static>
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function whereIn(string $field, array $options): Query
     {
@@ -482,8 +486,8 @@ trait ModelDatabaseAccess
      *
      * @return Query<static>
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function whereNotNull(string $field): Query
     {
@@ -498,8 +502,8 @@ trait ModelDatabaseAccess
      *
      * @return Query<static>
      * @throws DatabaseException
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 2.0.0
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public static function whereNull(string $field): Query
     {
@@ -519,8 +523,6 @@ trait ModelDatabaseAccess
      */
     private static function addPrimaryKeyClauses(Query $query, array|string|int $primaryKey): void
     {
-        $index = 0;
-
         if (!is_array($primaryKey)) {
             $primaryKey = [$primaryKey];
         }
@@ -541,11 +543,7 @@ trait ModelDatabaseAccess
                 $value = literal($value);
             }
 
-            if ($index++ === 0) {
-                $query->where(static::column($fieldName), $value);
-            } else {
-                $query->and(static::column($fieldName), $value);
-            }
+            $query->where(static::column($fieldName), $value);
         }
 
         if (!empty($primaryKey)) {
@@ -583,12 +581,10 @@ trait ModelDatabaseAccess
                     foreach ($keys as $kIndex => $key) {
                         $primaryKeyField = $primaryKeyFields[$kIndex];
 
-                        if ($index++ === 0) {
-                            $query->where($primaryKeyField, $key);
-                        } else if ($kIndex === 0) {
-                            $query->or($primaryKeyField, $key);
+                        if ($kIndex === 0) {
+                            $query->orWhere($primaryKeyField, $key);
                         } else {
-                            $query->and($primaryKeyField, $key);
+                            $query->where($primaryKeyField, $key);
                         }
                     }
                 });

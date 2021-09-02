@@ -47,6 +47,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
 {
 
     private static int $index = 0;
+    private int $paramsIndex;
 
     protected Dialect $dialect;
 
@@ -68,9 +69,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
      */
     public function __construct(protected Connection $connection, protected bool $isPrepared = true)
     {
-        ++self::$index;
-
         $this->dialect = $connection->getDialect();
+        $this->paramsIndex = ++self::$index;
     }
 
     /**
@@ -119,7 +119,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
             if (is_string($field)) {
                 $field = $this->dialect->escapeFields($field);
             } else if ($field instanceof Value) {
-                $field = $value->get($this);
+                $field = $field->get($this);
             }
 
             if ($comparator === null && $value !== null) {
@@ -185,7 +185,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
             $value = (string)$value;
         }
 
-        $name = 'p' . static::$index . '_' . count($this->params);
+        $name = 'p' . $this->paramsIndex . '_' . count($this->params);
         $this->params[] = [$name, $value];
 
         return ':' . $name;

@@ -111,6 +111,26 @@ class HasManyThroughRelation extends HasManyRelation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    public function getRaw(string $modelClass, bool $isPrepared): Query
+    {
+        /** @var Model $modelClass */
+        /** @var Model $referenceModel */
+        $referenceModel = $this->referenceModel;
+
+        /** @var Model $throughModel */
+        $throughModel = $this->throughModel;
+
+        return $referenceModel::select()
+            ->join($throughModel::getTable(), fn(Query $q) => $q
+                ->on($throughModel::column($this->referenceThroughKey), Literal::with($referenceModel::column($this->referenceKey))))
+            ->where($throughModel::column($this->throughKey), $modelClass::column($this->key, literal: true));
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     public function eagerLoad(array $models): void
     {
         // todo(Bas): Implement eager loading for this relation.

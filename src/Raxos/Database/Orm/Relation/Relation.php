@@ -66,6 +66,19 @@ abstract class Relation
     public abstract function getQuery(Model $model): Query;
 
     /**
+     * Gets the query for raw use (without a model).
+     *
+     * @param class-string<Model> $modelClass
+     * @param bool $isPrepared
+     *
+     * @return Query
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public abstract function getRaw(string $modelClass, bool $isPrepared): Query;
+
+    /**
      * Eager loads relations.
      *
      * @param Model[] $models

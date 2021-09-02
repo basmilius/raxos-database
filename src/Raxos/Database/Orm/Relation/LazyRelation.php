@@ -82,6 +82,16 @@ final class LazyRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    public function getRaw(string $modelClass, bool $isPrepared): Query
+    {
+        return $this->getRelation()->getRaw($modelClass, $isPrepared);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     public function eagerLoad(array $models): void
     {
         $this->getRelation()->eagerLoad($models);

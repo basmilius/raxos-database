@@ -6,6 +6,7 @@ namespace Raxos\Database\Query;
 
 use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\QueryException;
+use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Struct\AfterExpressionInterface;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\SubQueryLiteral;
@@ -20,6 +21,7 @@ use function is_array;
 use function is_int;
 use function is_numeric;
 use function is_string;
+use function sprintf;
 use function str_contains;
 use function substr;
 use function trim;
@@ -37,83 +39,7 @@ use function trim;
 abstract class Query extends QueryBase
 {
 
-    /**
-     * Adds an `and $field $comparator $value` expression.
-     *
-     * @param Stringable|Value|string|int|float|bool|null $field
-     * @param Stringable|Value|string|int|float|bool|null $comparator
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function and(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
-    {
-        return $this->addExpression('and', $field, $comparator, $value);
-    }
-
-    /**
-     * Adds a `and exists $query` expression.
-     *
-     * @param Query $query
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function andExists(self $query): static
-    {
-        return $this->and(SubQueryLiteral::exists($query));
-    }
-
-    /**
-     * Adds a `and $field in ($options)` expression.
-     *
-     * @param string $field
-     * @param array $options
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function andIn(string $field, array $options): static
-    {
-        return $this->and($field, ComparatorAwareLiteral::in($options));
-    }
-
-    /**
-     * Adds a `and $field is not null` expression.
-     *
-     * @param string $field
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function andNotNull(string $field): static
-    {
-        return $this->and($field, ComparatorAwareLiteral::isNotNull());
-    }
-
-    /**
-     * Adds a `and $field is null` expression.
-     *
-     * @param string $field
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function andNull(string $field): static
-    {
-        return $this->and($field, ComparatorAwareLiteral::isNull());
-    }
+    private bool $isDoingJoin = false;
 
     /**
      * Adds a `delete $table` expression.
@@ -364,7 +290,7 @@ abstract class Query extends QueryBase
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function or(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    public function orWhere(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
         return $this->addExpression('or', $field, $comparator, $value);
     }
@@ -379,9 +305,25 @@ abstract class Query extends QueryBase
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orExists(self $query): static
+    public function orWhereExists(self $query): static
     {
-        return $this->or(SubQueryLiteral::exists($query));
+        return $this->orWhere(SubQueryLiteral::exists($query));
+    }
+
+    /**
+     * Queries the given relation.
+     *
+     * @param string $relation
+     * @param callable $fn
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function orwhereHas(string $relation, callable $fn): static
+    {
+        return $this->baseWhereHas($relation, $fn, 'orWhere');
     }
 
     /**
@@ -395,9 +337,25 @@ abstract class Query extends QueryBase
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orIn(string $field, array $options): static
+    public function orWhereIn(string $field, array $options): static
     {
-        return $this->or($field, ComparatorAwareLiteral::in($options));
+        return $this->orWhere($field, ComparatorAwareLiteral::in($options));
+    }
+
+    /**
+     * Queries the given relation.
+     *
+     * @param string $relation
+     * @param callable $fn
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function orwhereNotHas(string $relation, callable $fn): static
+    {
+        return $this->baseWhereHas($relation, $fn, 'orWhere', true);
     }
 
     /**
@@ -410,9 +368,9 @@ abstract class Query extends QueryBase
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orNotNull(string $field): static
+    public function orWhereNotNull(string $field): static
     {
-        return $this->or($field, ComparatorAwareLiteral::isNotNull());
+        return $this->orWhere($field, ComparatorAwareLiteral::isNotNull());
     }
 
     /**
@@ -425,9 +383,27 @@ abstract class Query extends QueryBase
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orNull(string $field): static
+    public function orWhereNull(string $field): static
     {
-        return $this->or($field, ComparatorAwareLiteral::isNull());
+        return $this->orWhere($field, ComparatorAwareLiteral::isNull());
+    }
+
+    /**
+     * Queries the given relation based on one condition.
+     *
+     * @param string $relation
+     * @param Stringable|Value|string|int|float|bool|null $field
+     * @param Stringable|Value|string|int|float|bool|null $comparator
+     * @param Stringable|Value|string|int|float|bool|null $value
+     *
+     * @return static<TModel>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function orWhereRelation(string $relation, Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    {
+        return $this->orWhereHas($relation, fn(self $query) => $query->where($field, $comparator, $value));
     }
 
     /**
@@ -625,7 +601,7 @@ abstract class Query extends QueryBase
      */
     public function where(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
     {
-        return $this->addExpression($this->isClauseDefined('where') ? 'and' : 'where', $field, $comparator, $value);
+        return $this->addExpression($this->isClauseDefined('where') || $this->isDoingJoin ? 'and' : 'where', $field, $comparator, $value);
     }
 
     /**
@@ -644,6 +620,22 @@ abstract class Query extends QueryBase
     }
 
     /**
+     * Queries the given relation.
+     *
+     * @param string $relation
+     * @param callable $fn
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function whereHas(string $relation, callable $fn): static
+    {
+        return $this->baseWhereHas($relation, $fn, 'where');
+    }
+
+    /**
      * Adds a `where $field in ($options)` expression.
      *
      * @param string $field
@@ -657,6 +649,22 @@ abstract class Query extends QueryBase
     public function whereIn(string $field, array $options): static
     {
         return $this->where($field, ComparatorAwareLiteral::in($options));
+    }
+
+    /**
+     * Queries the given relation.
+     *
+     * @param string $relation
+     * @param callable $fn
+     *
+     * @return $this
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function whereNotHas(string $relation, callable $fn): static
+    {
+        return $this->baseWhereHas($relation, $fn, 'where', true);
     }
 
     /**
@@ -687,6 +695,24 @@ abstract class Query extends QueryBase
     public function whereNull(string $field): static
     {
         return $this->where($field, ComparatorAwareLiteral::isNull());
+    }
+
+    /**
+     * Queries the given relation based on one condition.
+     *
+     * @param string $relation
+     * @param Stringable|Value|string|int|float|bool|null $field
+     * @param Stringable|Value|string|int|float|bool|null $comparator
+     * @param Stringable|Value|string|int|float|bool|null $value
+     *
+     * @return static<TModel>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function whereRelation(string $relation, Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    {
+        return $this->whereHas($relation, fn(self $query) => $query->where($field, $comparator, $value));
     }
 
     /**
@@ -1053,7 +1079,9 @@ abstract class Query extends QueryBase
         $this->addPiece($clause, $this->dialect->escapeTable($table));
 
         if ($fn !== null) {
+            $this->isDoingJoin = true;
             $fn($this);
+            $this->isDoingJoin = false;
         }
 
         return $this;
@@ -1121,6 +1149,41 @@ abstract class Query extends QueryBase
         }
 
         return $this->addPiece($clause, $result, $this->dialect->fieldSeparator);
+    }
+
+    /**
+     * Base function to create `[where|and|or] (not) exists (query)` expressions.
+     *
+     * @param string $relation
+     * @param callable $fn
+     * @param string $methodName
+     * @param bool $negate
+     *
+     * @return static<TModel>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    protected function baseWhereHas(string $relation, callable $fn, string $methodName, bool $negate = false): static
+    {
+        if ($this->modelClass === null) {
+            throw new QueryException('The query needs a model to use the whereHas function.', QueryException::ERR_INVALID_MODEL);
+        }
+
+        /** @var Model|class-string<Model> $model */
+        $model = $this->modelClass;
+        $field = $model::getField($relation) ?? throw new QueryException(sprintf('Could not find relationship %s in model %s.', $relation, $this->modelClass), QueryException::ERR_FIELD_NOT_FOUND);
+        $r = $model::getRelation($field);
+
+        $query = $r->getRaw($model, $this->isPrepared);
+        $fn($query);
+
+        $this->{$methodName}();
+        $this->raw($negate ? 'not exists (' : 'exists (');
+        $this->merge($query);
+        $this->raw(')');
+
+        return $this;
     }
 
     /**
