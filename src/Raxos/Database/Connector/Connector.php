@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connector;
 
+use JetBrains\PhpStorm\Pure;
 use PDO;
 use PDOException;
 use Raxos\Database\Error\DatabaseException;
@@ -21,8 +22,7 @@ abstract class Connector implements DebugInfoInterface
     private const DEFAULT_OPTIONS = [
         PDO::ATTR_CASE => PDO::CASE_NATURAL,
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_STRINGIFY_FETCHES => false,
-        PDO::ATTR_EMULATE_PREPARES => false
+        PDO::ATTR_STRINGIFY_FETCHES => false
     ];
 
     private array $options;
@@ -38,6 +38,7 @@ abstract class Connector implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public function __construct(
         private string $dsn,
         private ?string $username = null,
@@ -78,6 +79,7 @@ abstract class Connector implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public final function getDsn(): string
     {
         return $this->dsn;
@@ -90,6 +92,7 @@ abstract class Connector implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public final function getUsername(): ?string
     {
         return $this->username;
@@ -102,6 +105,7 @@ abstract class Connector implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public final function getPassword(): ?string
     {
         return $this->password;
@@ -114,6 +118,7 @@ abstract class Connector implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public final function getOptions(): array
     {
         return $this->options;
@@ -124,6 +129,7 @@ abstract class Connector implements DebugInfoInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public function __debugInfo(): ?array
     {
         return null;
