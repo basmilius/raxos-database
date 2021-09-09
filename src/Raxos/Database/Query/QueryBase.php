@@ -115,7 +115,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
             $value = $this->addParam($value);
         }
 
-        if ($field !== null) {
+        if ($field !== null && !($field instanceof ComparatorAwareLiteral)) {
             if (is_string($field)) {
                 $field = $this->dialect->escapeFields($field);
             } else if ($field instanceof Value) {
