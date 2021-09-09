@@ -40,6 +40,7 @@ abstract class Query extends QueryBase
 {
 
     private bool $isDoingJoin = false;
+    private bool $isOnDefined = false;
 
     /**
      * Adds a `delete $table` expression.
@@ -255,7 +256,10 @@ abstract class Query extends QueryBase
      */
     public function on(Value|string|int|float|bool $left, Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $right = null): static
     {
-        return $this->addExpression($this->isClauseDefined('on') ? 'on' : 'and', $left, $comparator, $right);
+        $didOn = $this->isOnDefined;
+        $this->isOnDefined = true;
+
+        return $this->addExpression($didOn ? 'and' : 'on', $left, $comparator, $right);
     }
 
     /**
@@ -1078,11 +1082,15 @@ abstract class Query extends QueryBase
     {
         $this->addPiece($clause, $this->dialect->escapeTable($table));
 
+        $this->isOnDefined = false;
+
         if ($fn !== null) {
             $this->isDoingJoin = true;
             $fn($this);
             $this->isDoingJoin = false;
         }
+
+        $this->isOnDefined = false;
 
         return $this;
     }
