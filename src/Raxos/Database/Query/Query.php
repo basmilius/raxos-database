@@ -253,7 +253,7 @@ abstract class Query extends QueryBase
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function on(Value|string|int|float|bool $left, Value|string|int|float|bool $comparator, Stringable|Value|string|int|float|bool|null $right = null): static
+    public function on(Value|string|int|float|bool $left, Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $right = null): static
     {
         return $this->addExpression($this->isClauseDefined('on') ? 'on' : 'and', $left, $comparator, $right);
     }
