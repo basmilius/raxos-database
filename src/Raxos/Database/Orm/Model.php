@@ -9,7 +9,7 @@ use Raxos\Database\Error\{DatabaseException, ModelException};
 use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, CustomRelation, HasLinkedMany, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttribute, Table, Visible};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Defenition\{FieldDefinition, MacroDefinition};
-use Raxos\Database\Orm\Relation\{HasOneRelation, LazyRelation, Relation};
+use Raxos\Database\Orm\Relation\{HasLinkedManyRelation, HasOneRelation, LazyRelation, Relation};
 use Raxos\Database\Query\Query;
 use Raxos\Foundation\Event\Emitter;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
@@ -17,6 +17,7 @@ use Raxos\Foundation\Util\{ArrayUtil, ReflectionUtil, Singleton};
 use ReflectionClass;
 use ReflectionProperty;
 use Stringable;
+use WeakMap;
 use function array_diff;
 use function array_key_exists;
 use function array_map;
@@ -943,10 +944,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         if ($field->relation === null) {
-            throw new ModelException(sprintf('Model %s does not have a relation named %s.', static::class, $field), ModelException::ERR_RELATION_NOT_FOUND);
+            throw new ModelException(sprintf('Model %s does not have a relation named %s.', static::class, $field->name), ModelException::ERR_RELATION_NOT_FOUND);
         }
 
-        $relationType = $field->relation ?? throw new ModelException(sprintf('Model %s does not have a relation named %s.', static::class, $field), ModelException::ERR_RELATION_NOT_FOUND);
+        $relationType = $field->relation ?? throw new ModelException(sprintf('Model %s does not have a relation named %s.', static::class, $field->name), ModelException::ERR_RELATION_NOT_FOUND);
 
         return static::$__relations[static::class][$field->property] = new LazyRelation(
             $relationType,
@@ -1195,7 +1196,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $parentModel = $parentClass->name;
             $parentModel::initialize();
 
-            static::copySettings($parentModel);
+            static::copySettings($parentModel::class);
             static::initializeFields($parentClass);
         }
 
@@ -1419,7 +1420,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         if (($typeColumn = static::$__polymorphicColumn[static::class]) !== null) {
-            /** @var static&string $polymorphicClassName */
+            /** @var self&string $polymorphicClassName */
             $polymorphicClassName = static::$__polymorphicClassMap[static::class][$result[$typeColumn]] ?? null;
 
             if ($polymorphicClassName !== null) {
@@ -1440,9 +1441,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         if ($primaryKeyValue !== null && static::cache()->has(static::class, $primaryKeyValue)) {
             $instance = static::cache()->get(static::class, $primaryKeyValue);
 
-            // node: This is for relation resolving.
+            // node: This is for relation resolving, needs work I think.
             if (array_key_exists('__linking_key', $result)) {
-                $instance->{'__linking_key'} = $result['__linking_key'];
+                HasLinkedManyRelation::$linkingKeys ??= new WeakMap();
+                HasLinkedManyRelation::$linkingKeys[$instance] = array_map('intval', explode(',', $result['__linking_key']));
             }
 
             return $instance;
@@ -1498,8 +1500,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         /**
-         * @var static&string $modelClass
-         * @var static[] $models
+         * @var self&string $modelClass
+         * @var self[] $models
          */
         foreach ($classGroups as $modelClass => $models) {
             /** @var Relation[] $relations */
@@ -1562,7 +1564,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         if (is_array($primaryKeyValues)) {
             return sprintf('%s(%s)', static::class, json_encode($primaryKeyValues));
         } else {
-            return sprintf('%s(%s)', static::class, (string)$primaryKeyValues);
+            return sprintf('%s(%s)', static::class, $primaryKeyValues);
         }
     }
 

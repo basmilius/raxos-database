@@ -29,26 +29,23 @@ use function trim;
 /**
  * Class Query
  *
- * @template-covariant TModel
- * @extends QueryBase<TModel>
+ * @template TValue
+ * @implements QueryBase<TValue>
+ * @implements QueryBaseInterface<TValue>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-abstract class Query extends QueryBase
+abstract class Query extends QueryBase implements QueryInterface
 {
 
     private bool $isDoingJoin = false;
     private bool $isOnDefined = false;
 
     /**
-     * Adds a `delete $table` expression.
-     *
-     * @param string $table
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function delete(string $table): static
@@ -57,12 +54,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `delete from $table` expression.
-     *
-     * @param string $table
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function deleteFrom(string $table): static
@@ -71,14 +64,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `from $table` expression.
-     *
-     * @param static|string[]|string $tables
-     * @param string|null $alias
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function from(self|array|string $tables, ?string $alias = null): static
@@ -110,12 +97,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `group by $fields` expression.
-     *
-     * @param string[]|string $fields
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function groupBy(array|string $fields): static
@@ -130,30 +113,18 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `having $field $comparator $value` expression.
-     *
-     * @param Stringable|Value|string|int|float|bool|null $field
-     * @param Stringable|Value|string|int|float|bool|null $comparator
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function having(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    public function having(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
-        return $this->addExpression($this->isClauseDefined('having') ? 'and' : 'having', $field, $comparator, $value);
+        return $this->addExpression($this->isClauseDefined('having') ? 'and' : 'having', $lhs, $cmp, $rhs);
     }
 
     /**
-     * Adds a `having exists $query` expression.
-     *
-     * @param Query $query
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function havingExists(self $query): static
@@ -162,14 +133,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `having $field in ($options)` expression.
-     *
-     * @param string $field
-     * @param array $options
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function havingIn(string $field, array $options): static
@@ -178,13 +143,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `having $field is not null` expression.
-     *
-     * @param string $field
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function havingNotNull(string $field): static
@@ -193,13 +153,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `having $field is null` expression.
-     *
-     * @param string $field
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function havingNull(string $field): static
@@ -208,13 +163,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `limit $limit offset $offset` expression.
-     *
-     * @param int $limit
-     * @param int $offset
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function limit(int $limit, int $offset = 0): static
@@ -229,12 +179,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `offset $offset` expression.
-     *
-     * @param int $offset
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function offset(int $offset): static
@@ -243,32 +189,21 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `on $left $comparator $right` expression.
-     *
-     * @param Value|string|int|float|bool $left
-     * @param Value|string|int|float|bool $comparator
-     * @param Stringable|Value|string|int|float|bool|null $right
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function on(Value|string|int|float|bool $left, Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $right = null): static
+    public function on(Stringable|Value|string|int|float|bool $lhs, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
         $didOn = $this->isOnDefined;
         $this->isOnDefined = true;
 
-        return $this->addExpression($didOn ? 'and' : 'on', $left, $comparator, $right);
+        return $this->addExpression($didOn ? 'and' : 'on', $lhs, $cmp, $rhs);
     }
 
     /**
-     * Adds a `on duplicate key update $fields` expression.
-     *
-     * @param string[]|string $fields
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function onDuplicateKeyUpdate(array|string $fields): static
@@ -283,30 +218,18 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `or $field $comparator $value` expression.
-     *
-     * @param Stringable|Value|string|int|float|bool|null $field
-     * @param Stringable|Value|string|int|float|bool|null $comparator
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhere(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    public function orWhere(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
-        return $this->addExpression('or', $field, $comparator, $value);
+        return $this->addExpression('or', $lhs, $cmp, $rhs);
     }
 
     /**
-     * Adds a `or exists $query` expression.
-     *
-     * @param Query $query
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function orWhereExists(self $query): static
@@ -315,30 +238,18 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Queries the given relation.
-     *
-     * @param string $relation
-     * @param callable $fn
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orwhereHas(string $relation, callable $fn): static
+    public function orWhereHas(string $relation, callable $fn): static
     {
         return $this->baseWhereHas($relation, $fn, 'orWhere');
     }
 
     /**
-     * Adds a `or $field in ($options)` expression.
-     *
-     * @param string $field
-     * @param array $options
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function orWhereIn(string $field, array $options): static
@@ -347,29 +258,18 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Queries the given relation.
-     *
-     * @param string $relation
-     * @param callable $fn
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orwhereNotHas(string $relation, callable $fn): static
+    public function orWhereNotHas(string $relation, callable $fn): static
     {
         return $this->baseWhereHas($relation, $fn, 'orWhere', true);
     }
 
     /**
-     * Adds a `or $field is not null` expression.
-     *
-     * @param string $field
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function orWhereNotNull(string $field): static
@@ -378,13 +278,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `or $field is null` expression.
-     *
-     * @param string $field
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function orWhereNull(string $field): static
@@ -393,31 +288,18 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Queries the given relation based on one condition.
-     *
-     * @param string $relation
-     * @param Stringable|Value|string|int|float|bool|null $field
-     * @param Stringable|Value|string|int|float|bool|null $comparator
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhereRelation(string $relation, Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    public function orWhereRelation(string $relation, Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
-        return $this->orWhereHas($relation, fn(self $query) => $query->where($field, $comparator, $value));
+        return $this->orWhereHas($relation, fn(self $query) => $query->where($lhs, $cmp, $rhs));
     }
 
     /**
-     * Adds a `order by $fields` expression.
-     *
-     * @param Value[]|string[]|Value|string $fields
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function orderBy(array|string $fields): static
@@ -426,7 +308,7 @@ abstract class Query extends QueryBase
             $fields = [$fields];
         }
 
-        $fields = array_map(function (string $field): string {
+        $fields = array_map(function (Value|string $field): string {
             if ($field instanceof Value) {
                 $field = $field->get($this);
             }
@@ -446,12 +328,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `order by $field asc` expression.
-     *
-     * @param string $field
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function orderByAsc(string $field): static
@@ -463,12 +341,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `order by $field desc` expression.
-     *
-     * @param string $field
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function orderByDesc(string $field): static
@@ -480,14 +354,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `set $field = $value` expression.
-     *
-     * @param string $field
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function set(string $field, Stringable|Value|string|int|float|bool|null $value): static
@@ -514,12 +382,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `union $query` expression.
-     *
-     * @param Query $query
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function union(self $query): static
@@ -530,12 +394,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `union all $query` expression.
-     *
-     * @param Query $query
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function unionAll(self $query): static
@@ -546,14 +406,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `update $table set $pairs` expression.
-     *
-     * @param string $table
-     * @param array|null $pairs
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function update(string $table, ?array $pairs = null): static
@@ -572,13 +426,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `values ($values)` expression.
-     *
-     * @param array $values
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function values(array $values): static
@@ -592,30 +441,18 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds an `where $field $comparator $value` expression.
-     *
-     * @param Stringable|Value|string|int|float|bool|null $field
-     * @param Stringable|Value|string|int|float|bool|null $comparator
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function where(Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    public function where(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
-        return $this->addExpression($this->isClauseDefined('where') || $this->isDoingJoin ? 'and' : 'where', $field, $comparator, $value);
+        return $this->addExpression($this->isClauseDefined('where') || $this->isDoingJoin ? 'and' : 'where', $lhs, $cmp, $rhs);
     }
 
     /**
-     * Adds a `where exists $query` expression.
-     *
-     * @param Query $query
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function whereExists(self $query): static
@@ -624,14 +461,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Queries the given relation.
-     *
-     * @param string $relation
-     * @param callable $fn
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function whereHas(string $relation, callable $fn): static
@@ -640,14 +471,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `where $field in ($options)` expression.
-     *
-     * @param string $field
-     * @param array $options
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function whereIn(string $field, array $options): static
@@ -656,14 +481,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Queries the given relation.
-     *
-     * @param string $relation
-     * @param callable $fn
-     *
-     * @return $this
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function whereNotHas(string $relation, callable $fn): static
@@ -672,13 +491,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `where $field is not null` expression.
-     *
-     * @param string $field
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function whereNotNull(string $field): static
@@ -687,13 +501,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `where $field is null` expression.
-     *
-     * @param string $field
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function whereNull(string $field): static
@@ -702,33 +511,18 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Queries the given relation based on one condition.
-     *
-     * @param string $relation
-     * @param Stringable|Value|string|int|float|bool|null $field
-     * @param Stringable|Value|string|int|float|bool|null $comparator
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function whereRelation(string $relation, Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    public function whereRelation(string $relation, Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
-        return $this->whereHas($relation, fn(self $query) => $query->where($field, $comparator, $value));
+        return $this->whereHas($relation, fn(self $query) => $query->where($lhs, $cmp, $rhs));
     }
 
     /**
-     * Adds a `insert into $table ($fields)` expression.
-     *
-     * @param string $table
-     * @param string[] $fields
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @throws QueryException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function insertInto(string $table, array $fields): static
@@ -737,15 +531,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `insert ignore into $table ($fields)` expression.
-     *
-     * @param string $table
-     * @param string[] $fields
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @throws QueryException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function insertIgnoreInto(string $table, array $fields): static
@@ -754,15 +541,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `insert into $table ($pairs:keys) values ($pairs:values)` expression.
-     *
-     * @param string $table
-     * @param array $pairs
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @throws QueryException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function insertIntoValues(string $table, array $pairs): static
@@ -786,15 +566,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `insert ignore into $table ($pairs:keys) values ($pairs:values)` expression.
-     *
-     * @param string $table
-     * @param array $pairs
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @throws QueryException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function insertIgnoreIntoValues(string $table, array $pairs): static
@@ -818,15 +591,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `replace into $table ($fields)` expression.
-     *
-     * @param string $table
-     * @param string[] $fields
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @throws QueryException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function replaceInto(string $table, array $fields): static
@@ -835,15 +601,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `replace into $table ($pairs:keys) values ($pairs:values)` expression.
-     *
-     * @param string $table
-     * @param array $pairs
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @throws QueryException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function replaceIntoValues(string $table, array $pairs): static
@@ -858,13 +617,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `select $fields` expression.
-     *
-     * @param array<static|string|int|bool>|string|int $fields
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function select(array|string|int $fields = []): static
@@ -873,13 +627,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `select distinct $fields` expression.
-     *
-     * @param string[]|string|int $fields
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function selectDistinct(array|string|int $fields = []): static
@@ -888,13 +637,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `select sql_calc_found_rows $fields` expression.
-     *
-     * @param string[]|string|int $fields
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function selectFoundRows(array|string|int $fields = []): static
@@ -903,14 +647,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `select $suffix $fields` expression.
-     *
-     * @param string $suffix
-     * @param string[]|string|int $fields
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function selectSuffix(string $suffix, array|string|int $fields = []): static
@@ -919,13 +657,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `full join $table $fn()` expression.
-     *
-     * @param string $table
-     * @param callable|null $fn
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function fullJoin(string $table, ?callable $fn = null): static
@@ -934,13 +667,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `inner join $table $fn()` expression.
-     *
-     * @param string $table
-     * @param callable|null $fn
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function innerJoin(string $table, ?callable $fn = null): static
@@ -949,13 +677,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `join $table $fn()` expression.
-     *
-     * @param string $table
-     * @param callable|null $fn
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function join(string $table, ?callable $fn = null): static
@@ -964,13 +687,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `left join $table $fn()` expression.
-     *
-     * @param string $table
-     * @param callable|null $fn
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function leftJoin(string $table, ?callable $fn = null): static
@@ -979,13 +697,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `left outer join $table $fn()` expression.
-     *
-     * @param string $table
-     * @param callable|null $fn
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function leftOuterJoin(string $table, ?callable $fn = null): static
@@ -994,13 +707,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `right join $table $fn()` expression.
-     *
-     * @param string $table
-     * @param callable|null $fn
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function rightJoin(string $table, ?callable $fn = null): static
@@ -1009,14 +717,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `with $name as ($query)` expression.
-     *
-     * @param string $name
-     * @param Query $query
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function with(string $name, self $query): static
@@ -1025,14 +727,8 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Adds a `with recursive $name as ($query)` expression.
-     *
-     * @param string $name
-     * @param Query $query
-     *
-     * @return static<TModel>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function withRecursive(string $name, self $query): static
@@ -1047,7 +743,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param array $fields
      *
-     * @return static<TModel>
+     * @return static<TValue>
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -1074,7 +770,7 @@ abstract class Query extends QueryBase
      * @param string $table
      * @param callable|null $fn
      *
-     * @return static<TModel>
+     * @return static<TValue>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1101,7 +797,7 @@ abstract class Query extends QueryBase
      * @param string $clause
      * @param array|string|int $fields
      *
-     * @return static<TModel>
+     * @return static<TValue>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -1167,7 +863,7 @@ abstract class Query extends QueryBase
      * @param string $methodName
      * @param bool $negate
      *
-     * @return static<TModel>
+     * @return static<TValue>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -1201,7 +897,7 @@ abstract class Query extends QueryBase
      * @param string $name
      * @param Query $query
      *
-     * @return static<TModel>
+     * @return static<TValue>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -1215,23 +911,15 @@ abstract class Query extends QueryBase
     }
 
     /**
-     * Builds a `optimize table $tables` query.
-     *
-     * @param string $table
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public abstract function optimizeTable(string $table): static;
 
     /**
-     * Builds a `truncate table $tables` query.
-     *
-     * @param string $table
-     *
-     * @return static<TModel>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public abstract function truncateTable(string $table): static;

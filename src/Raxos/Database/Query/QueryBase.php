@@ -8,7 +8,6 @@ use JetBrains\PhpStorm\ArrayShape;
 use PDO;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\ModelArrayList;
@@ -17,7 +16,6 @@ use Raxos\Database\Query\Struct\BeforeExpressionInterface;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Value;
 use Raxos\Foundation\Collection\ArrayList;
-use Raxos\Foundation\Collection\CollectionException;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
@@ -37,13 +35,14 @@ use function str_ends_with;
 /**
  * Class QueryBase
  *
- * @template TResult
+ * @template TValue
+ * @implements QueryBaseInterface<TValue>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-abstract class QueryBase implements DebugInfoInterface, Stringable
+abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stringable
 {
 
     private static int $index = 0;
@@ -86,54 +85,46 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Adds an expression to the query.
-     *
-     * @param string $clause
-     * @param Stringable|Value|string|int|float|bool|null $field
-     * @param Stringable|Value|string|int|float|bool|null $comparator
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return static<TResult>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function addExpression(string $clause, Stringable|Value|string|int|float|bool|null $field = null, Stringable|Value|string|int|float|bool|null $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    public function addExpression(string $clause, Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
-        if ($value === null && $comparator !== null) {
-            $value = $comparator;
-            $comparator = '=';
+        if ($rhs === null && $cmp !== null) {
+            $rhs = $cmp;
+            $cmp = '=';
         }
 
-        if ($value instanceof Value) {
-            if ($value instanceof ComparatorAwareLiteral) {
-                $comparator = null;
+        if ($rhs instanceof Value) {
+            if ($rhs instanceof ComparatorAwareLiteral) {
+                $cmp = null;
             }
 
-            $value = $value->get($this);
-        } else if ($comparator !== null) {
-            $value = $this->addParam($value);
+            $rhs = $rhs->get($this);
+        } else if ($cmp !== null) {
+            $rhs = $this->addParam($rhs);
         }
 
-        if ($field !== null && !($field instanceof ComparatorAwareLiteral)) {
-            if (is_string($field)) {
-                $field = $this->dialect->escapeFields($field);
-            } else if ($field instanceof Value) {
-                $field = $field->get($this);
+        if ($lhs !== null && !($lhs instanceof ComparatorAwareLiteral)) {
+            if (is_string($lhs)) {
+                $lhs = $this->dialect->escapeFields($lhs);
+            } else if ($lhs instanceof Value) {
+                $lhs = $lhs->get($this);
             }
 
-            if ($comparator === null && $value !== null) {
-                $expression = "{$field} {$value}";
-            } else if ($comparator === null) {
-                $expression = $field;
+            if ($cmp === null && $rhs !== null) {
+                $expression = "{$lhs} {$rhs}";
+            } else if ($cmp === null) {
+                $expression = $lhs;
             } else {
-                $expression = "{$field} {$comparator} {$value}";
+                $expression = "{$lhs} {$cmp} {$rhs}";
             }
         } else {
             $expression = null;
         }
 
-        $args = [$field, $comparator, $value];
+        $args = [$lhs, $cmp, $rhs];
 
         foreach ($args as $arg) {
             if ($arg instanceof BeforeExpressionInterface) {
@@ -153,14 +144,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Adds a param and returns its name or when not in prepared mode, returns the
-     * value as string or int.
-     *
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return string|int
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function addParam(Stringable|Value|string|int|float|bool|null $value): string|int
@@ -192,14 +177,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Adds a query piece.
-     *
-     * @param string $clause
-     * @param array|string|int|null $data
-     * @param string|null $separator
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function addPiece(string $clause, array|string|int|null $data = null, ?string $separator = null): static
@@ -214,13 +193,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Executes the given function if the given bool is true.
-     *
-     * @param bool $is
-     * @param callable $fn
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function conditional(bool $is, callable $fn): static
@@ -233,14 +207,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Wraps the given function with parenthesis or does nothing when the given bool is false.
-     *
-     * @param bool $is
-     * @param callable $fn
-     *
-     * @return static<TResult>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function conditionalParenthesis(bool $is, callable $fn): static
@@ -253,12 +221,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Eager load the given relations when a Model is fetched from the database.
-     *
-     * @param string|string[] $relations
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function eagerLoad(string|array $relations): static
@@ -275,12 +239,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Disables eager loading for the given relation(s).
-     *
-     * @param string|string[] $relations
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function eagerLoadDisable(string|array $relations): static
@@ -297,10 +257,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Removes eager loading from the query.
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function eagerLoadReset(): static
@@ -312,12 +270,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Merges the given query with the current one.
-     *
-     * @param QueryBase $query
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function merge(self $query): static
@@ -334,14 +288,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Wraps the given function in parentheses.
-     *
-     * @param callable $fn
-     * @param bool $patch
-     *
-     * @return static<TResult>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function parenthesis(callable $fn, bool $patch = true): static
@@ -362,10 +310,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Closes a parenthesis group.
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function parenthesisClose(): static
@@ -374,29 +320,18 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Opens a parenthesis group.
-     *
-     * @param string|null $field
-     * @param string|null $comparator
-     * @param Stringable|Value|string|int|float|bool|null $value
-     *
-     * @return static<TResult>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function parenthesisOpen(?string $field = null, ?string $comparator = null, Stringable|Value|string|int|float|bool|null $value = null): static
+    public function parenthesisOpen(?string $lhs = null, ?string $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
-        return $this->addExpression('(', $field, $comparator, $value);
+        return $this->addExpression('(', $lhs, $cmp, $rhs);
     }
 
     /**
-     * Adds the given raw expression to the query.
-     *
-     * @param string $expression
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function raw(string $expression): static
@@ -405,12 +340,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Returns TRUE if the given clause is defined in the query.
-     *
-     * @param string $clause
-     *
-     * @return bool
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function isClauseDefined(string $clause): bool
@@ -421,10 +352,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Returns TRUE when a model is associated to the query.
-     *
-     * @return bool
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function isModelQuery(): bool
@@ -433,12 +362,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Removes the given clause from the query.
-     *
-     * @param string $clause
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function removeClause(string $clause): static
@@ -457,15 +382,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Replaces the given clause using the given function. The function
-     * receives the array piece.
-     *
-     * @param string $clause
-     * @param callable $fn
-     *
-     * @return static<TResult>
-     * @throws QueryException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function replaceClause(string $clause, callable $fn): static
@@ -482,12 +400,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Associates a model.
-     *
-     * @param string $class
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function withModel(string $class): static
@@ -498,10 +412,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Removes the associated model.
-     *
-     * @return static<TResult>
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function withoutModel(): static
@@ -512,10 +424,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Puts the pieces together and builds the query.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function toSql(): string
@@ -552,17 +462,12 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Returns the result row count found based on the current query. The
-     * select part of the query is removed.
-     *
-     * @return int
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function resultCount(): int
     {
-        /** @var self $query */
         $query = $this->connection
             ->query()
             ->select('count(*)')
@@ -576,13 +481,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Returns the total rows found based on the current query. Any limit
-     * clause is ignored and the select part is removed. This is useful for
-     * queries used for pagination and such.
-     *
-     * @return int
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function totalCount(): int
@@ -601,7 +501,6 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
         $original->removeClause('offset');
         $original->removeClause('order by');
 
-        /** @var self $query */
         $query = $original->connection
             ->query()
             ->select('count(*)')
@@ -615,16 +514,9 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Runs the query and returns an array containing all the results.
-     *
-     * @param int $fetchMode
-     * @param array $options
-     *
-     * @return array<TResult>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
-     * @see Statement::array()
      */
     public function array(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): array
     {
@@ -634,17 +526,9 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Runs the query and returns an ArrayList containing all the results.
-     *
-     * @param int $fetchMode
-     * @param array $options
-     *
-     * @return ArrayList<TResult>|ModelArrayList<TResult>
-     * @throws CollectionException
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
-     * @see Statement::arrayList()
      */
     public function arrayList(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): ArrayList|ModelArrayList
     {
@@ -654,16 +538,9 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Runs the query and returns a generator containing all results.
-     *
-     * @param int $fetchMode
-     * @param array $options
-     *
-     * @return Generator<TResult>
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
-     * @see Statement::cursor()
      */
     public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Generator
     {
@@ -673,14 +550,9 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Runs the query.
-     *
-     * @param array $options
-     *
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
-     * @see Statement::run()
      */
     public function run(array $options = []): void
     {
@@ -690,19 +562,9 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Executes the query and returns the first row. When no result is found
-     * null is returned.
-     *
-     * @param int $fetchMode
-     * @param array $options
-     *
-     * @return static|stdClass|array|null
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
-     *
-     * @noinspection PhpDocSignatureInspection
-     * @psalm-return TResult
      */
     public function single(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array|null
     {
@@ -712,19 +574,9 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Executes the query and returns the first result. When no result is found
-     * a query exception is thrown.
-     *
-     * @param int $fetchMode
-     * @param array $options
-     *
-     * @return Model|stdClass|array|mixed
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
-     *
-     * @noinspection PhpDocSignatureInspection
-     * @psalm-return TResult
      */
     public function singleOrFail(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array
     {
@@ -738,12 +590,8 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     }
 
     /**
-     * Creates a statement with the current query.
-     *
-     * @param array $options
-     *
-     * @return Statement
-     * @author Bas Milius <bas@mili.us>
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function statement(array $options = []): Statement
@@ -767,7 +615,7 @@ abstract class QueryBase implements DebugInfoInterface, Stringable
     /**
      * Resets the builder.
      *
-     * @return static<TResult>
+     * @return static<TValue>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

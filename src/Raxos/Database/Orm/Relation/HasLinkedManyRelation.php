@@ -9,6 +9,7 @@ use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Literal;
+use WeakMap;
 use function array_map;
 use function explode;
 use function in_array;
@@ -24,6 +25,8 @@ use function in_array;
  */
 class HasLinkedManyRelation extends HasManyRelation
 {
+
+    public static WeakMap $linkingKeys;
 
     /**
      * HasLinkedManyRelation constructor.
@@ -152,11 +155,6 @@ class HasLinkedManyRelation extends HasManyRelation
 
         $entries = [];
 
-        foreach ($results as $result) {
-            $result->__linking_key = explode(',', $result->__linking_key);
-            $result->__linking_key = array_map('intval', $result->__linking_key);
-        }
-
         foreach ($models as $model) {
             if (isset($this->results[$model->getModelMaster()])) {
                 $references = $this->results[$model->getModelMaster()]->toArray();
@@ -167,7 +165,7 @@ class HasLinkedManyRelation extends HasManyRelation
             foreach ($results as $result) {
                 $entry = $entries[$result->{$this->referenceKey}] ??= $result;
 
-                if (!in_array($model->{$this->key}, $result->__linking_key)) {
+                if (!in_array($model->{$this->key}, self::$linkingKeys[$result] ?? [])) {
                     continue;
                 }
 
