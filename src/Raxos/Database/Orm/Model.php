@@ -1196,7 +1196,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $parentModel = $parentClass->name;
             $parentModel::initialize();
 
-            static::copySettings($parentModel::class);
+            static::copySettings($parentClass->name);
             static::initializeFields($parentClass);
         }
 
