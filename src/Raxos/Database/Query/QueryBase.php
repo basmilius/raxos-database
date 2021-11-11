@@ -35,8 +35,8 @@ use function str_ends_with;
 /**
  * Class QueryBase
  *
- * @template TValue
- * @implements QueryBaseInterface<TValue>
+ * @template TModel
+ * @implements QueryBaseInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
@@ -615,7 +615,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
     /**
      * Resets the builder.
      *
-     * @return static<TValue>
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

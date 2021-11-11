@@ -10,8 +10,8 @@ use Stringable;
 /**
  * Interface QueryInterface
  *
- * @template TValue
- * @extends QueryBaseInterface<TValue>
+ * @template TModel
+ * @extends QueryBaseInterface<TModel>
  *
  * @author Bas Milius <bas@glybe.nl>
  * @package Raxos\Database\Query
@@ -25,7 +25,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $table
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -36,7 +36,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $table
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -48,7 +48,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param static|string[]|string $tables
      * @param string|null $alias
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -60,7 +60,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string[]|string $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -73,7 +73,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Stringable|Value|string|int|float|bool|null $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -85,7 +85,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param Query $query
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -98,7 +98,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $field
      * @param array $options
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -110,7 +110,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $field
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -122,7 +122,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $field
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -135,7 +135,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param int $limit
      * @param int $offset
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -146,7 +146,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param int $offset
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -159,7 +159,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Stringable|Value|string|int|float|bool $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -171,7 +171,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string[]|string $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -184,7 +184,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Stringable|Value|string|int|float|bool|null $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -196,7 +196,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param Query $query
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -209,7 +209,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $relation
      * @param callable $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -222,7 +222,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $field
      * @param array $options
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -235,7 +235,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $relation
      * @param callable $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -247,7 +247,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $field
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -259,7 +259,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $field
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -274,7 +274,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Stringable|Value|string|int|float|bool|null $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -286,7 +286,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param Value[]|string[]|Value|string $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -298,7 +298,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $field
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -309,7 +309,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $field
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -321,7 +321,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $field
      * @param Stringable|Value|string|int|float|bool|null $value
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -333,7 +333,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param Query $query
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -344,7 +344,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param Query $query
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -356,7 +356,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param array|null $pairs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -368,7 +368,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param array $values
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -382,7 +382,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Stringable|Value|string|int|float|bool|null $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -394,7 +394,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param Query $query
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -407,7 +407,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $relation
      * @param callable $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -420,7 +420,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $field
      * @param array $options
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -433,7 +433,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $relation
      * @param callable $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -445,7 +445,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $field
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -457,7 +457,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $field
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -472,7 +472,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Stringable|Value|string|int|float|bool|null $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -485,7 +485,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param string[] $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -499,7 +499,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param string[] $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -513,7 +513,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param array $pairs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -527,7 +527,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param array $pairs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -541,7 +541,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param string[] $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -555,7 +555,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param array $pairs
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -568,7 +568,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param array<static|string|int|bool>|string|int $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -580,7 +580,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string[]|string|int $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -592,7 +592,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string[]|string|int $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -605,7 +605,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $suffix
      * @param string[]|string|int $fields
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -618,7 +618,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param callable|null $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -630,7 +630,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param callable|null $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -642,7 +642,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param callable|null $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -654,7 +654,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param callable|null $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -666,7 +666,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param callable|null $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -678,7 +678,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $table
      * @param callable|null $fn
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -690,7 +690,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $name
      * @param Query $query
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -703,7 +703,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string $name
      * @param Query $query
      *
-     * @return static<TValue>
+     * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -715,7 +715,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $table
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -726,7 +726,7 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @param string $table
      *
-     * @return static<TValue>
+     * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

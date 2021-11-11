@@ -23,7 +23,7 @@ class StringSetCast implements CastInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function decode(int|string|null $value): array
+    public function decode(string|float|int|null $value): array
     {
         if (!is_string($value)) {
             return [];
@@ -37,7 +37,7 @@ class StringSetCast implements CastInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function encode(mixed $value): string|int|null
+    public function encode(mixed $value): string|float|int|null
     {
         if (!is_array($value)) {
             return null;

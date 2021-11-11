@@ -18,7 +18,7 @@ class FloatCast implements CastInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function decode(int|string|null $value): ?float
+    public function decode(string|float|int|null $value): ?float
     {
         if ($value === null) {
             return null;
@@ -32,7 +32,7 @@ class FloatCast implements CastInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function encode(mixed $value): string|int|null
+    public function encode(mixed $value): string|float|int|null
     {
         if ($value === null) {
             return null;

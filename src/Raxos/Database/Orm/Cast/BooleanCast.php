@@ -18,7 +18,7 @@ class BooleanCast implements CastInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function decode(int|string|null $value): bool
+    public function decode(string|float|int|null $value): bool
     {
         return $value === 1 || $value === '1';
     }
@@ -28,7 +28,7 @@ class BooleanCast implements CastInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function encode(mixed $value): string|int|null
+    public function encode(mixed $value): string|float|int|null
     {
         return $value ? 1 : 0;
     }

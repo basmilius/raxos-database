@@ -46,6 +46,8 @@ use function unserialize;
 /**
  * Class Model
  *
+ * @uses \Raxos\Database\Orm\ModelDatabaseAccess<static>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.0

@@ -16,23 +16,23 @@ interface CastInterface
     /**
      * Decodes the given value from database-allowed data.
      *
-     * @param string|int|null $value
+     * @param string|float|int|null $value
      *
      * @return mixed
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function decode(string|int|null $value): mixed;
+    public function decode(string|float|int|null $value): mixed;
 
     /**
      * Encodes the given value to database-allowed data.
      *
      * @param mixed $value
      *
-     * @return string|int|null
+     * @return string|float|int|null
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function encode(mixed $value): string|int|null;
+    public function encode(mixed $value): string|float|int|null;
 
 }

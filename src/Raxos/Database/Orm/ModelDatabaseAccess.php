@@ -242,7 +242,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Query::having()
+     * @see QueryInterface::having()
      */
     public static function having(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): QueryInterface
     {
@@ -259,6 +259,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see QueryInterface::havingExists()
      */
     public static function havingExists(Query $query): QueryInterface
     {
@@ -276,6 +277,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see QueryInterface::havingIn()
      */
     public static function havingIn(string $field, array $options): QueryInterface
     {
@@ -292,6 +294,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see QueryInterface::havingNotNull()
      */
     public static function havingNotNull(string $field): QueryInterface
     {
@@ -308,6 +311,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see QueryInterface::havingNull()
      */
     public static function havingNull(string $field): QueryInterface
     {
@@ -344,7 +348,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Query::select()
+     * @see QueryInterface::select()
      */
     public static function select(array|string|int $fields = [], bool $isPrepared = true): QueryInterface
     {
@@ -361,7 +365,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Query::selectFoundRows()
+     * @see QueryInterface::selectFoundRows()
      */
     public static function selectFoundRows(array|string|int $fields = [], bool $isPrepared = true): QueryInterface
     {
@@ -378,7 +382,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Query::selectDistinct()
+     * @see QueryInterface::selectDistinct()
      */
     public static function selectDistinct(array|string|int $fields = [], bool $isPrepared = true): QueryInterface
     {
@@ -396,7 +400,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Query::selectSuffix()
+     * @see QueryInterface::selectSuffix()
      */
     public static function selectSuffix(string $suffix, array|string|int $fields = [], bool $isPrepared = true): QueryInterface
     {
@@ -412,7 +416,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Query::update()
+     * @see QueryInterface::update()
      */
     public static function update(array|string|int $primaryKey, array $pairs): void
     {
@@ -435,7 +439,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Query::where()
+     * @see QueryInterface::where()
      */
     public static function where(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): QueryInterface
     {
@@ -452,6 +456,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see QueryInterface::whereExists()
      */
     public static function whereExists(Query $query): QueryInterface
     {
@@ -469,6 +474,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see QueryInterface::whereIn()
      */
     public static function whereIn(string $field, array $options): QueryInterface
     {
@@ -485,6 +491,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see QueryInterface::whereNotNull()
      */
     public static function whereNotNull(string $field): QueryInterface
     {
@@ -501,6 +508,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see QueryInterface::whereNull()
      */
     public static function whereNull(string $field): QueryInterface
     {
