@@ -9,7 +9,7 @@ use Raxos\Database\Error\DatabaseException;
 use Raxos\Database\Error\ModelException;
 use Raxos\Foundation\Access\ArrayAccessible;
 use Raxos\Foundation\Access\ObjectAccessible;
-use Serializable;
+use Raxos\Foundation\PHP\MagicMethods\SerializableInterface;
 use function array_key_exists;
 use function sprintf;
 
@@ -20,7 +20,7 @@ use function sprintf;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class ModelBase implements ArrayAccess, JsonSerializable, Serializable
+abstract class ModelBase implements ArrayAccess, JsonSerializable, SerializableInterface
 {
 
     use ArrayAccessible;
@@ -156,13 +156,13 @@ abstract class ModelBase implements ArrayAccess, JsonSerializable, Serializable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function serialize(): string;
+    public abstract function __serialize(): array;
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function unserialize(mixed $data): void;
+    public abstract function __unserialize(array $data): void;
 
 }

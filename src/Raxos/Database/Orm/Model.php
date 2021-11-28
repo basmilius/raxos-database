@@ -29,19 +29,16 @@ use function count;
 use function end;
 use function explode;
 use function extension_loaded;
-use function get_class;
 use function implode;
 use function in_array;
 use function is_array;
 use function is_string;
 use function is_subclass_of;
 use function json_encode;
-use function serialize;
 use function sprintf;
 use function str_starts_with;
 use function trim;
 use function ucfirst;
-use function unserialize;
 
 /**
  * Class Model
@@ -423,12 +420,18 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $this->isNew = false;
 
             if (count($primaryKey) === 1) {
-                $primaryKey = static::connection()->lastInsertId();
+                $primaryKeyValue = static::connection()->lastInsertId();
+
+                // todo(Bas): this is probably not an auto increment field, figure out
+                //  if we should have an AutoIncrement attribute or something.
+                if ($primaryKeyValue === '0') {
+                    $primaryKeyValue = $this->{$primaryKey[0]};
+                }
 
                 $query = static::select()
                     ->withoutModel();
 
-                self::addPrimaryKeyClauses($query, $primaryKey);
+                self::addPrimaryKeyClauses($query, $primaryKeyValue);
 
                 /** @var array $data */
                 $data = $query->single();
@@ -642,7 +645,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 $referenceModel = $relation->getReferenceModel();
 
                 if (!($value instanceof $referenceModel)) {
-                    throw new ModelException(sprintf('%s is not assignable to type %s.', get_class($value), $referenceModel), ModelException::ERR_INVALID_TYPE);
+                    throw new ModelException(sprintf('%s is not assignable to type %s.', $value::class, $referenceModel), ModelException::ERR_INVALID_TYPE);
                 }
 
                 $column = explode('.', $column);
@@ -739,78 +742,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     public function jsonSerialize(): array
     {
         return $this->toArray();
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function serialize(): string
-    {
-        $relations = [];
-
-        foreach (static::getFields() as $field) {
-            $name = $field->name;
-
-            if ($this->isHidden($name) || !$this->isVisible($name)) {
-                continue;
-            }
-
-            $relations[$name] = $this->{$field->property};
-        }
-
-        return serialize([
-            $this->__data,
-            $this->hidden,
-            $this->visible,
-            $this->isNew,
-            $this->castedFields,
-            $relations
-        ]);
-    }
-
-    /**
-     * {@inheritdoc}
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function unserialize(mixed $data): void
-    {
-        self::initialize();
-        $this->prepareModel();
-
-        [
-            $this->__data,
-            $this->hidden,
-            $this->visible,
-            $this->isNew,
-            $this->castedFields,
-            $relations
-        ] = unserialize($data);
-
-        $pk = $this->getPrimaryKeyValues();
-
-        if (static::cache()->has(static::class, $pk)) {
-            $this->__master = static::cache()->get(static::class, $pk);
-            $this->castedFields = &$this->__master->castedFields;
-            $this->__data = &$this->__master->__data;
-            $this->isNew = &$this->__master->isNew;
-        } else {
-            $this->__master = null;
-        }
-
-        foreach ($relations as $relation) {
-            /** @var ModelArrayList|self $relation */
-            if ($relation instanceof ModelArrayList) {
-                foreach ($relation as $r) {
-                    $r::cache()->set($r);
-                }
-            } else {
-                $relation::cache()->set($relation);
-            }
-        }
     }
 
     /**
@@ -1551,6 +1482,78 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         return $this->toArray();
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function __serialize(): array
+    {
+        $relations = [];
+
+        foreach (static::getFields() as $field) {
+            $name = $field->name;
+
+            if ($this->isHidden($name) || !$this->isVisible($name)) {
+                continue;
+            }
+
+            $relations[$name] = $this->{$field->property};
+        }
+
+        return [
+            $this->__data,
+            $this->hidden,
+            $this->visible,
+            $this->isNew,
+            $this->castedFields,
+            $relations
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function __unserialize(array $data): void
+    {
+        self::initialize();
+        $this->prepareModel();
+
+        [
+            $this->__data,
+            $this->hidden,
+            $this->visible,
+            $this->isNew,
+            $this->castedFields,
+            $relations
+        ] = $data;
+
+        $pk = $this->getPrimaryKeyValues();
+
+        if (static::cache()->has(static::class, $pk)) {
+            $this->__master = static::cache()->get(static::class, $pk);
+            $this->castedFields = &$this->__master->castedFields;
+            $this->__data = &$this->__master->__data;
+            $this->isNew = &$this->__master->isNew;
+        } else {
+            $this->__master = null;
+        }
+
+        foreach ($relations as $relation) {
+            /** @var ModelArrayList|self $relation */
+            if ($relation instanceof ModelArrayList) {
+                foreach ($relation as $r) {
+                    $r::cache()->set($r);
+                }
+            } else {
+                $relation::cache()->set($relation);
+            }
+        }
     }
 
     /**
