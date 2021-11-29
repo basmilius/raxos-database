@@ -81,17 +81,16 @@ class HasOneRelation extends Relation
      */
     public function get(Model $model): ?Model
     {
-        $cache = $this->connection->getCache();
         $pk = $model->{$this->key};
 
-        if ($pk === null) {
+        if ($pk === null || (int)$pk === 0) {
             return null;
         }
 
         $referenceModel = $this->getReferenceModel();
 
-        if ($cache->has($referenceModel, $pk)) {
-            return $cache->get($referenceModel, $pk);
+        if ($model::cache()->has($referenceModel, $pk)) {
+            return $model::cache()->get($referenceModel, $pk);
         }
 
         return $this
@@ -135,12 +134,12 @@ class HasOneRelation extends Relation
      */
     public function eagerLoad(array $models): void
     {
-        /** @var Model $referenceModel */
+        /** @var Model|string $referenceModel */
         $referenceModel = $this->getReferenceModel();
 
         $values = array_column($models, $this->key);
         $values = array_unique($values);
-        $values = array_filter($values, fn($value) => $value !== null && !$this->connection->getCache()->has($this->getReferenceModel(), $value));
+        $values = array_filter($values, fn($value) => $value !== null && $value !== 0 && !$referenceModel::cache()->has($referenceModel, $value));
         $values = array_values($values);
 
         if (empty($values)) {

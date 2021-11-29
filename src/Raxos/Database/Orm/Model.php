@@ -1410,7 +1410,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         $didRelations = [];
 
         // note: first we need to determine which relations are in the current model,
-        //  for polymorphic relations it's mroe performant to combine the relations
+        //  for polymorphic relations it's more performant to combine the relations
         //  of the underlying types into one big query.
         foreach ($relations as $relation) {
             $fieldName = $relation->getFieldName();

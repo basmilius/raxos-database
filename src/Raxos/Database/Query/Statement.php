@@ -253,7 +253,7 @@ class Statement
             throw new QueryException('Cannot create model instance, no model was assigned to the query.', QueryException::ERR_INVALID_MODEL);
         }
 
-        /** @var Model&string $modelClass */
+        /** @var Model|string $modelClass */
         $modelClass = $this->modelClass;
 
         if (!class_exists($modelClass)) {
