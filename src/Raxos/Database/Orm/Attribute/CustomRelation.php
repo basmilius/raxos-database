@@ -16,7 +16,7 @@ use Raxos\Database\Orm\Relation\Relation;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class CustomRelation extends RelationAttribute
+class CustomRelation extends RelationAttribute
 {
 
     /**
@@ -29,7 +29,7 @@ final class CustomRelation extends RelationAttribute
      * @since 1.0.0
      */
     public function __construct(
-        private string $relationClass,
+        protected readonly string $relationClass,
         bool $eagerLoad = false
     )
     {

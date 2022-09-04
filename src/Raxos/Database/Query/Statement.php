@@ -31,10 +31,11 @@ use function is_int;
 class Statement
 {
 
+    public readonly PDOStatement $pdoStatement;
+    public readonly string $sql;
+
     private array $eagerLoad = [];
     private array $eagerLoadDisable = [];
-    private PDOStatement $pdoStatement;
-    private string $sql;
 
     /**
      * @template M of \Raxos\Database\Orm\Model
@@ -52,7 +53,7 @@ class Statement
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private Connection $connection, private Query|string $query, private array $options = [])
+    public function __construct(public readonly Connection $connection, public readonly Query|string $query, private readonly array $options = [])
     {
         $this->sql = $query instanceof Query ? $query->toSql() : $query;
         $this->pdoStatement = $connection->getPdo()->prepare($this->sql, $options);
@@ -70,18 +71,6 @@ class Statement
     }
 
     /**
-     * Gets the connection.
-     *
-     * @return Connection
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getConnection(): Connection
-    {
-        return $this->connection;
-    }
-
-    /**
      * Gets the options for the query.
      *
      * @return array
@@ -91,42 +80,6 @@ class Statement
     public final function getOptions(): array
     {
         return $this->options;
-    }
-
-    /**
-     * Gets the PDO statement.
-     *
-     * @return PDOStatement
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getPdoStatement(): PDOStatement
-    {
-        return $this->pdoStatement;
-    }
-
-    /**
-     * Gets the query.
-     *
-     * @return Query|string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getQuery(): Query|string
-    {
-        return $this->query;
-    }
-
-    /**
-     * Gets the sql query.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getSql(): string
-    {
-        return $this->sql;
     }
 
     /**

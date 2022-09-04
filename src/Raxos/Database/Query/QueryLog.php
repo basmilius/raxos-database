@@ -60,7 +60,7 @@ final class QueryLog implements Arrayable, JsonSerializable
     public final function toArray(): array
     {
         return [
-            'total_query_time' => array_sum(array_map(fn(QueryLogEntry $e) => $e->getQueryTime(), $this->queries)),
+            'total_query_time' => array_sum(array_map(fn(QueryLogEntry $e) => $e->queryTime, $this->queries)),
             'total_queries' => count($this->queries),
             'queries' => $this->queries
         ];

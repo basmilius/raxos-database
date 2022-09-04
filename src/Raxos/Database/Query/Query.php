@@ -11,8 +11,8 @@ use Raxos\Database\Query\Struct\AfterExpressionInterface;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\SubQueryLiteral;
 use Raxos\Database\Query\Struct\Value;
-use Raxos\Foundation\Util\ArrayUtil;
 use Stringable;
+use function array_is_list;
 use function array_keys;
 use function array_map;
 use function array_values;
@@ -29,9 +29,9 @@ use function trim;
 /**
  * Class Query
  *
- * @template TValue
- * @implements QueryBase<TValue>
- * @implements QueryBaseInterface<TValue>
+ * @template-covariant TModel
+ * @extends QueryBase<TModel>
+ * @implements QueryInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
@@ -145,11 +145,31 @@ abstract class Query extends QueryBase implements QueryInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@glybe.nl>
+     * @since 1.0.2
+     */
+    public function havingNotExists(self $query): static
+    {
+        return $this->having(SubQueryLiteral::notExists($query));
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function havingNotNull(string $field): static
     {
         return $this->having($field, ComparatorAwareLiteral::isNotNull());
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.2
+     */
+    public function havingNotIn(string $field, array $options): static
+    {
+        return $this->having($field, ComparatorAwareLiteral::notIn($options));
     }
 
     /**
@@ -259,12 +279,32 @@ abstract class Query extends QueryBase implements QueryInterface
 
     /**
      * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.2
+     */
+    public function orWhereNotExists(Query $query): static
+    {
+        return $this->orWhere(SubQueryLiteral::notExists($query));
+    }
+
+    /**
+     * {@inheritdoc}
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function orWhereNotHas(string $relation, callable $fn): static
     {
         return $this->baseWhereHas($relation, $fn, 'orWhere', true);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.2
+     */
+    public function orWhereNotIn(string $field, array $options): static
+    {
+        return $this->orWhere($field, ComparatorAwareLiteral::notIn($options));
     }
 
     /**
@@ -482,12 +522,32 @@ abstract class Query extends QueryBase implements QueryInterface
 
     /**
      * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.2
+     */
+    public function whereNotExists(Query $query): static
+    {
+        return $this->where(SubQueryLiteral::notExists($query));
+    }
+
+    /**
+     * {@inheritdoc}
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
     public function whereNotHas(string $relation, callable $fn): static
     {
         return $this->baseWhereHas($relation, $fn, 'where', true);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.2
+     */
+    public function whereNotIn(string $field, array $options): static
+    {
+        return $this->where($field, ComparatorAwareLiteral::notIn($options));
     }
 
     /**
@@ -551,7 +611,7 @@ abstract class Query extends QueryBase implements QueryInterface
             throw new QueryException('There must be at least one item.', QueryException::ERR_MISSING_FIELDS);
         }
 
-        if (ArrayUtil::isSequential($pairs)) {
+        if (array_is_list($pairs)) {
             $this->insertInto($table, array_keys($pairs[0]));
 
             foreach ($pairs as $pair) {
@@ -576,7 +636,7 @@ abstract class Query extends QueryBase implements QueryInterface
             throw new QueryException('There must be at least one item.', QueryException::ERR_MISSING_FIELDS);
         }
 
-        if (ArrayUtil::isSequential($pairs)) {
+        if (array_is_list($pairs)) {
             $this->insertIgnoreInto($table, array_keys($pairs[0]));
 
             foreach ($pairs as $pair) {
@@ -743,7 +803,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @param string $table
      * @param array $fields
      *
-     * @return static<TValue>
+     * @return static<TModel>
      * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
@@ -770,7 +830,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @param string $table
      * @param callable|null $fn
      *
-     * @return static<TValue>
+     * @return static<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -797,7 +857,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @param string $clause
      * @param array|string|int $fields
      *
-     * @return static<TValue>
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -814,7 +874,7 @@ abstract class Query extends QueryBase implements QueryInterface
 
         $result = [];
 
-        if (ArrayUtil::isAssociative($fields)) {
+        if (!array_is_list($fields)) {
             foreach ($fields as $alias => $field) {
                 $alias = $this->dialect->escapeFields($alias);
 
@@ -863,7 +923,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @param string $methodName
      * @param bool $negate
      *
-     * @return static<TValue>
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -897,7 +957,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @param string $name
      * @param Query $query
      *
-     * @return static<TValue>
+     * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0

@@ -24,20 +24,8 @@ final class Table
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private string $name)
+    public function __construct(public readonly string $name)
     {
-    }
-
-    /**
-     * Gets the name of the attribute.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getName(): string
-    {
-        return $this->name;
     }
 
 }

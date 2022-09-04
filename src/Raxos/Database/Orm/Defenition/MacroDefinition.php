@@ -16,7 +16,7 @@ use Raxos\Foundation\Collection\Arrayable;
 final class MacroDefinition implements Arrayable
 {
 
-    public string $name;
+    public readonly string $name;
 
     /**
      * MacroDefinition constructor.
@@ -32,12 +32,12 @@ final class MacroDefinition implements Arrayable
      * @since 1.0.0
      */
     public function __construct(
-        public ?string $alias,
-        public bool $isCacheable,
-        public bool $isHidden,
-        public bool $isVisible,
-        public string $method,
-        public string $property
+        public readonly ?string $alias,
+        public readonly bool $isCacheable,
+        public readonly bool $isHidden,
+        public readonly bool $isVisible,
+        public readonly string $method,
+        public readonly string $property
     )
     {
         $this->name = $alias ?? $property;

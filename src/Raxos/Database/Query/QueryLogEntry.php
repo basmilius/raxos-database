@@ -27,7 +27,7 @@ use const STR_PAD_LEFT;
 final class QueryLogEntry implements Arrayable, JsonSerializable
 {
 
-    private array $trace;
+    public readonly array $trace;
 
     /**
      * QueryLogEntry constructor.
@@ -38,47 +38,16 @@ final class QueryLogEntry implements Arrayable, JsonSerializable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private string $sql, private float $queryTime)
+    public function __construct(
+        public readonly string $sql,
+        public readonly float $queryTime
+    )
     {
-        $this->trace = debug_backtrace();
+        $trace = debug_backtrace();
 
-        array_shift($this->trace);
-    }
+        array_shift($trace);
 
-    /**
-     * Gets the query time.
-     *
-     * @return float
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getQueryTime(): float
-    {
-        return $this->queryTime;
-    }
-
-    /**
-     * Gets the query sql.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getSql(): string
-    {
-        return $this->sql;
-    }
-
-    /**
-     * Gets the trace.
-     *
-     * @return array
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getTrace(): array
-    {
-        return $this->trace;
+        $this->trace = $trace;
     }
 
     /**

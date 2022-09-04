@@ -36,9 +36,10 @@ abstract class Connection
     public const EVENT_CONNECT = 'connect';
     public const EVENT_DISCONNECT = 'disconnect';
 
-    protected Cache $cache;
+    public readonly Cache $cache;
+    public readonly Dialect $dialect;
+
     protected ?array $columnsPerTable = null;
-    protected Dialect $dialect;
     protected ?QueryLog $logger = null;
     protected ?PDO $pdo = null;
 
@@ -52,8 +53,8 @@ abstract class Connection
      * @since 1.0.0
      */
     public function __construct(
-        protected string $id,
-        protected Connector $connector
+        public readonly string $id,
+        public readonly Connector $connector
     )
     {
         $this->cache = new Cache();
@@ -135,30 +136,6 @@ abstract class Connection
     {
         $this->pdo = null;
         $this->emit(self::EVENT_DISCONNECT);
-    }
-
-    /**
-     * Gets the cache instance.
-     *
-     * @return Cache
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function getCache(): Cache
-    {
-        return $this->cache;
-    }
-
-    /**
-     * Gets the connection id.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function getId(): string
-    {
-        return $this->id;
     }
 
     /**
@@ -410,30 +387,6 @@ abstract class Connection
     public function transaction(): bool
     {
         return $this->pdo->beginTransaction();
-    }
-
-    /**
-     * Gets the used connector.
-     *
-     * @return Connector
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function getConnector(): Connector
-    {
-        return $this->connector;
-    }
-
-    /**
-     * Gets the used dialect.
-     *
-     * @return Dialect
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getDialect(): Dialect
-    {
-        return $this->dialect;
     }
 
     /**

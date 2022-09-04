@@ -10,8 +10,6 @@ use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
 use Raxos\Database\Query\Struct\Literal;
 use WeakMap;
-use function array_map;
-use function explode;
 use function in_array;
 
 /**
@@ -51,48 +49,12 @@ class HasLinkedManyRelation extends HasManyRelation
         string $fieldName,
         string $key,
         string $referenceKey,
-        protected string $linkingKey,
-        protected string $linkingReferenceKey,
-        protected string $linkingTable
+        public readonly string $linkingKey,
+        public readonly string $linkingReferenceKey,
+        public readonly string $linkingTable
     )
     {
         parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName, $key, $referenceKey);
-    }
-
-    /**
-     * Gets the linking key.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getLinkingKey(): string
-    {
-        return $this->linkingKey;
-    }
-
-    /**
-     * Gets the linking reference key.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getLinkingReferenceKey(): string
-    {
-        return $this->linkingReferenceKey;
-    }
-
-    /**
-     * Gets the linking table.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getLinkingTable(): string
-    {
-        return $this->linkingTable;
     }
 
     /**
@@ -103,7 +65,7 @@ class HasLinkedManyRelation extends HasManyRelation
     public function getQuery(Model $model): Query
     {
         /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         return $referenceModel::select()
             ->join($this->linkingTable, fn(Query $q) => $q
@@ -120,7 +82,7 @@ class HasLinkedManyRelation extends HasManyRelation
     {
         /** @var Model $modelClass */
         /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         return $referenceModel::select()
             ->join($this->linkingTable, fn(Query $q) => $q
@@ -136,7 +98,7 @@ class HasLinkedManyRelation extends HasManyRelation
     public function eagerLoad(array $models): void
     {
         /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getModelMaster()]));
         $values = array_column($values, $this->key);

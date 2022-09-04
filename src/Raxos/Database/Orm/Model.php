@@ -1,12 +1,14 @@
 <?php
+/** @noinspection PhpUnused */
 declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
+use BackedEnum;
 use Generator;
 use JetBrains\PhpStorm\{ArrayShape, ExpectedValues, Pure};
 use Raxos\Database\Error\{DatabaseException, ModelException};
-use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, CustomRelation, HasLinkedMany, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttribute, Table, Visible};
+use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, CustomRelation, DataKey, HasLinkedMany, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttribute, Table, Visible};
 use Raxos\Database\Orm\Cast\CastInterface;
 use Raxos\Database\Orm\Defenition\{FieldDefinition, MacroDefinition};
 use Raxos\Database\Orm\Relation\{HasLinkedManyRelation, HasOneRelation, LazyRelation, Relation};
@@ -19,6 +21,7 @@ use ReflectionProperty;
 use Stringable;
 use WeakMap;
 use function array_diff;
+use function array_is_list;
 use function array_key_exists;
 use function array_map;
 use function array_merge;
@@ -43,8 +46,6 @@ use function ucfirst;
 /**
  * Class Model
  *
- * @uses \Raxos\Database\Orm\ModelDatabaseAccess<static>
- *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.0
@@ -52,18 +53,15 @@ use function ucfirst;
 abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 {
 
-    use Emitter;
-    use ModelDatabaseAccess;
+    /** @use ModelDatabaseAccess<static> */
+    use Emitter, ModelDatabaseAccess;
 
-    public const EVENT_CREATE = 'create';
-    public const EVENT_DELETE = 'delete';
-    public const EVENT_UPDATE = 'update';
-
-    protected const ATTRIBUTES = [
+    protected final const ATTRIBUTES = [
         Alias::class,
         Caster::class,
         Column::class,
         CustomRelation::class,
+        DataKey::class,
         Macro::class,
         HasLinkedMany::class,
         HasMany::class,
@@ -144,7 +142,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     public function destroy(): void
     {
         static::delete($this->getPrimaryKeyValues());
-        static::emit(self::EVENT_DELETE, $this);
+        static::emit(ModelEvent::DELETE, $this);
         static::cache()->remove($this);
     }
 
@@ -413,14 +411,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         $primaryKey = is_array($primaryKey) ? $primaryKey : [$primaryKey];
 
         if ($this->isNew) {
-            static::query()
-                ->insertIntoValues(static::getTable(), $pairs)
-                ->run();
-
-            $this->isNew = false;
-
             if (count($primaryKey) === 1) {
-                $primaryKeyValue = static::connection()->lastInsertId();
+                $primaryKeyValue = static::query()
+                    ->insertIntoValues(static::table(), $pairs)
+                    ->runReturning($primaryKey[0]);
 
                 // todo(Bas): this is probably not an auto increment field, figure out
                 //  if we should have an AutoIncrement attribute or something.
@@ -438,18 +432,26 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 $this->castedFields = [];
                 $this->onInitialize($data);
                 $this->__data = $data;
+            } else {
+                // todo(Bas): handle composite primary keys in the future.
+
+                static::query()
+                    ->insertIntoValues(static::table(), $pairs)
+                    ->run();
             }
+
+            $this->isNew = false;
 
             static::cache()->set($this);
 
             $this->macroCache = [];
-            $this->emit(static::EVENT_CREATE);
+            $this->emit(ModelEvent::CREATE);
         } else {
             $primaryKey = array_map(fn(string $key) => $this->getValue($key), $primaryKey);
 
             static::update($primaryKey, $pairs);
 
-            $this->emit(static::EVENT_UPDATE);
+            $this->emit(ModelEvent::UPDATE);
         }
     }
 
@@ -478,6 +480,14 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 $data[$def->name] = null;
             } else if ($this->hasValue($def->property)) {
                 $data[$def->name] = $this->{$def->property};
+            }
+
+            if ($def->visibleOnly !== null && array_key_exists($def->name, $data)) {
+                if ($data[$def->name] instanceof self) {
+                    $data[$def->name] = $data[$def->name]->only($def->visibleOnly);
+                } else if (is_array($data[$def->name])) {
+                    $data[$def->name] = ArrayUtil::only($data[$def->name], $def->visibleOnly);
+                }
             }
         }
 
@@ -548,15 +558,22 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         }
 
         if ($def instanceof FieldDefinition && $def->cast !== null && !in_array($def->property, $this->castedFields)) {
-            $this->__data[$def->name] = static::castField($def->cast, 'decode', $this->__data[$def->name]);
+            $this->__data[$def->name] = static::castField($def->cast, 'decode', $this->__data[$def->key]);
             $this->castedFields[] = $def->property;
         }
 
-        if ($def instanceof FieldDefinition && $def->default !== null && !array_key_exists($def->name, $this->__data)) {
+        if ($def instanceof FieldDefinition && $def->default !== null && !array_key_exists($def->key, $this->__data)) {
             return $def->default;
         }
 
-        return parent::getValue($def?->name ?? $field);
+        $value = parent::getValue($def?->key ?? $field);
+
+        // note: enum support.
+        if ($value !== null && is_subclass_of($def->types[0], BackedEnum::class)) {
+            return $def->types[0]::tryFrom($value);
+        }
+
+        return $value;
     }
 
     /**
@@ -595,6 +612,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                     throw new ModelException(sprintf('Field "%s" in model "%s" is immutable.', $field, static::class), ModelException::ERR_IMMUTABLE);
                 }
 
+                // note: enum support.
+                if (is_subclass_of($def->types[0], BackedEnum::class)) {
+                    $value = $value->value;
+                }
+
                 // note: assume that the data is valid and does not need casting.
                 if ($def->cast !== null && !in_array($def->property, $this->castedFields)) {
                     $this->castedFields[] = $def->property;
@@ -605,7 +627,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 parent::setValue($def->name, $value);
             }
         } else if ($def instanceof MacroDefinition) {
-            if (!self::connection()->tableColumnExists(static::getTable(), $def->name)) {
+            if (!self::connection()->tableColumnExists(static::table(), $def->name)) {
                 throw new ModelException(sprintf('Field "%s" is a non-writable macro on model "%s".', $field, static::class), ModelException::ERR_IMMUTABLE);
             }
 
@@ -638,11 +660,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
         switch (true) {
             case $relation instanceof HasOneRelation:
-                $column = $relation->getKey();
-                $referenceColumn = $relation->getReferenceKey();
+                $column = $relation->key;
+                $referenceColumn = $relation->referenceKey;
 
                 /** @var self $referenceModel */
-                $referenceModel = $relation->getReferenceModel();
+                $referenceModel = $relation->referenceModel;
 
                 if (!($value instanceof $referenceModel)) {
                     throw new ModelException(sprintf('%s is not assignable to type %s.', $value::class, $referenceModel), ModelException::ERR_INVALID_TYPE);
@@ -657,7 +679,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 $referenceColumn = trim($referenceColumn, '`');
 
                 parent::setValue($column, $value->{$referenceColumn});
-                parent::setValue($relation->getFieldName(), $value);
+                parent::setValue($relation->fieldName, $value);
 
                 $this->modified[] = static::$__alias[static::class][$column] ?? $column;
                 break;
@@ -759,7 +781,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $fields = [$fields];
         }
 
-        if (ArrayUtil::isSequential($fields)) {
+        if (array_is_list($fields)) {
             $fields = array_fill_keys($fields, true);
         }
 
@@ -916,7 +938,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function getTable(): string
+    public static function table(): string
     {
         if (array_key_exists(static::class, static::$__tables)) {
             return static::$__tables[static::class];
@@ -1110,8 +1132,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             switch (true) {
                 case $attributeName === Polymorphic::class:
                     $p = $attribute->newInstance();
-                    static::$__polymorphicColumn[static::class] = $p->getColumn();
-                    static::$__polymorphicClassMap[static::class] = $p->getMap();
+                    static::$__polymorphicColumn[static::class] = $p->column;
+                    static::$__polymorphicClassMap[static::class] = $p->map;
                     break;
 
                 case $attributeName === Table::class:
@@ -1183,6 +1205,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
         $alias = null;
         $cast = null;
+        $dataKey = null;
         $default = null;
         $isImmutable = false;
         $isPrimary = false;
@@ -1191,17 +1214,18 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         $relation = null;
         $types = ReflectionUtil::getTypes($property->getType()) ?? [];
         $validField = false;
+        $visibleOnly = null;
 
         foreach ($attributes as $attribute) {
             $attr = $attribute->newInstance();
 
             switch (true) {
                 case $attr instanceof Alias:
-                    $alias = $attr->getAlias();
+                    $alias = $attr->alias;
                     break;
 
                 case $attr instanceof Caster:
-                    $cast = $attr->getCaster();
+                    $cast = $attr->caster;
 
                     if (!isset($knownCasters[$cast])) {
                         if (!class_exists($cast)) {
@@ -1217,8 +1241,12 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                     break;
 
                 case $attr instanceof Column:
-                    $default = $attr->getDefault();
+                    $default = $attr->default;
                     $validField = true;
+                    break;
+
+                case $attr instanceof DataKey:
+                    $dataKey = $attr->key;
                     break;
 
                 case $attr instanceof RelationAttribute:
@@ -1242,6 +1270,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
                 case $attr instanceof Visible:
                     $isVisible = true;
+                    $visibleOnly = is_string($attr->only) ? [$attr->only] : $attr->only;
                     break;
             }
         }
@@ -1257,6 +1286,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         static::$__fields[static::class][$property->name] = new FieldDefinition(
             $alias,
             $cast,
+            $dataKey,
             $default,
             $isImmutable,
             $isPrimary,
@@ -1264,7 +1294,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $isVisible,
             $property->name,
             $relation,
-            $types
+            $types,
+            $visibleOnly
         );
     }
 
@@ -1297,11 +1328,11 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
             switch (true) {
                 case $attr instanceof Alias:
-                    $alias = $attr->getAlias();
+                    $alias = $attr->alias;
                     break;
 
                 case $attr instanceof Macro:
-                    $isCacheable = $attr->isCacheable();
+                    $isCacheable = $attr->isCacheable;
                     break;
 
                 case $attr instanceof Hidden:
@@ -1413,9 +1444,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
         //  for polymorphic relations it's more performant to combine the relations
         //  of the underlying types into one big query.
         foreach ($relations as $relation) {
-            $fieldName = $relation->getFieldName();
+            $fieldName = $relation->fieldName;
 
-            if ((!$relation->isEagerLoadEnabled() && !in_array($fieldName, $forceEagerLoad)) || in_array($fieldName, $eagerLoadDisable)) {
+            if ((!$relation->eagerLoad && !in_array($fieldName, $forceEagerLoad)) || in_array($fieldName, $eagerLoadDisable)) {
                 continue;
             }
 
@@ -1441,9 +1472,9 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $relations = $modelClass::getRelations();
 
             foreach ($relations as $relation) {
-                $fieldName = $relation->getFieldName();
+                $fieldName = $relation->fieldName;
 
-                if (in_array($fieldName, $didRelations) || (!$relation->isEagerLoadEnabled() && !in_array($fieldName, $forceEagerLoad)) || in_array($fieldName, $eagerLoadDisable)) {
+                if (in_array($fieldName, $didRelations) || (!$relation->eagerLoad && !in_array($fieldName, $forceEagerLoad)) || in_array($fieldName, $eagerLoadDisable)) {
                     continue;
                 }
 

@@ -33,10 +33,10 @@ abstract class Relation
      * @since 1.0.0
      */
     public function __construct(
-        protected Connection $connection,
-        protected string $referenceModel,
-        protected bool $eagerLoad,
-        protected string $fieldName
+        public readonly Connection $connection,
+        public readonly string $referenceModel,
+        public readonly bool $eagerLoad,
+        public readonly string $fieldName
     )
     {
     }
@@ -88,44 +88,5 @@ abstract class Relation
      * @since 1.0.0
      */
     public abstract function eagerLoad(array $models): void;
-
-    /**
-     * Gets the field name.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getFieldName(): string
-    {
-        return $this->fieldName;
-    }
-
-    /**
-     * Gets the referenced model.
-     *
-     * @template M of \Raxos\Database\Orm\Model
-     *
-     * @return class-string<M>
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceModel(): string
-    {
-        return $this->referenceModel;
-    }
-
-    /**
-     * Returns TRUE if the relation should have eager loading enabled
-     * by default.
-     *
-     * @return bool
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function isEagerLoadEnabled(): bool
-    {
-        return $this->eagerLoad;
-    }
 
 }

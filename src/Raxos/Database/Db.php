@@ -142,7 +142,7 @@ class Db
      */
     public static function register(Connection $connection): void
     {
-        self::$connections[$connection->getId()] = $connection;
+        self::$connections[$connection->id] = $connection;
     }
 
     /**
@@ -156,7 +156,7 @@ class Db
     public static function unregister(Connection|string $idOrConnection): void
     {
         if ($idOrConnection instanceof Connection) {
-            $idOrConnection = $idOrConnection->getId();
+            $idOrConnection = $idOrConnection->id;
         }
 
         unset(self::$connections[$idOrConnection]);

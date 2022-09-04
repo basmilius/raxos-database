@@ -17,13 +17,15 @@ use Raxos\Foundation\Collection\Arrayable;
 final class FieldDefinition implements Arrayable
 {
 
-    public string $name;
+    public readonly string $key;
+    public readonly string $name;
 
     /**
      * FieldDefinition constructor.
      *
      * @param string|null $alias
      * @param string|null $cast
+     * @param string|null $dataKey
      * @param mixed $default
      * @param bool $isImmutable
      * @param bool $isPrimary
@@ -32,24 +34,28 @@ final class FieldDefinition implements Arrayable
      * @param string $property
      * @param RelationAttribute|null $relation
      * @param array $types
+     * @param string[]|null $visibleOnly
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function __construct(
-        public ?string $alias,
-        public ?string $cast,
-        public mixed $default,
-        public bool $isImmutable,
-        public bool $isPrimary,
-        public bool $isHidden,
-        public bool $isVisible,
-        public string $property,
-        public ?RelationAttribute $relation,
-        public array $types
+        public readonly ?string $alias,
+        public readonly ?string $cast,
+        public readonly ?string $dataKey,
+        public readonly mixed $default,
+        public readonly bool $isImmutable,
+        public readonly bool $isPrimary,
+        public readonly bool $isHidden,
+        public readonly bool $isVisible,
+        public readonly string $property,
+        public readonly ?RelationAttribute $relation,
+        public readonly array $types,
+        public readonly ?array $visibleOnly
     )
     {
         $this->name = $alias ?? $property;
+        $this->key = $dataKey ?? $this->name;
     }
 
     /**
@@ -60,6 +66,7 @@ final class FieldDefinition implements Arrayable
     #[ArrayShape([
         'alias' => 'string|null',
         'cast' => 'string|null',
+        'data_key' => 'string|null',
         'default' => 'mixed',
         'is_immutable' => 'bool',
         'is_primary' => 'bool',
@@ -67,13 +74,15 @@ final class FieldDefinition implements Arrayable
         'is_visible' => 'bool',
         'property' => 'string',
         'relation' => '\Raxos\Database\Orm\Attribute\RelationAttribute|null',
-        'types' => 'array'
+        'types' => 'array',
+        'visible_only' => 'string[]|null'
     ])]
     public final function toArray(): array
     {
         return [
             'alias' => $this->alias,
             'cast' => $this->cast,
+            'data_key' => $this->default,
             'default' => $this->default,
             'is_immutable' => $this->isImmutable,
             'is_primary' => $this->isPrimary,
@@ -81,7 +90,8 @@ final class FieldDefinition implements Arrayable
             'is_visible' => $this->isVisible,
             'property' => $this->property,
             'relation' => $this->relation,
-            'types' => $this->types
+            'types' => $this->types,
+            'visible_only' => $this->visibleOnly
         ];
     }
 
@@ -99,6 +109,7 @@ final class FieldDefinition implements Arrayable
         return new self(
             $state['alias'],
             $state['cast'],
+            $state['data_key'],
             $state['default'],
             $state['isImmutable'],
             $state['isPrimary'],
@@ -106,7 +117,8 @@ final class FieldDefinition implements Arrayable
             $state['isVisible'],
             $state['property'],
             $state['relation'],
-            $state['types']
+            $state['types'],
+            $state['visible_only']
         );
     }
 

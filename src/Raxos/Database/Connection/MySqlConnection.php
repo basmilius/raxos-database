@@ -4,12 +4,15 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use JetBrains\PhpStorm\Pure;
+use Raxos\Database\Connector\MySqlConnector;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Dialect\MySqlDialect;
 use Raxos\Database\Query\MySqlQuery;
 
 /**
  * Class MySqlConnection
+ *
+ * @property MySqlConnector $connector
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Connection
@@ -42,7 +45,7 @@ class MySqlConnection extends Connection
             ->query(false)
             ->select(['TABLE_NAME', 'COLUMN_NAME'])
             ->from('information_schema.COLUMNS')
-            ->where('TABLE_SCHEMA', $this->getConnector()->getDatabase())
+            ->where('TABLE_SCHEMA', $this->connector->database)
             ->array();
 
         $data = [];

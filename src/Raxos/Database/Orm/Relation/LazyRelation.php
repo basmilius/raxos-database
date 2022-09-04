@@ -35,13 +35,13 @@ final class LazyRelation extends Relation
      * @since 1.0.0
      */
     public function __construct(
-        private RelationAttribute $attribute,
-        private string $modelClass,
-        private FieldDefinition $field,
+        private readonly RelationAttribute $attribute,
+        private readonly string $modelClass,
+        private readonly FieldDefinition $field,
         Connection $connection
     )
     {
-        parent::__construct($connection, '', $attribute->isEagerLoadEnabled(), $field->name);
+        parent::__construct($connection, '', $attribute->eagerLoad, $field->name);
     }
 
     /**

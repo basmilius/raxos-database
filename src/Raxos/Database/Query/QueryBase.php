@@ -8,13 +8,9 @@ use JetBrains\PhpStorm\ArrayShape;
 use PDO;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Error\QueryException;
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\ModelArrayList;
-use Raxos\Database\Query\Struct\AfterExpressionInterface;
-use Raxos\Database\Query\Struct\BeforeExpressionInterface;
-use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
-use Raxos\Database\Query\Struct\Value;
+use Raxos\Database\Error\{DatabaseException, QueryException};
+use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ComparatorAwareLiteral, Value};
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ArrayUtil;
@@ -48,7 +44,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
     private static int $index = 0;
     private int $paramsIndex;
 
-    protected Dialect $dialect;
+    protected readonly Dialect $dialect;
 
     protected string $currentClause = '';
     protected array $eagerLoad = [];
@@ -66,22 +62,10 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(protected Connection $connection, protected bool $isPrepared = true)
+    public function __construct(public readonly Connection $connection, protected bool $isPrepared = true)
     {
-        $this->dialect = $connection->getDialect();
+        $this->dialect = $connection->dialect;
         $this->paramsIndex = ++self::$index;
-    }
-
-    /**
-     * Gets the connection.
-     *
-     * @return Connection
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getConnection(): Connection
-    {
-        return $this->connection;
     }
 
     /**
@@ -559,6 +543,27 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
         $this
             ->statement($options)
             ->run();
+    }
+
+    /**
+     * Runs a query that returns a value. Useful for insert queries.
+     *
+     * @param string $column
+     *
+     * @return string|int
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function runReturning(string $column): string|int
+    {
+        $statement = $this
+            ->raw('returning ' . $this->dialect->escapeField($column))
+            ->statement();
+
+        $statement->run();
+
+        return $statement->pdoStatement->fetchColumn();
     }
 
     /**

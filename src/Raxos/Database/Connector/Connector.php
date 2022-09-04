@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Connector;
 
 use JetBrains\PhpStorm\Pure;
+use JsonSerializable;
 use PDO;
 use PDOException;
 use Raxos\Database\Error\DatabaseException;
@@ -16,7 +17,7 @@ use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
  * @package Raxos\Database\Connector
  * @since 1.0.0
  */
-abstract class Connector implements DebugInfoInterface
+abstract class Connector implements DebugInfoInterface, JsonSerializable
 {
 
     private const DEFAULT_OPTIONS = [
@@ -25,7 +26,7 @@ abstract class Connector implements DebugInfoInterface
         PDO::ATTR_STRINGIFY_FETCHES => false
     ];
 
-    private array $options;
+    private readonly array $options;
 
     /**
      * Connector constructor.
@@ -40,9 +41,9 @@ abstract class Connector implements DebugInfoInterface
      */
     #[Pure]
     public function __construct(
-        private string $dsn,
-        private ?string $username = null,
-        private ?string $password = null,
+        public readonly string $dsn,
+        public readonly ?string $username = null,
+        public readonly ?string $password = null,
         array $options = []
     )
     {
@@ -73,45 +74,6 @@ abstract class Connector implements DebugInfoInterface
     }
 
     /**
-     * Gets the DSN.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    public final function getDsn(): string
-    {
-        return $this->dsn;
-    }
-
-    /**
-     * Gets the username.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    public final function getUsername(): ?string
-    {
-        return $this->username;
-    }
-
-    /**
-     * Gets the password.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    public final function getPassword(): ?string
-    {
-        return $this->password;
-    }
-
-    /**
      * Gets the options.
      *
      * @return array
@@ -133,6 +95,17 @@ abstract class Connector implements DebugInfoInterface
     public function __debugInfo(): ?array
     {
         return null;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    #[Pure]
+    public final function jsonSerialize(): string
+    {
+        return '-- hidden --';
     }
 
 }

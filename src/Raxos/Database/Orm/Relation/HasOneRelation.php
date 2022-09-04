@@ -7,11 +7,16 @@ use Raxos\Database\Connection\Connection;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Query;
 use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
-use Raxos\Database\Query\Struct\Literal;
 use function array_column;
 use function array_filter;
+use function array_map;
 use function array_unique;
 use function array_values;
+use function intval;
+use function is_int;
+use function is_numeric;
+use function Raxos\Database\Query\literal;
+use function Raxos\Database\Query\stringLiteral;
 
 /**
  * Class HasOneRelation
@@ -43,35 +48,11 @@ class HasOneRelation extends Relation
         string $referenceModel,
         bool $eagerLoad,
         string $fieldName,
-        protected string $key,
-        protected string $referenceKey
+        public readonly string $key,
+        public readonly string $referenceKey
     )
     {
         parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName);
-    }
-
-    /**
-     * Gets the column.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getKey(): string
-    {
-        return $this->key;
-    }
-
-    /**
-     * Gets the referenced column.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceKey(): string
-    {
-        return $this->referenceKey;
     }
 
     /**
@@ -83,11 +64,11 @@ class HasOneRelation extends Relation
     {
         $pk = $model->{$this->key};
 
-        if ($pk === null || (int)$pk === 0) {
+        if ($pk === null || (is_numeric($pk) && intval($pk) === 0)) {
             return null;
         }
 
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         if ($model::cache()->has($referenceModel, $pk)) {
             return $model::cache()->get($referenceModel, $pk);
@@ -106,7 +87,7 @@ class HasOneRelation extends Relation
     public function getQuery(Model $model): Query
     {
         /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         return $referenceModel::select()
             ->where($this->referenceKey, $model->{$this->key});
@@ -121,7 +102,7 @@ class HasOneRelation extends Relation
     {
         /** @var Model $modelClass */
         /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         return $referenceModel::select(isPrepared: $isPrepared)
             ->where($this->referenceKey, $modelClass::column($this->key, literal: true));
@@ -135,7 +116,7 @@ class HasOneRelation extends Relation
     public function eagerLoad(array $models): void
     {
         /** @var Model|string $referenceModel */
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         $values = array_column($models, $this->key);
         $values = array_unique($values);
@@ -146,9 +127,11 @@ class HasOneRelation extends Relation
             return;
         }
 
+        $values = array_map(fn(mixed $value) => is_int($value) ? literal($value) : stringLiteral($value), $values);
+
         if (!isset($values[1])) {
             $referenceModel::select()
-                ->where($this->referenceKey, Literal::with($values[0]))
+                ->where($this->referenceKey, $values[0])
                 ->array();
         } else {
             $referenceModel::select()

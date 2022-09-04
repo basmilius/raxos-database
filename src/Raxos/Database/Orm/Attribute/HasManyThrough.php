@@ -42,88 +42,16 @@ class HasManyThrough extends RelationAttribute
      * @since 1.0.0
      */
     public function __construct(
-        protected string $type,
-        protected string $throughType,
-        protected ?string $column = null,
-        protected ?string $referenceColumn = null,
-        protected ?string $throughColumn = null,
-        protected ?string $referenceThroughColumn = null,
+        protected readonly string $type,
+        protected readonly string $throughType,
+        protected readonly ?string $column = null,
+        protected readonly ?string $referenceColumn = null,
+        protected readonly ?string $throughColumn = null,
+        protected readonly ?string $referenceThroughColumn = null,
         bool $eagerLoad = false
     )
     {
         parent::__construct($eagerLoad);
-    }
-
-    /**
-     * Gets the column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getColumn(): ?string
-    {
-        return $this->column;
-    }
-
-    /**
-     * Gets the reference column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceColumn(): ?string
-    {
-        return $this->referenceColumn;
-    }
-
-    /**
-     * Gets the through column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getThroughColumn(): ?string
-    {
-        return $this->throughColumn;
-    }
-
-    /**
-     * Gets the reference through column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceThroughColumn(): ?string
-    {
-        return $this->referenceThroughColumn;
-    }
-
-    /**
-     * Gets the type.
-     *
-     * @return class-string<TModel>
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * Gets the through type.
-     *
-     * @return class-string<TModel>
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getThroughType(): string
-    {
-        return $this->throughType;
     }
 
     /**
@@ -161,10 +89,10 @@ class HasManyThrough extends RelationAttribute
             $this->eagerLoad,
             $field->name,
             $this->column ?? $primaryKey,
-            $this->referenceColumn ?? $modelClass::getTable() . '_' . $primaryKey,
+            $this->referenceColumn ?? $modelClass::table() . '_' . $primaryKey,
             $throughModel,
-            $this->throughColumn ?? $modelClass::getTable() . '_' . $primaryKey,
-            $this->referenceThroughColumn ?? $throughModel::getTable() . '_' . $primaryKey
+            $this->throughColumn ?? $modelClass::table() . '_' . $primaryKey,
+            $this->referenceThroughColumn ?? $throughModel::table() . '_' . $primaryKey
         );
     }
 

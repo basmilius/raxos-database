@@ -43,48 +43,12 @@ class HasManyThroughRelation extends HasManyRelation
         string $fieldName,
         string $key,
         string $referenceKey,
-        protected string $throughModel,
-        protected string $throughKey,
-        protected string $referenceThroughKey
+        public readonly string $throughModel,
+        public readonly string $throughKey,
+        public readonly string $referenceThroughKey
     )
     {
         parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName, $key, $referenceKey);
-    }
-
-    /**
-     * Gets the through key.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getThroughKey(): string
-    {
-        return $this->throughKey;
-    }
-
-    /**
-     * Gets the through model.
-     *
-     * @return class-string<TModel>
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getThroughModel(): string
-    {
-        return $this->throughModel;
-    }
-
-    /**
-     * Gets the reference through key.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceThroughKey(): string
-    {
-        return $this->referenceThroughKey;
     }
 
     /**
@@ -101,7 +65,7 @@ class HasManyThroughRelation extends HasManyRelation
         $throughModel = $this->throughModel;
 
         return $referenceModel::select()
-            ->join($throughModel::getTable(), fn(Query $q) => $q
+            ->join($throughModel::table(), fn(Query $q) => $q
                 ->on($throughModel::column($this->referenceThroughKey), Literal::with($referenceModel::column($this->referenceKey))))
             ->where($throughModel::column($this->throughKey), $model->{$this->key});
     }
@@ -121,7 +85,7 @@ class HasManyThroughRelation extends HasManyRelation
         $throughModel = $this->throughModel;
 
         return $referenceModel::select()
-            ->join($throughModel::getTable(), fn(Query $q) => $q
+            ->join($throughModel::table(), fn(Query $q) => $q
                 ->on($throughModel::column($this->referenceThroughKey), Literal::with($referenceModel::column($this->referenceKey))))
             ->where($throughModel::column($this->throughKey), $modelClass::column($this->key, literal: true));
     }

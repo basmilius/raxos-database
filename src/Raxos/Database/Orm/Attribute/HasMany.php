@@ -39,49 +39,13 @@ class HasMany extends RelationAttribute
      * @since 1.0.0
      */
     public function __construct(
-        protected string $type,
-        protected ?string $column = null,
-        protected ?string $referenceColumn = null,
+        protected readonly string $type,
+        protected readonly ?string $column = null,
+        protected readonly ?string $referenceColumn = null,
         bool $eagerLoad = false
     )
     {
         parent::__construct($eagerLoad);
-    }
-
-    /**
-     * Gets the column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getColumn(): ?string
-    {
-        return $this->column;
-    }
-
-    /**
-     * Gets the reference column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceColumn(): ?string
-    {
-        return $this->referenceColumn;
-    }
-
-    /**
-     * Gets the reference type.
-     *
-     * @return class-string<TModel>
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getType(): string
-    {
-        return $this->type;
     }
 
     /**
@@ -112,7 +76,7 @@ class HasMany extends RelationAttribute
             $this->eagerLoad,
             $field->name,
             $this->column ?? $primaryKey,
-            $this->referenceColumn ?? $modelClass::getTable() . '_' . $primaryKey,
+            $this->referenceColumn ?? $modelClass::table() . '_' . $primaryKey,
         );
     }
 

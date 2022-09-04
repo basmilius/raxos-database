@@ -36,36 +36,12 @@ class HasOne extends RelationAttribute
      * @since 1.0.0
      */
     public function __construct(
-        protected ?string $column = null,
-        protected ?string $referenceColumn = null,
+        protected readonly ?string $column = null,
+        protected readonly ?string $referenceColumn = null,
         bool $eagerLoad = false
     )
     {
         parent::__construct($eagerLoad);
-    }
-
-    /**
-     * Gets the column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getColumn(): ?string
-    {
-        return $this->column;
-    }
-
-    /**
-     * Gets the reference column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceColumn(): ?string
-    {
-        return $this->referenceColumn;
     }
 
     /**
@@ -76,6 +52,10 @@ class HasOne extends RelationAttribute
     public function create(Connection $connection, string $modelClass, FieldDefinition $field): Relation
     {
         $referenceModel = $field->types[0] ?? null;
+
+        if ($referenceModel === 'self') {
+            $referenceModel = $modelClass;
+        }
 
         if (!is_subclass_of($referenceModel, Model::class)) {
             throw new ModelException(sprintf('Referenced model %s is not a model.', $referenceModel), ModelException::ERR_NOT_A_MODEL);
@@ -93,7 +73,7 @@ class HasOne extends RelationAttribute
             $referenceModel,
             $this->eagerLoad,
             $field->name,
-            $this->column ?? $referenceModel::getTable() . '_' . $primaryKey,
+            $this->column ?? $referenceModel::table() . '_' . $primaryKey,
             $this->referenceColumn ?? $referenceModel::column($primaryKey)
         );
     }

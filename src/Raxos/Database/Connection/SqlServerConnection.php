@@ -14,6 +14,8 @@ use Raxos\Database\Query\SqlServerQuery;
 /**
  * Class SqlServerConnection
  *
+ * @property SqlServerConnector $connector
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Connection
  * @since 1.0.0
@@ -38,15 +40,12 @@ class SqlServerConnection extends Connection
      */
     public function loadDatabaseSchema(): array
     {
-        /** @var SqlServerConnector $connector */
-        $connector = $this->getConnector();
-
         $results = $this
             ->query(false)
             ->select(['TABLE_NAME', 'COLUMN_NAME'])
             ->from('INFORMATION_SCHEMA.COLUMNS')
-            ->where('TABLE_CATALOG', $connector->getDatabase())
-            ->where('TABLE_SCHEMA', $connector->getSchema())
+            ->where('TABLE_CATALOG', $this->connector->database)
+            ->where('TABLE_SCHEMA', $this->connector->schema)
             ->array();
 
         $data = [];

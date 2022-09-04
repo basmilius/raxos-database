@@ -26,7 +26,7 @@ class InComparatorAwareLiteral extends ComparatorAwareLiteral
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private array $options)
+    public function __construct(private readonly array $options)
     {
         parent::__construct('');
     }
@@ -40,7 +40,7 @@ class InComparatorAwareLiteral extends ComparatorAwareLiteral
     {
         $options = $this->options;
 
-        $options = array_map(fn($option) => is_int($option) ? $option : $query->getConnection()->quote($option), $options);
+        $options = array_map(fn(mixed $option) => $option instanceof Literal ? $option : (is_int($option) ? $option : $query->connection->quote($option)), $options);
         $options = implode(', ', $options);
 
         return "in({$options})";

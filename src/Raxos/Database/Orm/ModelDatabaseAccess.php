@@ -24,6 +24,8 @@ use function Raxos\Database\Query\literal;
 /**
  * Trait ModelDatabaseAccess
  *
+ * @template TModel
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.0
@@ -37,7 +39,7 @@ trait ModelDatabaseAccess
      * @param int $offset
      * @param int $limit
      *
-     * @return static[]
+     * @return TModel[]
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -56,11 +58,11 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::getCache()
+     * @see Connection::$cache
      */
     public static function cache(): Cache
     {
-        return static::connection()->getCache();
+        return static::connection()->cache;
     }
 
     /**
@@ -70,11 +72,11 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::getDialect()
+     * @see Connection::$dialect
      */
     public static function dialect(): Dialect
     {
-        return static::connection()->getDialect();
+        return static::connection()->dialect;
     }
 
     /**
@@ -91,9 +93,9 @@ trait ModelDatabaseAccess
      */
     public static function column(string $column, ?string $table = null, bool $literal = false): Literal|string
     {
-        $table ??= static::getTable();
+        $table ??= static::table();
         $column = static::connection()
-            ->getDialect()
+            ->dialect
             ->escapeFields("{$table}.{$column}");
 
         if ($literal) {
@@ -132,7 +134,7 @@ trait ModelDatabaseAccess
         static::cache()->removeByKey(static::class, $primaryKey);
 
         $query = static::query()
-            ->deleteFrom(static::getTable());
+            ->deleteFrom(static::table());
 
         self::addPrimaryKeyClauses($query, $primaryKey);
 
@@ -168,7 +170,7 @@ trait ModelDatabaseAccess
      *
      * @param array[]|string[]|int[] $primaryKeys
      *
-     * @return static[]
+     * @return TModel[]
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -197,7 +199,7 @@ trait ModelDatabaseAccess
      *
      * @param array|string|int $primaryKey
      *
-     * @return static|null
+     * @return TModel|null
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -221,7 +223,7 @@ trait ModelDatabaseAccess
      *
      * @param array|string|int $primaryKey
      *
-     * @return static
+     * @return TModel
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -238,7 +240,7 @@ trait ModelDatabaseAccess
      * @param Stringable|Value|string|int|float|bool|null $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -255,7 +257,7 @@ trait ModelDatabaseAccess
      *
      * @param Query $query
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -273,7 +275,7 @@ trait ModelDatabaseAccess
      * @param string $field
      * @param array $options
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -286,11 +288,46 @@ trait ModelDatabaseAccess
     }
 
     /**
+     * Sets up a `having not exists $query` query for the model.
+     *
+     * @param Query $query
+     *
+     * @return QueryInterface<TModel>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see QueryInterface::havingNotExists()
+     */
+    public static function havingNotExists(Query $query): QueryInterface
+    {
+        return static::select()
+            ->havingNotExists($query);
+    }
+
+    /**
+     * Sets up a `having $field not in $options` query for the model.
+     *
+     * @param string $field
+     * @param array $options
+     *
+     * @return QueryInterface<TModel>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see QueryInterface::havingIn()
+     */
+    public static function havingNotIn(string $field, array $options): QueryInterface
+    {
+        return static::select()
+            ->havingNotIn($field, $options);
+    }
+
+    /**
      * Sets up a `having $field not null` query for the model.
      *
      * @param string $field
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -307,7 +344,7 @@ trait ModelDatabaseAccess
      *
      * @param string $field
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -324,7 +361,7 @@ trait ModelDatabaseAccess
      *
      * @param bool $isPrepared
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -344,7 +381,7 @@ trait ModelDatabaseAccess
      * @param string[]|string|int $fields
      * @param bool $isPrepared
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -361,7 +398,7 @@ trait ModelDatabaseAccess
      * @param string[]|string|int $fields
      * @param bool $isPrepared
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -378,7 +415,7 @@ trait ModelDatabaseAccess
      * @param string[]|string|int $fields
      * @param bool $isPrepared
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -396,7 +433,7 @@ trait ModelDatabaseAccess
      * @param string[]|string|int $fields
      * @param bool $isPrepared
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -421,7 +458,7 @@ trait ModelDatabaseAccess
     public static function update(array|string|int $primaryKey, array $pairs): void
     {
         $query = static::query()
-            ->update(static::getTable(), $pairs);
+            ->update(static::table(), $pairs);
 
         self::addPrimaryKeyClauses($query, $primaryKey);
 
@@ -435,7 +472,7 @@ trait ModelDatabaseAccess
      * @param Stringable|Value|string|int|float|bool|null $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -452,7 +489,7 @@ trait ModelDatabaseAccess
      *
      * @param Query $query
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -470,7 +507,7 @@ trait ModelDatabaseAccess
      * @param string $field
      * @param array $options
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -483,11 +520,46 @@ trait ModelDatabaseAccess
     }
 
     /**
+     * Sets up a `where not exists $query` query for the model.
+     *
+     * @param Query $query
+     *
+     * @return QueryInterface<TModel>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see QueryInterface::whereNotExists()
+     */
+    public static function whereNotExists(Query $query): QueryInterface
+    {
+        return static::select()
+            ->whereNotExists($query);
+    }
+
+    /**
+     * Sets up a `where $field not in $options` query for the model.
+     *
+     * @param string $field
+     * @param array $options
+     *
+     * @return QueryInterface<TModel>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see QueryInterface::whereNotIn()
+     */
+    public static function whereNotIn(string $field, array $options): QueryInterface
+    {
+        return static::select()
+            ->whereNotIn($field, $options);
+    }
+
+    /**
      * Sets up a `where $field not null` query for the model.
      *
      * @param string $field
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -504,7 +576,7 @@ trait ModelDatabaseAccess
      *
      * @param string $field
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -519,14 +591,14 @@ trait ModelDatabaseAccess
     /**
      * Adds primary key where clauses to the given query.
      *
-     * @param Query $query
+     * @param QueryInterface $query
      * @param array|string|int $primaryKey
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    private static function addPrimaryKeyClauses(Query $query, array|string|int $primaryKey): void
+    private static function addPrimaryKeyClauses(QueryInterface $query, array|string|int $primaryKey): void
     {
         if (!is_array($primaryKey)) {
             $primaryKey = [$primaryKey];
@@ -559,14 +631,14 @@ trait ModelDatabaseAccess
     /**
      * Adds primary key where clauses to the given query for multiple results.
      *
-     * @param Query $query
+     * @param QueryInterface $query
      * @param array[] $primaryKeys
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    private static function addPrimaryKeyInClauses(Query $query, array $primaryKeys): void
+    private static function addPrimaryKeyInClauses(QueryInterface $query, array $primaryKeys): void
     {
         $index = 0;
 
@@ -607,7 +679,7 @@ trait ModelDatabaseAccess
      * @param callable $fn
      * @param string[]|string|int $fields
      *
-     * @return QueryInterface<static>
+     * @return QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -615,7 +687,7 @@ trait ModelDatabaseAccess
     {
         return static::getDefaultJoins(
             $fn(static::getDefaultFields($fields))
-                ->from(static::getTable())
+                ->from(static::table())
         );
     }
 

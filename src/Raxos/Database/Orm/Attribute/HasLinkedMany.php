@@ -42,88 +42,16 @@ class HasLinkedMany extends RelationAttribute
      * @since 1.0.0
      */
     public function __construct(
-        protected string $referenceType,
-        protected ?string $linkingTable,
-        protected ?string $key = null,
-        protected ?string $referenceKey = null,
-        protected ?string $linkingKey = null,
-        protected ?string $linkingReferenceKey = null,
+        protected readonly string $referenceType,
+        protected readonly ?string $linkingTable,
+        protected readonly ?string $key = null,
+        protected readonly ?string $referenceKey = null,
+        protected readonly ?string $linkingKey = null,
+        protected readonly ?string $linkingReferenceKey = null,
         bool $eagerLoad = false
     )
     {
         parent::__construct($eagerLoad);
-    }
-
-    /**
-     * Gets the column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getKey(): ?string
-    {
-        return $this->key;
-    }
-
-    /**
-     * Gets the linking column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getLinkingKey(): ?string
-    {
-        return $this->linkingKey;
-    }
-
-    /**
-     * Gets the linking rederence column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getLinkingReferenceKey(): ?string
-    {
-        return $this->linkingReferenceKey;
-    }
-
-    /**
-     * Gets the reference column.
-     *
-     * @return string|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceKey(): ?string
-    {
-        return $this->referenceKey;
-    }
-
-    /**
-     * Gets the reference type.
-     *
-     * @return class-string<TModel>
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceType(): string
-    {
-        return $this->referenceType;
-    }
-
-    /**
-     * Gets the linking table.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getLinkingTable(): string
-    {
-        return $this->linkingTable;
     }
 
     /**
@@ -160,8 +88,8 @@ class HasLinkedMany extends RelationAttribute
             $field->name,
             $this->key ?? $primaryKey,
             $this->referenceKey ?? $referencePrimaryKey,
-            $this->linkingKey ?? $modelClass::getTable() . '_' . $primaryKey,
-            $this->linkingReferenceKey ?? $referenceType::getTable() . '_' . $primaryKey,
+            $this->linkingKey ?? $modelClass::table() . '_' . $primaryKey,
+            $this->linkingReferenceKey ?? $referenceType::table() . '_' . $primaryKey,
             $this->linkingTable
         );
     }

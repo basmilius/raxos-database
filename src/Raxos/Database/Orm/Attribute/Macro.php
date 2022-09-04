@@ -24,20 +24,8 @@ final class Macro
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private bool $isCacheable = true)
+    public function __construct(public readonly bool $isCacheable = true)
     {
-    }
-
-    /**
-     * Gets if the macro is cacheable..
-     *
-     * @return bool
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function isCacheable(): bool
-    {
-        return $this->isCacheable;
     }
 
 }

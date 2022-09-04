@@ -6,25 +6,25 @@ namespace Raxos\Database\Orm\Attribute;
 use Attribute;
 
 /**
- * Class Alias
+ * Class DataKey
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.0
+ * @since 1.0.2
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Alias
+final class DataKey
 {
 
     /**
-     * Alias constructor.
+     * DataKey constructor.
      *
-     * @param string $alias
+     * @param string $key
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.2
      */
-    public function __construct(public readonly string $alias)
+    public function __construct(public readonly string $key)
     {
     }
 

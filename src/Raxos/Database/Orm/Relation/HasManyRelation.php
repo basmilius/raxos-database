@@ -49,37 +49,13 @@ class HasManyRelation extends Relation
         string $referenceModel,
         bool $eagerLoad,
         string $fieldName,
-        protected string $key,
-        protected string $referenceKey
+        public readonly string $key,
+        public readonly string $referenceKey
     )
     {
         parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName);
 
         $this->results = new WeakMap();
-    }
-
-    /**
-     * Gets the key.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getKey(): string
-    {
-        return $this->key;
-    }
-
-    /**
-     * Gets the reference key.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getReferenceKey(): string
-    {
-        return $this->referenceKey;
     }
 
     /**
@@ -94,7 +70,7 @@ class HasManyRelation extends Relation
             ->getQuery($model)
             ->arrayList()
             ->map(function (Model $referenceModel): Model {
-                $cache = $this->connection->getCache();
+                $cache = $this->connection->cache;
                 $pk = $referenceModel->getPrimaryKeyValues();
 
                 if ($cache->has($referenceModel::class, $pk)) {
@@ -113,7 +89,7 @@ class HasManyRelation extends Relation
     public function getQuery(Model $model): Query
     {
         /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         return $referenceModel::select()
             ->where($this->referenceKey, $model->{$this->key});
@@ -128,7 +104,7 @@ class HasManyRelation extends Relation
     {
         /** @var Model $modelClass */
         /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         return $referenceModel::select(isPrepared: $isPrepared)
             ->where($this->referenceKey, $modelClass::column($this->key, literal: true));
@@ -142,12 +118,12 @@ class HasManyRelation extends Relation
     public function eagerLoad(array $models): void
     {
         /** @var Model $referenceModel */
-        $referenceModel = $this->getReferenceModel();
+        $referenceModel = $this->referenceModel;
 
         $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getModelMaster()]));
         $values = array_column($values, $this->key);
         $values = array_unique($values);
-        $values = array_filter($values, fn($value) => !$this->connection->getCache()->has($this->getReferenceModel(), $value));
+        $values = array_filter($values, fn($value) => !$this->connection->cache->has($this->referenceModel, $value));
         $values = array_values($values);
 
         if (empty($values)) {

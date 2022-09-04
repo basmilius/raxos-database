@@ -25,32 +25,11 @@ final class Polymorphic
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private string $column = 'type', private array $map = [])
+    public function __construct(
+        public readonly string $column = 'type',
+        public readonly array $map = []
+    )
     {
-    }
-
-    /**
-     * Gets the column to check.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getColumn(): string
-    {
-        return $this->column;
-    }
-
-    /**
-     * Gets the class map for available types.
-     *
-     * @return array
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getMap(): array
-    {
-        return $this->map;
     }
 
 }

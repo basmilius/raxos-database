@@ -26,22 +26,8 @@ final class Caster
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private string $caster)
+    public function __construct(public readonly string $caster)
     {
-    }
-
-    /**
-     * Gets the caster class.
-     *
-     * @template C of \Raxos\Database\Orm\Cast\CastInterface
-     *
-     * @return class-string<C>|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getCaster(): ?string
-    {
-        return $this->caster;
     }
 
 }

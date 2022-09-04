@@ -24,20 +24,8 @@ final class Column
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(private string|int|float|null $default = null)
+    public function __construct(public readonly string|int|float|null $default = null)
     {
-    }
-
-    /**
-     * Gets the default value.
-     *
-     * @return string|int|float|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getDefault(): string|int|float|null
-    {
-        return $this->default;
     }
 
 }

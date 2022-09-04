@@ -31,7 +31,7 @@ class SqlServerConnector extends Connector
      * @since 1.0.0
      */
     #[Pure]
-    public function __construct(string $host, private string $database, private string $schema = 'dbo', ?string $username = null, ?string $password = null, int $port = 1433, array $options = [])
+    public function __construct(string $host, public readonly string $database, public readonly string $schema = 'dbo', ?string $username = null, ?string $password = null, int $port = 1433, array $options = [])
     {
         parent::__construct("sqlsrv:Server={$host}, {$port}; Database={$database}", $username, $password, $options);
     }
@@ -47,32 +47,6 @@ class SqlServerConnector extends Connector
         $pdo->setAttribute(PDO::SQLSRV_ATTR_FETCHES_NUMERIC_TYPE, true);
 
         return $pdo;
-    }
-
-    /**
-     * Gets the database used.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    public function getDatabase(): string
-    {
-        return $this->database;
-    }
-
-    /**
-     * Gets the schema used.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    public function getSchema(): string
-    {
-        return $this->schema;
     }
 
 }

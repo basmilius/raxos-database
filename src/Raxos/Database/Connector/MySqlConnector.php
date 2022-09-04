@@ -7,7 +7,6 @@ use JetBrains\PhpStorm\Pure;
 use PDO;
 use Raxos\Database\Error\ConnectionException;
 use Raxos\Database\Error\DatabaseException;
-use function array_merge;
 
 /**
  * Class MySqlConnector
@@ -33,26 +32,13 @@ class MySqlConnector extends Connector
      * @since 1.0.0
      */
     #[Pure]
-    public function __construct(string $host, private string $database, ?string $username = null, ?string $password = null, int $port = 3306, array $options = [])
+    public function __construct(string $host, public readonly string $database, ?string $username = null, ?string $password = null, int $port = 3306, array $options = [])
     {
         $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
 
         $options = $options + [PDO::ATTR_EMULATE_PREPARES => false];
 
         parent::__construct($dsn, $username, $password, $options);
-    }
-
-    /**
-     * Gets the database name.
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    public final function getDatabase(): string
-    {
-        return $this->database;
     }
 
     /**
