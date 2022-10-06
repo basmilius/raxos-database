@@ -29,9 +29,9 @@ use function trim;
 /**
  * Class Query
  *
- * @template-covariant TModel
- * @extends QueryBase<TModel>
- * @implements QueryInterface<TModel>
+ * @template TModel of Model
+ * @template-extends QueryBase<TModel>
+ * @template-implements QueryInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query

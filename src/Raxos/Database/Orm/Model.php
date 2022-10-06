@@ -46,6 +46,8 @@ use function ucfirst;
 /**
  * Class Model
  *
+ * @template-implements ModelDatabaseAccess<static>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.0
@@ -53,8 +55,8 @@ use function ucfirst;
 abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 {
 
-    /** @use ModelDatabaseAccess<static> */
-    use Emitter, ModelDatabaseAccess;
+    use Emitter;
+    use ModelDatabaseAccess;
 
     protected final const ATTRIBUTES = [
         Alias::class,

@@ -4,14 +4,15 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use Raxos\Database\Error\{DatabaseException, QueryException};
+use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Struct\Value;
 use Stringable;
 
 /**
  * Interface QueryInterface
  *
- * @template TModel
- * @implements QueryBaseInterface<TModel>
+ * @template TModel of Model
+ * @template-extends QueryBaseInterface<TModel>
  *
  * @author Bas Milius <bas@glybe.nl>
  * @package Raxos\Database\Query

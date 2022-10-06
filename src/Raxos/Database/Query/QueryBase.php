@@ -31,8 +31,8 @@ use function str_ends_with;
 /**
  * Class QueryBase
  *
- * @template TModel
- * @implements QueryBaseInterface<TModel>
+ * @template TModel of Model
+ * @template-implements QueryBaseInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query

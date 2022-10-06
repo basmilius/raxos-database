@@ -24,7 +24,7 @@ use function Raxos\Database\Query\literal;
 /**
  * Trait ModelDatabaseAccess
  *
- * @template TModel
+ * @template TModel of Model
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm

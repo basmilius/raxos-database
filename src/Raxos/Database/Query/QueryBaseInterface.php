@@ -15,7 +15,7 @@ use Stringable;
 /**
  * Interface QueryInterface
  *
- * @template TModel
+ * @template TModel of Model
  *
  * @author Bas Milius <bas@glybe.nl>
  * @package Raxos\Database\Query

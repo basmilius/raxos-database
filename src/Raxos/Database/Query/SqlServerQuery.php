@@ -4,9 +4,14 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use Raxos\Database\Error\QueryException;
+use Raxos\Database\Orm\Model;
 
 /**
  * Class SqlServerQuery
+ *
+ * @template TModel of Model
+ * @template-extends Query<TModel>
+ * @template-implements QueryInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
