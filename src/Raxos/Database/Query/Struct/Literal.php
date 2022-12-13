@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use Raxos\Database\Query\QueryBase;
+use Raxos\Database\Query\QueryBaseInterface;
 use Stringable;
 use function addslashes;
 
@@ -34,7 +34,7 @@ class Literal extends Value implements Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function get(QueryBase $query): string|int|float
+    public function get(QueryBaseInterface $query): string|int|float
     {
         return $this->value;
     }

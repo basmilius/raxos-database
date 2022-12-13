@@ -7,10 +7,8 @@ use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Connector\Connector;
-use Raxos\Database\Error\ConnectionException;
-use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Query\Query;
-use Raxos\Database\Query\Statement;
+use Raxos\Database\Error\{ConnectionException, DatabaseException};
+use Raxos\Database\Query\{Query, QueryInterface, Statement};
 use function is_subclass_of;
 use function sprintf;
 
@@ -287,13 +285,13 @@ class Db
      * @param bool $isPrepared
      * @param string|null $id
      *
-     * @return Query
+     * @return QueryInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see Connection::query()
      */
-    public static function query(bool $isPrepared = true, ?string $id = null): Query
+    public static function query(bool $isPrepared = true, ?string $id = null): QueryInterface
     {
         return static::getOrFail($id)->query($isPrepared);
     }

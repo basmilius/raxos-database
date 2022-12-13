@@ -13,7 +13,7 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_CLASS)]
-final class Table
+final readonly class Table
 {
 
     /**
@@ -24,7 +24,7 @@ final class Table
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public readonly string $name)
+    public function __construct(public string $name)
     {
     }
 

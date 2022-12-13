@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Query\Struct;
 
 use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Query\QueryBase;
+use Raxos\Database\Query\QueryBaseInterface;
 
 /**
  * Class Value
@@ -19,13 +19,13 @@ abstract class Value
     /**
      * Gets the value. The query instance is provided for setting params when needed.
      *
-     * @param QueryBase $query
+     * @param QueryBaseInterface $query
      *
      * @return string|int|float
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function get(QueryBase $query): string|int|float;
+    public abstract function get(QueryBaseInterface $query): string|int|float;
 
 }

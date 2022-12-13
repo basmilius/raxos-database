@@ -5,7 +5,7 @@ namespace Raxos\Database\Orm\Attribute;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Orm\Defenition\FieldDefinition;
+use Raxos\Database\Orm\Definition\FieldDefinition;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\Relation\Relation;
 
@@ -16,7 +16,7 @@ use Raxos\Database\Orm\Relation\Relation;
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.0
  */
-abstract class RelationAttribute
+abstract readonly class RelationAttribute
 {
 
     /**
@@ -27,7 +27,7 @@ abstract class RelationAttribute
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public readonly bool $eagerLoad = false)
+    public function __construct(public bool $eagerLoad = false)
     {
     }
 

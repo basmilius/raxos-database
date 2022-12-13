@@ -6,10 +6,9 @@ namespace Raxos\Database\Orm\Attribute;
 use Attribute;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Defenition\FieldDefinition;
+use Raxos\Database\Orm\Definition\FieldDefinition;
 use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\Relation\HasOneRelation;
-use Raxos\Database\Orm\Relation\Relation;
+use Raxos\Database\Orm\Relation\{HasOneRelation, Relation};
 use function is_array;
 use function is_subclass_of;
 use function sprintf;
@@ -22,7 +21,7 @@ use function sprintf;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class HasOne extends RelationAttribute
+readonly class HasOne extends RelationAttribute
 {
 
     /**
@@ -36,8 +35,8 @@ class HasOne extends RelationAttribute
      * @since 1.0.0
      */
     public function __construct(
-        protected readonly ?string $column = null,
-        protected readonly ?string $referenceColumn = null,
+        protected ?string $column = null,
+        protected ?string $referenceColumn = null,
         bool $eagerLoad = false
     )
     {
@@ -73,7 +72,7 @@ class HasOne extends RelationAttribute
             $referenceModel,
             $this->eagerLoad,
             $field->name,
-            $this->column ?? $referenceModel::table() . '_' . $primaryKey,
+            $this->column ?? $field->name . '_' . $primaryKey,
             $this->referenceColumn ?? $referenceModel::column($primaryKey)
         );
     }

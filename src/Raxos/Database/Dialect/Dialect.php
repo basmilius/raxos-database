@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Dialect;
 
-use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Error\RuntimeException;
+use Raxos\Database\Error\{DatabaseException, RuntimeException};
 use function array_map;
 use function explode;
 use function implode;
@@ -23,7 +22,7 @@ abstract class Dialect
 
     public string $fieldSeparator = ', ';
     public string $tableSeparator = ', ';
-    public array $escapers = ['', ''];
+    public array $fieldEscapeCharacters = ['', ''];
 
     /**
      * Escapes the given field.
@@ -36,11 +35,11 @@ abstract class Dialect
      */
     public function escapeField(string $field): string
     {
-        if ($field === '*' || str_contains($field, $this->escapers[0])) {
+        if ($field === '*' || str_contains($field, $this->fieldEscapeCharacters[0])) {
             return $field;
         }
 
-        return $this->escapers[0] . $field . $this->escapers[1];
+        return $this->fieldEscapeCharacters[0] . $field . $this->fieldEscapeCharacters[1];
     }
 
     /**
@@ -54,7 +53,7 @@ abstract class Dialect
      */
     public function escapeFields(string $fields): string
     {
-        if (str_contains($fields, $this->escapers[0]) || str_contains($fields, '(') || str_contains($fields, ' ') || str_contains($fields, ':=')) {
+        if (str_contains($fields, $this->fieldEscapeCharacters[0]) || str_contains($fields, '(') || str_contains($fields, ' ') || str_contains($fields, ':=')) {
             return $fields;
         }
 
@@ -63,7 +62,7 @@ abstract class Dialect
         }
 
         $fields = explode('.', $fields);
-        $fields = array_map(fn(string $field): string => $this->escapeField($field), $fields);
+        $fields = array_map($this->escapeField(...), $fields);
 
         return implode('.', $fields);
     }
@@ -97,6 +96,7 @@ abstract class Dialect
      * @return DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @noinspection PhpUnused
      */
     protected final function notImplemented(string $method): DatabaseException
     {

@@ -30,7 +30,7 @@ class IntSetCast implements CastInterface
             return [];
         }
 
-        return array_map('intval', explode(',', $value));
+        return array_map(intval(...), explode(',', $value));
     }
 
     /**

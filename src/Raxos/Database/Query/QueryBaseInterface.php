@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
+use BackedEnum;
 use Generator;
 use PDO;
 use Raxos\Database\Error\{DatabaseException, QueryException};
@@ -28,29 +29,29 @@ interface QueryBaseInterface
      * Adds an expression to the query.
      *
      * @param string $clause
-     * @param Stringable|Value|string|int|float|bool|null $lhs
-     * @param Stringable|Value|string|int|float|bool|null $cmp
-     * @param Stringable|Value|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $rhs
      *
      * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function addExpression(string $clause, Stringable|Value|string|int|float|bool|null $lhs, Stringable|Value|string|int|float|bool|null $cmp, Stringable|Value|string|int|float|bool|null $rhs): static;
+    public function addExpression(string $clause, BackedEnum|Stringable|Value|string|int|float|bool|null $lhs, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs): static;
 
     /**
      * Adds a param and returns its name or when not in prepared mode, returns the
      * value as string or int.
      *
-     * @param Stringable|Value|string|int|float|bool|null $value
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $value
      *
      * @return string|int
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function addParam(Stringable|Value|string|int|float|bool|null $value): string|int;
+    public function addParam(BackedEnum|Stringable|Value|string|int|float|bool|null $value): string|int;
 
     /**
      * Adds a query piece.
@@ -124,13 +125,13 @@ interface QueryBaseInterface
     /**
      * Merges the given query with the current one.
      *
-     * @param QueryBase $query
+     * @param QueryBaseInterface $query
      *
      * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function merge(QueryBase $query): static;
+    public function merge(QueryBaseInterface $query): static;
 
     /**
      * Wraps the given function in parentheses.
@@ -159,14 +160,14 @@ interface QueryBaseInterface
      *
      * @param string|null $lhs
      * @param string|null $cmp
-     * @param Stringable|Value|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $rhs
      *
      * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function parenthesisOpen(?string $lhs = null, ?string $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static;
+    public function parenthesisOpen(?string $lhs = null, ?string $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static;
 
     /**
      * Adds the given raw expression to the query.

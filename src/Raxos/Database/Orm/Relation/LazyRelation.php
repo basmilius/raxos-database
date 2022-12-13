@@ -5,11 +5,10 @@ namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\RelationAttribute;
-use Raxos\Database\Orm\Defenition\FieldDefinition;
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\ModelArrayList;
-use Raxos\Database\Query\Query;
+use Raxos\Database\Orm\Definition\FieldDefinition;
+use Raxos\Database\Query\QueryInterface;
 
 /**
  * Class LazyRelation
@@ -72,7 +71,7 @@ final class LazyRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function getQuery(Model $model): Query
+    public function getQuery(Model $model): QueryInterface
     {
         return $this->getRelation()->getQuery($model);
     }
@@ -82,7 +81,7 @@ final class LazyRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function getRaw(string $modelClass, bool $isPrepared): Query
+    public function getRaw(string $modelClass, bool $isPrepared): QueryInterface
     {
         return $this->getRelation()->getRaw($modelClass, $isPrepared);
     }

@@ -26,7 +26,7 @@ abstract class Connector implements DebugInfoInterface, JsonSerializable
         PDO::ATTR_STRINGIFY_FETCHES => false
     ];
 
-    private readonly array $options;
+    public readonly array $options;
 
     /**
      * Connector constructor.
@@ -71,19 +71,6 @@ abstract class Connector implements DebugInfoInterface, JsonSerializable
         } catch (PDOException $err) {
             throw DatabaseException::throw($err->getCode(), $err->getMessage(), $err);
         }
-    }
-
-    /**
-     * Gets the options.
-     *
-     * @return array
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    public final function getOptions(): array
-    {
-        return $this->options;
     }
 
     /**

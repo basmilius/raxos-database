@@ -13,6 +13,6 @@ namespace Raxos\Database\Dialect;
 class SqlServerDialect extends Dialect
 {
 
-    public array $escapers = ['[', ']'];
+    public array $fieldEscapeCharacters = ['[', ']'];
 
 }

@@ -7,12 +7,9 @@ use Generator;
 use PDO;
 use PDOStatement;
 use Raxos\Database\Connection\Connection;
-use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Error\QueryException;
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\ModelArrayList;
-use Raxos\Foundation\Collection\ArrayList;
-use Raxos\Foundation\Collection\CollectionException;
+use Raxos\Database\Error\{DatabaseException, QueryException};
+use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Foundation\Collection\{ArrayList, CollectionException};
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use function array_filter;
@@ -38,7 +35,7 @@ class Statement
     private array $eagerLoadDisable = [];
 
     /**
-     * @template M of \Raxos\Database\Orm\Model
+     * @template M of Model
      * @var class-string<M>|null
      */
     private ?string $modelClass = null;
@@ -286,7 +283,7 @@ class Statement
         $results = $this->pdoStatement->fetchAll($fetchMode);
 
         if ($this->modelClass !== null) {
-            $models = array_map(fn(mixed $result) => $this->createModel($result), $results);
+            $models = array_map($this->createModel(...), $results);
 
             $this->loadRelationships($models);
 
@@ -352,7 +349,7 @@ class Statement
         }
 
         if (($logger = $this->connection->getLogger()) !== null) {
-            $result = Stopwatch::measure($time, fn() => $this->pdoStatement->execute(), Stopwatch::SECONDS);
+            $result = Stopwatch::measure($time, $this->pdoStatement->execute(...), Stopwatch::SECONDS);
             $logger->addQuery(new QueryLogEntry($this->pdoStatement->queryString, $time));
         } else {
             $result = $this->pdoStatement->execute();

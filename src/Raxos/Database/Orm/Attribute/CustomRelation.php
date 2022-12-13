@@ -5,7 +5,7 @@ namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
 use Raxos\Database\Connection\Connection;
-use Raxos\Database\Orm\Defenition\FieldDefinition;
+use Raxos\Database\Orm\Definition\FieldDefinition;
 use Raxos\Database\Orm\Relation\Relation;
 
 /**
@@ -16,7 +16,7 @@ use Raxos\Database\Orm\Relation\Relation;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class CustomRelation extends RelationAttribute
+readonly class CustomRelation extends RelationAttribute
 {
 
     /**
@@ -29,7 +29,7 @@ class CustomRelation extends RelationAttribute
      * @since 1.0.0
      */
     public function __construct(
-        protected readonly string $relationClass,
+        protected string $relationClass,
         bool $eagerLoad = false
     )
     {

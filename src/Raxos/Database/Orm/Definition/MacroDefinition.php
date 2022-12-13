@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Defenition;
+namespace Raxos\Database\Orm\Definition;
 
 use JetBrains\PhpStorm\ArrayShape;
 use Raxos\Foundation\Collection\Arrayable;
@@ -10,13 +10,13 @@ use Raxos\Foundation\Collection\Arrayable;
  * Class MacroDefinition
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm\Defenition
+ * @package Raxos\Database\Orm\Definition
  * @since 1.0.0
  */
-final class MacroDefinition implements Arrayable
+final readonly class MacroDefinition implements Arrayable
 {
 
-    public readonly string $name;
+    public string $name;
 
     /**
      * MacroDefinition constructor.
@@ -32,12 +32,12 @@ final class MacroDefinition implements Arrayable
      * @since 1.0.0
      */
     public function __construct(
-        public readonly ?string $alias,
-        public readonly bool $isCacheable,
-        public readonly bool $isHidden,
-        public readonly bool $isVisible,
-        public readonly string $method,
-        public readonly string $property
+        public ?string $alias,
+        public bool $isCacheable,
+        public bool $isHidden,
+        public bool $isVisible,
+        public string $method,
+        public string $property
     )
     {
         $this->name = $alias ?? $property;

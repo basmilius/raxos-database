@@ -5,8 +5,7 @@ namespace Raxos\Database\Connection;
 
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Connector\MySqlConnector;
-use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Dialect\MySqlDialect;
+use Raxos\Database\Dialect\{Dialect, MySqlDialect};
 use Raxos\Database\Query\MySqlQuery;
 
 /**

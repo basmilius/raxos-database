@@ -3,11 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use Raxos\Database\Query\Struct\BetweenComparatorAwareLiteral;
-use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
-use Raxos\Database\Query\Struct\InComparatorAwareLiteral;
-use Raxos\Database\Query\Struct\Literal;
-use Raxos\Database\Query\Struct\NotInComparatorAwareLiteral;
+use Raxos\Database\Query\Struct\{BetweenComparatorAwareLiteral, ComparatorAwareLiteral, InComparatorAwareLiteral, Literal, NotInComparatorAwareLiteral};
 use Stringable;
 
 /**
@@ -23,7 +19,7 @@ use Stringable;
  */
 function literal(string|int|float|bool $value): Literal
 {
-    return Literal::with($value);
+    return new Literal($value);
 }
 
 /**
@@ -51,12 +47,11 @@ function stringLiteral(Stringable|string $value): Literal
  * @return ComparatorAwareLiteral
  * @author Bas Milius <bas@mili.us>
  * @since 1.0.0
- * @see ComparatorAwareLiteral::between()
  * @see BetweenComparatorAwareLiteral
  */
 function between(Literal|string|float|int $from, Literal|string|float|int $to): ComparatorAwareLiteral
 {
-    return ComparatorAwareLiteral::between($from, $to);
+    return new BetweenComparatorAwareLiteral($from, $to);
 }
 
 /**
@@ -67,12 +62,11 @@ function between(Literal|string|float|int $from, Literal|string|float|int $to): 
  * @return ComparatorAwareLiteral
  * @author Bas Milius <bas@mili.us>
  * @since 1.0.0
- * @see ComparatorAwareLiteral::in()
  * @see InComparatorAwareLiteral
  */
 function in(array $options): ComparatorAwareLiteral
 {
-    return ComparatorAwareLiteral::in($options);
+    return new InComparatorAwareLiteral($options);
 }
 
 /**
@@ -83,12 +77,11 @@ function in(array $options): ComparatorAwareLiteral
  * @return ComparatorAwareLiteral
  * @author Bas Milius <bas@mili.us>
  * @since 1.0.0
- * @see ComparatorAwareLiteral::notIn()
  * @see NotInComparatorAwareLiteral
  */
 function notIn(array $options): ComparatorAwareLiteral
 {
-    return ComparatorAwareLiteral::notIn($options);
+    return new NotInComparatorAwareLiteral($options);
 }
 
 /**

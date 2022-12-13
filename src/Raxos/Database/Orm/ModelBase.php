@@ -5,10 +5,8 @@ namespace Raxos\Database\Orm;
 
 use ArrayAccess;
 use JsonSerializable;
-use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Error\ModelException;
-use Raxos\Foundation\Access\ArrayAccessible;
-use Raxos\Foundation\Access\ObjectAccessible;
+use Raxos\Database\Error\{DatabaseException, ModelException};
+use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
 use Raxos\Foundation\PHP\MagicMethods\SerializableInterface;
 use function array_key_exists;
 use function sprintf;

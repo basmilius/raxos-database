@@ -13,7 +13,7 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Macro
+final readonly class Macro
 {
 
     /**
@@ -24,7 +24,7 @@ final class Macro
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public readonly bool $isCacheable = true)
+    public function __construct(public bool $isCacheable = true)
     {
     }
 

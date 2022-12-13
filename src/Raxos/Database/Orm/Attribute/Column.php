@@ -13,7 +13,7 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Column
+final readonly class Column
 {
 
     /**
@@ -24,7 +24,7 @@ final class Column
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public readonly string|int|float|null $default = null)
+    public function __construct(public string|int|float|null $default = null)
     {
     }
 

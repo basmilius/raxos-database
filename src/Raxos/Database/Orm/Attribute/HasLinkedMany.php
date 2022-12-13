@@ -6,10 +6,9 @@ namespace Raxos\Database\Orm\Attribute;
 use Attribute;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Defenition\FieldDefinition;
+use Raxos\Database\Orm\Definition\FieldDefinition;
 use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\Relation\HasLinkedManyRelation;
-use Raxos\Database\Orm\Relation\Relation;
+use Raxos\Database\Orm\Relation\{HasLinkedManyRelation, Relation};
 use function is_array;
 use function is_subclass_of;
 use function sprintf;
@@ -17,14 +16,14 @@ use function sprintf;
 /**
  * Class HasLinkedMany
  *
- * @template TModel of \Raxos\Database\Orm\Model
+ * @template TModel of Model
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class HasLinkedMany extends RelationAttribute
+readonly class HasLinkedMany extends RelationAttribute
 {
 
     /**
@@ -42,12 +41,12 @@ class HasLinkedMany extends RelationAttribute
      * @since 1.0.0
      */
     public function __construct(
-        protected readonly string $referenceType,
-        protected readonly ?string $linkingTable,
-        protected readonly ?string $key = null,
-        protected readonly ?string $referenceKey = null,
-        protected readonly ?string $linkingKey = null,
-        protected readonly ?string $linkingReferenceKey = null,
+        protected string $referenceType,
+        protected ?string $linkingTable,
+        protected ?string $key = null,
+        protected ?string $referenceKey = null,
+        protected ?string $linkingKey = null,
+        protected ?string $linkingReferenceKey = null,
         bool $eagerLoad = false
     )
     {

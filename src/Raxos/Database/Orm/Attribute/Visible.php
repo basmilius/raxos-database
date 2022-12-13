@@ -13,7 +13,7 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Visible
+final readonly class Visible
 {
 
     /**
@@ -24,7 +24,7 @@ final class Visible
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function __construct(public readonly array|string|null $only = null)
+    public function __construct(public array|string|null $only = null)
     {
 
     }

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
+use BackedEnum;
 use Generator;
 use JetBrains\PhpStorm\ArrayShape;
 use PDO;
@@ -73,11 +74,19 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function addExpression(string $clause, Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function addExpression(string $clause, BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
         if ($rhs === null && $cmp !== null) {
             $rhs = $cmp;
             $cmp = '=';
+        }
+
+        if ($lhs instanceof BackedEnum) {
+            $lhs = is_string($lhs->value) ? stringLiteral($lhs->value) : literal($lhs);
+        }
+
+        if ($rhs instanceof BackedEnum) {
+            $rhs = is_string($rhs->value) ? stringLiteral($rhs->value) : literal($rhs);
         }
 
         if ($rhs instanceof Value) {
@@ -132,7 +141,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function addParam(Stringable|Value|string|int|float|bool|null $value): string|int
+    public function addParam(BackedEnum|Stringable|Value|string|int|float|bool|null $value): string|int
     {
         if ($value instanceof Value) {
             $value = $value->get($this);
@@ -258,7 +267,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function merge(self $query): static
+    public function merge(QueryBaseInterface $query): static
     {
         foreach ($query->pieces as [$clause, $data, $separator]) {
             $this->pieces[] = [$clause, $data, $separator];
@@ -308,7 +317,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function parenthesisOpen(?string $lhs = null, ?string $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function parenthesisOpen(?string $lhs = null, ?string $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
         return $this->addExpression('(', $lhs, $cmp, $rhs);
     }

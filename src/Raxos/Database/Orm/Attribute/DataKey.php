@@ -13,7 +13,7 @@ use Attribute;
  * @since 1.0.2
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class DataKey
+final readonly class DataKey
 {
 
     /**
@@ -24,7 +24,7 @@ final class DataKey
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function __construct(public readonly string $key)
+    public function __construct(public string $key)
     {
     }
 

@@ -50,16 +50,16 @@
         },
         {
             "name": "raxos/foundation",
-            "version": "1.0.2",
+            "version": "1.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/basmilius/raxos-foundation.git",
-                "reference": "a895562b2af6979bda7a8ec1a71d083dfb58d8fc"
+                "reference": "fd46d8859953c2d46935abb3064afd6ba75a46ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/basmilius/raxos-foundation/zipball/a895562b2af6979bda7a8ec1a71d083dfb58d8fc",
-                "reference": "a895562b2af6979bda7a8ec1a71d083dfb58d8fc",
+                "url": "https://api.github.com/repos/basmilius/raxos-foundation/zipball/fd46d8859953c2d46935abb3064afd6ba75a46ef",
+                "reference": "fd46d8859953c2d46935abb3064afd6ba75a46ef",
                 "shasum": ""
             },
             "require": {
@@ -90,9 +90,9 @@
             "description": "Base stuff for all Raxos libraries.",
             "support": {
                 "issues": "https://github.com/basmilius/raxos-foundation/issues",
-                "source": "https://github.com/basmilius/raxos-foundation/tree/1.0.2"
+                "source": "https://github.com/basmilius/raxos-foundation/tree/1.0.5"
             },
-            "time": "2022-09-04T13:42:02+00:00"
+            "time": "2022-10-06T06:35:47+00:00"
         }
     ],
     "packages-dev": [],

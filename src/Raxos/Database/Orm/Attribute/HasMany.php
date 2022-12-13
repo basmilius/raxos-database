@@ -6,10 +6,9 @@ namespace Raxos\Database\Orm\Attribute;
 use Attribute;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Defenition\FieldDefinition;
+use Raxos\Database\Orm\Definition\FieldDefinition;
 use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\Relation\HasManyRelation;
-use Raxos\Database\Orm\Relation\Relation;
+use Raxos\Database\Orm\Relation\{HasManyRelation, Relation};
 use function is_array;
 use function is_subclass_of;
 use function sprintf;
@@ -17,14 +16,14 @@ use function sprintf;
 /**
  * Class HasMany
  *
- * @template TModel of \Raxos\Database\Orm\Model
+ * @template TModel of Model
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class HasMany extends RelationAttribute
+readonly class HasMany extends RelationAttribute
 {
 
     /**
@@ -39,9 +38,9 @@ class HasMany extends RelationAttribute
      * @since 1.0.0
      */
     public function __construct(
-        protected readonly string $type,
-        protected readonly ?string $column = null,
-        protected readonly ?string $referenceColumn = null,
+        protected string $type,
+        protected ?string $column = null,
+        protected ?string $referenceColumn = null,
         bool $eagerLoad = false
     )
     {

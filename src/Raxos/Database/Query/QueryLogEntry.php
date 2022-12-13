@@ -24,10 +24,10 @@ use const STR_PAD_LEFT;
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-final class QueryLogEntry implements Arrayable, JsonSerializable
+final readonly class QueryLogEntry implements Arrayable, JsonSerializable
 {
 
-    public readonly array $trace;
+    public array $trace;
 
     /**
      * QueryLogEntry constructor.
@@ -39,8 +39,8 @@ final class QueryLogEntry implements Arrayable, JsonSerializable
      * @since 1.0.0
      */
     public function __construct(
-        public readonly string $sql,
-        public readonly float $queryTime
+        public string $sql,
+        public float $queryTime
     )
     {
         $trace = debug_backtrace();
@@ -67,7 +67,7 @@ final class QueryLogEntry implements Arrayable, JsonSerializable
             'sql' => $this->sql,
             'trace' => array_combine(
                 array_map(fn(int $key) => str_pad((string)$key, strlen((string)count($this->trace)), pad_type: STR_PAD_LEFT), array_keys($this->trace)),
-                array_map(fn(array $item) => $this->formatTraceEntry($item), $this->trace)
+                array_map($this->formatTraceEntry(...), $this->trace)
             )
         ];
     }

@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Error\QueryException;
+use BackedEnum;
+use Raxos\Database\Error\{DatabaseException, QueryException};
 use Raxos\Database\Orm\Model;
-use Raxos\Database\Query\Struct\AfterExpressionInterface;
-use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
-use Raxos\Database\Query\Struct\SubQueryLiteral;
-use Raxos\Database\Query\Struct\Value;
+use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, SubQueryLiteral, Value};
 use Stringable;
 use function array_is_list;
 use function array_keys;
@@ -86,7 +83,7 @@ abstract class Query extends QueryBase implements QueryInterface
                 $tables = [$tables];
             }
 
-            $tables = array_map(fn(string $table): string => $this->dialect->escapeTable($table), $tables);
+            $tables = array_map($this->dialect->escapeTable(...), $tables);
 
             if ($alias !== null && count($tables) === 1) {
                 $tables = array_map(fn(string $table): string => "{$table} as {$alias}", $tables);
@@ -107,7 +104,7 @@ abstract class Query extends QueryBase implements QueryInterface
             $fields = [$fields];
         }
 
-        $fields = array_map(fn(string $field): string => $this->dialect->escapeFields($field), $fields);
+        $fields = array_map($this->dialect->escapeFields(...), $fields);
 
         return $this->addPiece('group by', $fields, $this->dialect->fieldSeparator);
     }
@@ -117,7 +114,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function having(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function having(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
         return $this->addExpression($this->isClauseDefined('having') ? 'and' : 'having', $lhs, $cmp, $rhs);
     }
@@ -213,7 +210,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function on(Stringable|Value|string|int|float|bool $lhs, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function on(Stringable|Value|string|int|float|bool $lhs, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
         $didOn = $this->isOnDefined;
         $this->isOnDefined = true;
@@ -242,7 +239,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhere(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function orWhere(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
         return $this->addExpression('or', $lhs, $cmp, $rhs);
     }
@@ -332,7 +329,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhereRelation(string $relation, Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function orWhereRelation(string $relation, BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
         return $this->orWhereHas($relation, fn(self $query) => $query->where($lhs, $cmp, $rhs));
     }
@@ -398,7 +395,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function set(string $field, Stringable|Value|string|int|float|bool|null $value): static
+    public function set(string $field, BackedEnum|Stringable|Value|string|int|float|bool|null $value): static
     {
         $value = $this->addParam($value);
         $expression = $this->dialect->escapeFields($field) . ' = ' . $value;
@@ -472,7 +469,7 @@ abstract class Query extends QueryBase implements QueryInterface
      */
     public function values(array $values): static
     {
-        $values = array_map(fn(Stringable|Value|string|int|float|bool|null $value) => $this->addParam($value), $values);
+        $values = array_map($this->addParam(...), $values);
 
         $this->addPiece($this->isClauseDefined('values') ? ', ' : 'values');
         $this->parenthesis(fn() => $this->addPiece('', $values, $this->dialect->fieldSeparator));
@@ -485,7 +482,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function where(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function where(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
         return $this->addExpression($this->isClauseDefined('where') || $this->isDoingJoin ? 'and' : 'where', $lhs, $cmp, $rhs);
     }
@@ -575,7 +572,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function whereRelation(string $relation, Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function whereRelation(string $relation, BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
     {
         return $this->whereHas($relation, fn(self $query) => $query->where($lhs, $cmp, $rhs));
     }
@@ -815,7 +812,7 @@ abstract class Query extends QueryBase implements QueryInterface
             throw new QueryException('Insert queries require fields.', QueryException::ERR_MISSING_FIELDS);
         }
 
-        $fields = array_map(fn(string $field): string => $this->dialect->escapeFields($field), $fields);
+        $fields = array_map($this->dialect->escapeFields(...), $fields);
 
         $this->addPiece($clause, $this->dialect->escapeTable($table));
         $this->parenthesis(fn() => $this->addPiece('', $fields, $this->dialect->fieldSeparator));

@@ -5,8 +5,7 @@ namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Orm\Model;
-use Raxos\Database\Query\Query;
-use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
+use Raxos\Database\Query\QueryInterface;
 use function array_column;
 use function array_filter;
 use function array_map;
@@ -15,13 +14,12 @@ use function array_values;
 use function intval;
 use function is_int;
 use function is_numeric;
-use function Raxos\Database\Query\literal;
-use function Raxos\Database\Query\stringLiteral;
+use function Raxos\Database\Query\{in, literal, stringLiteral};
 
 /**
  * Class HasOneRelation
  *
- * @template TModel of \Raxos\Database\Orm\Model
+ * @template TModel of Model
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
@@ -84,7 +82,7 @@ class HasOneRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function getQuery(Model $model): Query
+    public function getQuery(Model $model): QueryInterface
     {
         /** @var Model $referenceModel */
         $referenceModel = $this->referenceModel;
@@ -98,7 +96,7 @@ class HasOneRelation extends Relation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function getRaw(string $modelClass, bool $isPrepared): Query
+    public function getRaw(string $modelClass, bool $isPrepared): QueryInterface
     {
         /** @var Model $modelClass */
         /** @var Model $referenceModel */
@@ -135,7 +133,7 @@ class HasOneRelation extends Relation
                 ->array();
         } else {
             $referenceModel::select()
-                ->where($this->referenceKey, ComparatorAwareLiteral::in($values))
+                ->where($this->referenceKey, in($values))
                 ->array();
         }
     }

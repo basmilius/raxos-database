@@ -10,9 +10,9 @@ use JetBrains\PhpStorm\{ArrayShape, ExpectedValues, Pure};
 use Raxos\Database\Error\{DatabaseException, ModelException};
 use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, CustomRelation, DataKey, HasLinkedMany, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttribute, Table, Visible};
 use Raxos\Database\Orm\Cast\CastInterface;
-use Raxos\Database\Orm\Defenition\{FieldDefinition, MacroDefinition};
+use Raxos\Database\Orm\Definition\{FieldDefinition, MacroDefinition};
 use Raxos\Database\Orm\Relation\{HasLinkedManyRelation, HasOneRelation, LazyRelation, Relation};
-use Raxos\Database\Query\Query;
+use Raxos\Database\Query\{Query, QueryInterface};
 use Raxos\Foundation\Event\Emitter;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\{ArrayUtil, ReflectionUtil, Singleton};
@@ -207,7 +207,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      * Gets the value(s) of the primary key(s) of the model.
      *
      * @return array|string|int|null
-     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -223,7 +222,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $keys = [$keys];
         }
 
-        $values = array_map(fn(string $key) => $this->getValue($key), $keys);
+        $values = array_map($this->getValue(...), $keys);
 
         if (count($values) === 1) {
             return $values[0];
@@ -368,14 +367,14 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      *
      * @param string $field
      *
-     * @return Query
+     * @return QueryInterface
      * @throws DatabaseException
      * @throws ModelException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @no-named-arguments
      */
-    public function queryRelation(string $field): Query
+    public function queryRelation(string $field): QueryInterface
     {
         $def = static::getField($field);
 
@@ -449,7 +448,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $this->macroCache = [];
             $this->emit(ModelEvent::CREATE);
         } else {
-            $primaryKey = array_map(fn(string $key) => $this->getValue($key), $primaryKey);
+            $primaryKey = array_map($this->getValue(...), $primaryKey);
 
             static::update($primaryKey, $pairs);
 
@@ -1058,14 +1057,14 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      *
      * @param Query $query
      *
-     * @return Query
+     * @return QueryInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      *
      * @noinspection PhpDocRedundantThrowsInspection
      */
-    protected static function getDefaultJoins(Query $query): Query
+    protected static function getDefaultJoins(Query $query): QueryInterface
     {
         return $query;
     }
@@ -1410,7 +1409,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             // node: This is for relation resolving, needs work I think.
             if (array_key_exists('__linking_key', $result)) {
                 HasLinkedManyRelation::$linkingKeys ??= new WeakMap();
-                HasLinkedManyRelation::$linkingKeys[$instance] = array_map('intval', explode(',', $result['__linking_key']));
+                HasLinkedManyRelation::$linkingKeys[$instance] = array_map(intval(...), explode(',', $result['__linking_key']));
             }
 
             return $instance;
@@ -1591,7 +1590,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
     /**
      * {@inheritdoc}
-     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

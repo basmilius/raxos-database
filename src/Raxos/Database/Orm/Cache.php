@@ -3,9 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
-use JetBrains\PhpStorm\ArrayShape;
-use JetBrains\PhpStorm\Pure;
-use Raxos\Database\Error\DatabaseException;
+use JetBrains\PhpStorm\{ArrayShape, Pure};
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use function array_filter;
 use function array_keys;
@@ -78,7 +76,7 @@ class Cache implements DebugInfoInterface
      */
     public function getAll(string $modelClass, array $keys): array
     {
-        $keys = array_map(fn(array|string|int $key) => $this->key($key), $keys);
+        $keys = array_map($this->key(...), $keys);
         $results = array_map(fn(string $key) => $this->get($modelClass, $key), $keys);
         $results = array_filter($results, fn(?Model $model) => $model !== null);
 
@@ -142,7 +140,6 @@ class Cache implements DebugInfoInterface
      *
      * @param Model $model
      *
-     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -175,7 +172,6 @@ class Cache implements DebugInfoInterface
      * @param Model $model
      * @param string|null $modelClass
      *
-     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -188,7 +184,6 @@ class Cache implements DebugInfoInterface
 
     /**
      * {@inheritdoc}
-     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

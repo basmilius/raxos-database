@@ -29,6 +29,7 @@ class SqlServerConnector extends Connector
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @noinspection SpellCheckingInspection
      */
     #[Pure]
     public function __construct(string $host, public readonly string $database, public readonly string $schema = 'dbo', ?string $username = null, ?string $password = null, int $port = 1433, array $options = [])

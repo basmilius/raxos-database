@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Cast\CastInterface;
 
 /**
  * Class Caster
@@ -13,20 +14,20 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Caster
+final readonly class Caster
 {
 
     /**
      * Caster constructor.
      *
-     * @template C of \Raxos\Database\Orm\Cast\CastInterface
+     * @template C of CastInterface
      *
      * @param class-string<C> $caster
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public readonly string $caster)
+    public function __construct(public string $caster)
     {
     }
 

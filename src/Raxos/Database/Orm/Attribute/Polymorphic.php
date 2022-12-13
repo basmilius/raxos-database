@@ -13,7 +13,7 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_CLASS)]
-final class Polymorphic
+final readonly class Polymorphic
 {
 
     /**
@@ -26,8 +26,8 @@ final class Polymorphic
      * @since 1.0.0
      */
     public function __construct(
-        public readonly string $column = 'type',
-        public readonly array $map = []
+        public string $column = 'type',
+        public array $map = []
     )
     {
     }

@@ -13,7 +13,7 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Alias
+final readonly class Alias
 {
 
     /**
@@ -24,7 +24,7 @@ final class Alias
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public readonly string $alias)
+    public function __construct(public string $alias)
     {
     }
 

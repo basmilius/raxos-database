@@ -5,9 +5,8 @@ namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\ModelArrayList;
-use Raxos\Database\Query\Query;
+use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Query\QueryInterface;
 
 /**
  * Class Relation
@@ -22,7 +21,7 @@ abstract class Relation
     /**
      * Relation constructor.
      *
-     * @template M of \Raxos\Database\Orm\Model
+     * @template M of Model
      *
      * @param Connection $connection
      * @param class-string<M> $referenceModel
@@ -58,12 +57,12 @@ abstract class Relation
      *
      * @param Model $model
      *
-     * @return Query
+     * @return QueryInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function getQuery(Model $model): Query;
+    public abstract function getQuery(Model $model): QueryInterface;
 
     /**
      * Gets the query for raw use (without a model).
@@ -71,12 +70,12 @@ abstract class Relation
      * @param class-string<Model> $modelClass
      * @param bool $isPrepared
      *
-     * @return Query
+     * @return QueryInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function getRaw(string $modelClass, bool $isPrepared): Query;
+    public abstract function getRaw(string $modelClass, bool $isPrepared): QueryInterface;
 
     /**
      * Eager loads relations.

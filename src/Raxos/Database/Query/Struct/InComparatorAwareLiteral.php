@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use Raxos\Database\Query\QueryBase;
+use Raxos\Database\Query\QueryBaseInterface;
 use function array_map;
 use function implode;
 use function is_int;
@@ -36,7 +36,7 @@ class InComparatorAwareLiteral extends ComparatorAwareLiteral
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function get(QueryBase $query): string
+    public function get(QueryBaseInterface $query): string
     {
         $options = $this->options;
 

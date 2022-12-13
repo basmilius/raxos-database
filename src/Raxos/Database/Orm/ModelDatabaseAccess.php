@@ -7,8 +7,7 @@ use Raxos\Database\Connection\Connection;
 use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\{DatabaseException, ModelException, QueryException};
-use Raxos\Database\Query\Query;
-use Raxos\Database\Query\QueryInterface;
+use Raxos\Database\Query\{Query, QueryInterface};
 use Raxos\Database\Query\Struct\{ComparatorAwareLiteral, Literal, Value};
 use Stringable;
 use function array_map;
@@ -389,7 +388,7 @@ trait ModelDatabaseAccess
      */
     public static function select(array|string|int $fields = [], bool $isPrepared = true): QueryInterface
     {
-        return self::baseSelect(fn(array|string|int $fields) => static::query($isPrepared)->select($fields), $fields);
+        return self::baseSelect(static::query($isPrepared)->select(...), $fields);
     }
 
     /**
@@ -406,7 +405,7 @@ trait ModelDatabaseAccess
      */
     public static function selectFoundRows(array|string|int $fields = [], bool $isPrepared = true): QueryInterface
     {
-        return self::baseSelect(fn(array|string|int $fields) => static::query($isPrepared)->selectFoundRows($fields), $fields);
+        return self::baseSelect(static::query($isPrepared)->selectFoundRows(...), $fields);
     }
 
     /**
@@ -423,7 +422,7 @@ trait ModelDatabaseAccess
      */
     public static function selectDistinct(array|string|int $fields = [], bool $isPrepared = true): QueryInterface
     {
-        return self::baseSelect(fn(array|string|int $fields) => static::query($isPrepared)->selectDistinct($fields), $fields);
+        return self::baseSelect(static::query($isPrepared)->selectDistinct(...), $fields);
     }
 
     /**
@@ -651,7 +650,7 @@ trait ModelDatabaseAccess
         if (is_string($primaryKeyFields)) {
             $query->where(static::column($primaryKeyFields), ComparatorAwareLiteral::in(array_shift($primaryKeys)));
         } else {
-            $primaryKeyFields = array_map([static::class, 'column'], $primaryKeyFields);
+            $primaryKeyFields = array_map(static::column(...), $primaryKeyFields);
 
             while (($keys = array_shift($primaryKeys)) !== null) {
                 $query->parenthesis(function () use (&$index, $keys, $query, $primaryKeyFields): void {
@@ -679,7 +678,7 @@ trait ModelDatabaseAccess
      * @param callable $fn
      * @param string[]|string|int $fields
      *
-     * @return QueryInterface
+     * @return QueryInterface<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

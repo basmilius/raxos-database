@@ -5,8 +5,7 @@ namespace Raxos\Database\Connector;
 
 use JetBrains\PhpStorm\Pure;
 use PDO;
-use Raxos\Database\Error\ConnectionException;
-use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Error\{ConnectionException, DatabaseException};
 
 /**
  * Class MySqlConnector

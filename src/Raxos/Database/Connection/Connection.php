@@ -3,19 +3,14 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connection;
 
-use JetBrains\PhpStorm\ExpectedValues;
-use JetBrains\PhpStorm\Pure;
+use JetBrains\PhpStorm\{ExpectedValues, Pure};
 use PDO;
 use Raxos\Database\Connector\Connector;
 use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Error\ConnectionException;
-use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Error\QueryException;
+use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
 use Raxos\Database\Orm\Cache;
-use Raxos\Database\Query\Query;
-use Raxos\Database\Query\QueryLog;
-use Raxos\Database\Query\Statement;
+use Raxos\Database\Query\{Query, QueryInterface, QueryLog, Statement};
 use Raxos\Foundation\Event\Emitter;
 use function array_key_exists;
 use function in_array;
@@ -97,11 +92,11 @@ abstract class Connection
      *
      * @param bool $isPrepared
      *
-     * @return Query
+     * @return QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function query(bool $isPrepared = true): Query;
+    public abstract function query(bool $isPrepared = true): QueryInterface;
 
     /**
      * Initializes the used dialect.

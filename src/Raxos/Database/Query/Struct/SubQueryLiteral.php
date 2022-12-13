@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use Raxos\Database\Query\QueryBase;
+use Raxos\Database\Query\QueryBaseInterface;
 
 /**
  * Class SubQueryLiteral
@@ -18,13 +18,13 @@ class SubQueryLiteral extends ComparatorAwareLiteral implements AfterExpressionI
     /**
      * SubQueryLiteral constructor.
      *
-     * @param QueryBase $query
+     * @param QueryBaseInterface $query
      * @param string $clause
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(protected QueryBase $query, protected string $clause = '')
+    public function __construct(protected QueryBaseInterface $query, protected string $clause = '')
     {
         parent::__construct('');
     }
@@ -34,7 +34,7 @@ class SubQueryLiteral extends ComparatorAwareLiteral implements AfterExpressionI
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function after(QueryBase $query): void
+    public function after(QueryBaseInterface $query): void
     {
         if (!empty($this->clause)) {
             $query->addPiece($this->clause);
@@ -46,13 +46,13 @@ class SubQueryLiteral extends ComparatorAwareLiteral implements AfterExpressionI
     /**
      * Returns a `exists $query` literal.
      *
-     * @param QueryBase $query
+     * @param QueryBaseInterface $query
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function exists(QueryBase $query): self
+    public static function exists(QueryBaseInterface $query): self
     {
         return new self($query, 'exists');
     }
@@ -60,13 +60,13 @@ class SubQueryLiteral extends ComparatorAwareLiteral implements AfterExpressionI
     /**
      * Returns a `not exists $query` literal.
      *
-     * @param QueryBase $query
+     * @param QueryBaseInterface $query
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function notExists(QueryBase $query): self
+    public static function notExists(QueryBaseInterface $query): self
     {
         return new self($query, 'not exists');
     }
@@ -74,13 +74,13 @@ class SubQueryLiteral extends ComparatorAwareLiteral implements AfterExpressionI
     /**
      * Returns a `($query)` literal.
      *
-     * @param QueryBase $query
+     * @param QueryBaseInterface $query
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function of(QueryBase $query): self
+    public static function of(QueryBaseInterface $query): self
     {
         return new self($query);
     }
@@ -89,13 +89,13 @@ class SubQueryLiteral extends ComparatorAwareLiteral implements AfterExpressionI
      * Returns a `@$name := ($query)` literal.
      *
      * @param string $name
-     * @param QueryBase $query
+     * @param QueryBaseInterface $query
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function variable(string $name, QueryBase $query): self
+    public static function variable(string $name, QueryBaseInterface $query): self
     {
         return new self($query, "@{$name} := ");
     }

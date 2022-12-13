@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Defenition;
+namespace Raxos\Database\Orm\Definition;
 
 use JetBrains\PhpStorm\ArrayShape;
 use Raxos\Database\Orm\Attribute\RelationAttribute;
@@ -11,14 +11,14 @@ use Raxos\Foundation\Collection\Arrayable;
  * Class FieldDefinition
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm\Defenition
+ * @package Raxos\Database\Orm\Definition
  * @since 1.0.0
  */
-final class FieldDefinition implements Arrayable
+final readonly class FieldDefinition implements Arrayable
 {
 
-    public readonly string $key;
-    public readonly string $name;
+    public string $key;
+    public string $name;
 
     /**
      * FieldDefinition constructor.
@@ -40,18 +40,18 @@ final class FieldDefinition implements Arrayable
      * @since 1.0.0
      */
     public function __construct(
-        public readonly ?string $alias,
-        public readonly ?string $cast,
-        public readonly ?string $dataKey,
-        public readonly mixed $default,
-        public readonly bool $isImmutable,
-        public readonly bool $isPrimary,
-        public readonly bool $isHidden,
-        public readonly bool $isVisible,
-        public readonly string $property,
-        public readonly ?RelationAttribute $relation,
-        public readonly array $types,
-        public readonly ?array $visibleOnly
+        public ?string $alias,
+        public ?string $cast,
+        public ?string $dataKey,
+        public mixed $default,
+        public bool $isImmutable,
+        public bool $isPrimary,
+        public bool $isHidden,
+        public bool $isVisible,
+        public string $property,
+        public ?RelationAttribute $relation,
+        public array $types,
+        public ?array $visibleOnly
     )
     {
         $this->name = $alias ?? $property;

@@ -4,18 +4,16 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Connection\Connection;
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\ModelArrayList;
-use Raxos\Database\Query\Query;
-use Raxos\Database\Query\Struct\ComparatorAwareLiteral;
-use Raxos\Database\Query\Struct\Literal;
+use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Query\{Query, QueryInterface};
 use WeakMap;
 use function in_array;
+use function Raxos\Database\Query\{in, literal};
 
 /**
  * Class HasLinkedManyRelation
  *
- * @template TModel of \Raxos\Database\Orm\Model
+ * @template TModel of Model
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
@@ -62,14 +60,14 @@ class HasLinkedManyRelation extends HasManyRelation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function getQuery(Model $model): Query
+    public function getQuery(Model $model): QueryInterface
     {
         /** @var Model $referenceModel */
         $referenceModel = $this->referenceModel;
 
         return $referenceModel::select()
             ->join($this->linkingTable, fn(Query $q) => $q
-                ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", Literal::with($referenceModel::column($this->referenceKey))))
+                ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", literal($referenceModel::column($this->referenceKey))))
             ->where("{$this->linkingTable}.{$this->linkingKey}", $model->{$this->key});
     }
 
@@ -78,7 +76,7 @@ class HasLinkedManyRelation extends HasManyRelation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function getRaw(string $modelClass, bool $isPrepared): Query
+    public function getRaw(string $modelClass, bool $isPrepared): QueryInterface
     {
         /** @var Model $modelClass */
         /** @var Model $referenceModel */
@@ -86,7 +84,7 @@ class HasLinkedManyRelation extends HasManyRelation
 
         return $referenceModel::select()
             ->join($this->linkingTable, fn(Query $q) => $q
-                ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", Literal::with($referenceModel::column($this->referenceKey))))
+                ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", literal($referenceModel::column($this->referenceKey))))
             ->where("{$this->linkingTable}.{$this->linkingKey}", $modelClass::column($this->key, literal: true));
     }
 
@@ -110,8 +108,8 @@ class HasLinkedManyRelation extends HasManyRelation
 
         $results = $referenceModel::select(['__linking_key' => "group_concat({$this->linkingTable}.{$this->linkingKey})"])
             ->leftJoin($this->linkingTable, fn(Query $q) => $q
-                ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", Literal::with($referenceModel::column($this->referenceKey))))
-            ->where("{$this->linkingTable}.{$this->linkingKey}", ComparatorAwareLiteral::in($values))
+                ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", literal($referenceModel::column($this->referenceKey))))
+            ->where("{$this->linkingTable}.{$this->linkingKey}", in($values))
             ->groupBy($referenceModel::column($this->referenceKey))
             ->array();
 

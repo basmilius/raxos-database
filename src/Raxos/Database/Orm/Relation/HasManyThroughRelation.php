@@ -5,13 +5,13 @@ namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Orm\Model;
-use Raxos\Database\Query\Query;
-use Raxos\Database\Query\Struct\Literal;
+use Raxos\Database\Query\{Query, QueryInterface};
+use function Raxos\Database\Query\literal;
 
 /**
  * Class HasManyThroughRelation
  *
- * @template TModel of \Raxos\Database\Orm\Model
+ * @template TModel of Model
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
@@ -56,7 +56,7 @@ class HasManyThroughRelation extends HasManyRelation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function getQuery(Model $model): Query
+    public function getQuery(Model $model): QueryInterface
     {
         /** @var Model $referenceModel */
         $referenceModel = $this->referenceModel;
@@ -66,7 +66,7 @@ class HasManyThroughRelation extends HasManyRelation
 
         return $referenceModel::select()
             ->join($throughModel::table(), fn(Query $q) => $q
-                ->on($throughModel::column($this->referenceThroughKey), Literal::with($referenceModel::column($this->referenceKey))))
+                ->on($throughModel::column($this->referenceThroughKey), literal($referenceModel::column($this->referenceKey))))
             ->where($throughModel::column($this->throughKey), $model->{$this->key});
     }
 
@@ -75,7 +75,7 @@ class HasManyThroughRelation extends HasManyRelation
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function getRaw(string $modelClass, bool $isPrepared): Query
+    public function getRaw(string $modelClass, bool $isPrepared): QueryInterface
     {
         /** @var Model $modelClass */
         /** @var Model $referenceModel */
@@ -86,7 +86,7 @@ class HasManyThroughRelation extends HasManyRelation
 
         return $referenceModel::select()
             ->join($throughModel::table(), fn(Query $q) => $q
-                ->on($throughModel::column($this->referenceThroughKey), Literal::with($referenceModel::column($this->referenceKey))))
+                ->on($throughModel::column($this->referenceThroughKey), literal($referenceModel::column($this->referenceKey))))
             ->where($throughModel::column($this->throughKey), $modelClass::column($this->key, literal: true));
     }
 

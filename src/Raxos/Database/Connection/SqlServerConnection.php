@@ -5,11 +5,9 @@ namespace Raxos\Database\Connection;
 
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Connector\SqlServerConnector;
-use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Dialect\SqlServerDialect;
+use Raxos\Database\Dialect\{Dialect, SqlServerDialect};
 use Raxos\Database\Error\QueryException;
-use Raxos\Database\Query\Query;
-use Raxos\Database\Query\SqlServerQuery;
+use Raxos\Database\Query\{Query, SqlServerQuery};
 
 /**
  * Class SqlServerConnection
