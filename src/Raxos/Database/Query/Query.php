@@ -7,7 +7,7 @@ namespace Raxos\Database\Query;
 use BackedEnum;
 use Raxos\Database\Error\{DatabaseException, QueryException};
 use Raxos\Database\Orm\Model;
-use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, SubQueryLiteral, Value};
+use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, Literal, SubQueryLiteral, Value};
 use Stringable;
 use function array_is_list;
 use function array_keys;
@@ -134,7 +134,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function havingIn(string $field, array $options): static
+    public function havingIn(Literal|string $field, array $options): static
     {
         return $this->having($field, ComparatorAwareLiteral::in($options));
     }
@@ -154,7 +154,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function havingNotNull(string $field): static
+    public function havingNotNull(Literal|string $field): static
     {
         return $this->having($field, ComparatorAwareLiteral::isNotNull());
     }
@@ -164,7 +164,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function havingNotIn(string $field, array $options): static
+    public function havingNotIn(Literal|string $field, array $options): static
     {
         return $this->having($field, ComparatorAwareLiteral::notIn($options));
     }
@@ -174,7 +174,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function havingNull(string $field): static
+    public function havingNull(Literal|string $field): static
     {
         return $this->having($field, ComparatorAwareLiteral::isNull());
     }
@@ -269,7 +269,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhereIn(string $field, array $options): static
+    public function orWhereIn(Literal|string $field, array $options): static
     {
         return $this->orWhere($field, ComparatorAwareLiteral::in($options));
     }
@@ -299,7 +299,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function orWhereNotIn(string $field, array $options): static
+    public function orWhereNotIn(Literal|string $field, array $options): static
     {
         return $this->orWhere($field, ComparatorAwareLiteral::notIn($options));
     }
@@ -309,7 +309,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhereNotNull(string $field): static
+    public function orWhereNotNull(Literal|string $field): static
     {
         return $this->orWhere($field, ComparatorAwareLiteral::isNotNull());
     }
@@ -319,7 +319,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhereNull(string $field): static
+    public function orWhereNull(Literal|string $field): static
     {
         return $this->orWhere($field, ComparatorAwareLiteral::isNull());
     }
@@ -512,7 +512,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function whereIn(string $field, array $options): static
+    public function whereIn(Literal|string $field, array $options): static
     {
         return $this->where($field, ComparatorAwareLiteral::in($options));
     }
@@ -542,7 +542,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function whereNotIn(string $field, array $options): static
+    public function whereNotIn(Literal|string $field, array $options): static
     {
         return $this->where($field, ComparatorAwareLiteral::notIn($options));
     }
@@ -552,7 +552,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function whereNotNull(string $field): static
+    public function whereNotNull(Literal|string $field): static
     {
         return $this->where($field, ComparatorAwareLiteral::isNotNull());
     }
@@ -562,7 +562,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function whereNull(string $field): static
+    public function whereNull(Literal|string $field): static
     {
         return $this->where($field, ComparatorAwareLiteral::isNull());
     }

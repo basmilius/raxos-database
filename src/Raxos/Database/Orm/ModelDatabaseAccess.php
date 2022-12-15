@@ -79,6 +79,22 @@ trait ModelDatabaseAccess
     }
 
     /**
+     * Returns the fully qualified name for the given column as
+     * a literal.
+     *
+     * @param string $column
+     *
+     * @return Literal
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.6
+     */
+    public static function col(string $column): Literal
+    {
+        return self::column($column, literal: true);
+    }
+
+    /**
      * Returns the fully qualified name for the given column.
      *
      * @param string $column
@@ -271,7 +287,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `having $field in $options` query for the model.
      *
-     * @param string $field
+     * @param Literal|string $field
      * @param array $options
      *
      * @return QueryInterface<TModel>
@@ -280,7 +296,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::havingIn()
      */
-    public static function havingIn(string $field, array $options): QueryInterface
+    public static function havingIn(Literal|string $field, array $options): QueryInterface
     {
         return static::select()
             ->havingIn($field, $options);
@@ -306,7 +322,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `having $field not in $options` query for the model.
      *
-     * @param string $field
+     * @param Literal|string $field
      * @param array $options
      *
      * @return QueryInterface<TModel>
@@ -315,7 +331,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::havingIn()
      */
-    public static function havingNotIn(string $field, array $options): QueryInterface
+    public static function havingNotIn(Literal|string $field, array $options): QueryInterface
     {
         return static::select()
             ->havingNotIn($field, $options);
@@ -324,7 +340,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `having $field not null` query for the model.
      *
-     * @param string $field
+     * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
      * @throws DatabaseException
@@ -332,7 +348,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::havingNotNull()
      */
-    public static function havingNotNull(string $field): QueryInterface
+    public static function havingNotNull(Literal|string $field): QueryInterface
     {
         return static::select()
             ->havingNotNull($field);
@@ -341,7 +357,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `having $field is null` query for the model.
      *
-     * @param string $field
+     * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
      * @throws DatabaseException
@@ -349,7 +365,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::havingNull()
      */
-    public static function havingNull(string $field): QueryInterface
+    public static function havingNull(Literal|string $field): QueryInterface
     {
         return static::select()
             ->havingNull($field);
@@ -503,7 +519,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `where $field in $options` query for the model.
      *
-     * @param string $field
+     * @param Literal|string $field
      * @param array $options
      *
      * @return QueryInterface<TModel>
@@ -512,7 +528,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::whereIn()
      */
-    public static function whereIn(string $field, array $options): QueryInterface
+    public static function whereIn(Literal|string $field, array $options): QueryInterface
     {
         return static::select()
             ->whereIn($field, $options);
@@ -538,7 +554,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `where $field not in $options` query for the model.
      *
-     * @param string $field
+     * @param Literal|string $field
      * @param array $options
      *
      * @return QueryInterface<TModel>
@@ -547,7 +563,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::whereNotIn()
      */
-    public static function whereNotIn(string $field, array $options): QueryInterface
+    public static function whereNotIn(Literal|string $field, array $options): QueryInterface
     {
         return static::select()
             ->whereNotIn($field, $options);
@@ -556,7 +572,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `where $field not null` query for the model.
      *
-     * @param string $field
+     * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
      * @throws DatabaseException
@@ -564,7 +580,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::whereNotNull()
      */
-    public static function whereNotNull(string $field): QueryInterface
+    public static function whereNotNull(Literal|string $field): QueryInterface
     {
         return static::select()
             ->whereNotNull($field);
@@ -573,7 +589,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `where $field is null` query for the model.
      *
-     * @param string $field
+     * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
      * @throws DatabaseException
@@ -581,7 +597,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::whereNull()
      */
-    public static function whereNull(string $field): QueryInterface
+    public static function whereNull(Literal|string $field): QueryInterface
     {
         return static::select()
             ->whereNull($field);
@@ -619,7 +635,7 @@ trait ModelDatabaseAccess
                 $value = literal($value);
             }
 
-            $query->where(static::column($fieldName), $value);
+            $query->where(static::col($fieldName), $value);
         }
 
         if (!empty($primaryKey)) {
@@ -648,9 +664,9 @@ trait ModelDatabaseAccess
         $primaryKeyFields = static::getPrimaryKey();
 
         if (is_string($primaryKeyFields)) {
-            $query->where(static::column($primaryKeyFields), ComparatorAwareLiteral::in(array_shift($primaryKeys)));
+            $query->where(static::col($primaryKeyFields), ComparatorAwareLiteral::in(array_shift($primaryKeys)));
         } else {
-            $primaryKeyFields = array_map(static::column(...), $primaryKeyFields);
+            $primaryKeyFields = array_map(static::col(...), $primaryKeyFields);
 
             while (($keys = array_shift($primaryKeys)) !== null) {
                 $query->parenthesis(function () use (&$index, $keys, $query, $primaryKeyFields): void {
