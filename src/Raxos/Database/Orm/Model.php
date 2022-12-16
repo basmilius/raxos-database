@@ -34,7 +34,9 @@ use function explode;
 use function extension_loaded;
 use function implode;
 use function in_array;
+use function intval;
 use function is_array;
+use function is_numeric;
 use function is_string;
 use function is_subclass_of;
 use function json_encode;
@@ -1405,18 +1407,18 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
         if ($primaryKeyValue !== null && static::cache()->has(static::class, $primaryKeyValue)) {
             $instance = static::cache()->get(static::class, $primaryKeyValue);
-
-            // node: This is for relation resolving, needs work I think.
-            if (array_key_exists('__linking_key', $result)) {
-                HasLinkedManyRelation::$linkingKeys ??= new WeakMap();
-                HasLinkedManyRelation::$linkingKeys[$instance] = array_map(intval(...), explode(',', $result['__linking_key']));
-            }
-
-            return $instance;
+        } else {
+            $instance = new static($result, false);
+            $instance::cache()->set($instance, $masterModel);
         }
 
-        $instance = new static($result, false);
-        $instance::cache()->set($instance, $masterModel);
+        if (array_key_exists('__linking_key', $result)) {
+            $keys = explode(',', $result['__linking_key']);
+            $keys = array_map(fn(string $key) => is_numeric($key) ? intval($key) : $key, $keys);
+
+            HasLinkedManyRelation::$linkingKeys ??= new WeakMap();
+            HasLinkedManyRelation::$linkingKeys[$instance] = $keys;
+        }
 
         return $instance;
     }

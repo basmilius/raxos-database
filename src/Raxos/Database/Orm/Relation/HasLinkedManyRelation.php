@@ -106,7 +106,7 @@ class HasLinkedManyRelation extends HasManyRelation
             return;
         }
 
-        $results = $referenceModel::select(['__linking_key' => "group_concat({$this->linkingTable}.{$this->linkingKey})"])
+        $results = $referenceModel::select([$referenceModel::column('*') => true, '__linking_key' => "group_concat({$this->linkingTable}.{$this->linkingKey})"])
             ->leftJoin($this->linkingTable, fn(Query $q) => $q
                 ->on("{$this->linkingTable}.{$this->linkingReferenceKey}", literal($referenceModel::column($this->referenceKey))))
             ->where("{$this->linkingTable}.{$this->linkingKey}", in($values))
