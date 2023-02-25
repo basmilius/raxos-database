@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connection;
 
+use BackedEnum;
 use JetBrains\PhpStorm\{ExpectedValues, Pure};
 use PDO;
 use Raxos\Database\Connector\Connector;
@@ -267,9 +268,13 @@ abstract class Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function quote(string|int|float|bool $value, #[ExpectedValues(Db::TYPES)] int $type = PDO::PARAM_STR): string
+    public function quote(BackedEnum|string|int|float|bool $value, #[ExpectedValues(Db::TYPES)] int $type = PDO::PARAM_STR): string
     {
         $this->ensureConnected();
+
+        if ($value instanceof BackedEnum) {
+            $value = $value->value;
+        }
 
         return $this->pdo->quote((string)$value, $type);
     }

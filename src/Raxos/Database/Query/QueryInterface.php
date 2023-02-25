@@ -349,24 +349,24 @@ interface QueryInterface extends QueryBaseInterface
     /**
      * Adds a `order by $field asc` expression.
      *
-     * @param string $field
+     * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orderByAsc(string $field): static;
+    public function orderByAsc(Literal|string $field): static;
 
     /**
      * Adds a `order by $field desc` expression.
      *
-     * @param string $field
+     * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orderByDesc(string $field): static;
+    public function orderByDesc(Literal|string $field): static;
 
     /**
      * Adds a `set $field = $value` expression.

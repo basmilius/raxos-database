@@ -312,11 +312,12 @@ interface QueryBaseInterface
      * @param int $fetchMode
      * @param array $options
      *
-     * @return Generator<TModel>
+     * @return Generator<TModel>|TModel[]
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see Statement::cursor()
+     * @noinspection PhpDocSignatureInspection
      */
     public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Generator;
 

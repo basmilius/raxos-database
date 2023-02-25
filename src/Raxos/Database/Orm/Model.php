@@ -1534,6 +1534,10 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 continue;
             }
 
+            if ($this->{$field->property} === null) {
+                continue;
+            }
+
             $relations[$name] = $this->{$field->property};
         }
 
@@ -1576,6 +1580,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             $this->isNew = &$this->__master->isNew;
         } else {
             $this->__master = null;
+            static::cache()->set($this);
         }
 
         foreach ($relations as $relation) {
@@ -1584,7 +1589,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
                 foreach ($relation as $r) {
                     $r::cache()->set($r);
                 }
-            } else {
+            } else if (isset($relation->__data)) {
                 $relation::cache()->set($relation);
             }
         }

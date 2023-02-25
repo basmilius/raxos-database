@@ -11,7 +11,8 @@ use WeakMap;
 use function array_column;
 use function array_filter;
 use function array_unique;
-use function Raxos\Database\Query\{in, literal};
+use function Raxos\Database\Query\{in, literal, stringLiteral};
+use function is_int;
 
 /**
  * Class HasManyRelation
@@ -105,7 +106,7 @@ class HasManyRelation extends Relation
         $referenceModel = $this->referenceModel;
 
         return $referenceModel::select(isPrepared: $isPrepared)
-            ->where($this->referenceKey, $modelClass::column($this->key, literal: true));
+            ->where($this->referenceKey, $modelClass::column($this->key));
     }
 
     /**
@@ -130,7 +131,7 @@ class HasManyRelation extends Relation
 
         if (!isset($values[1])) {
             $results = $referenceModel::select()
-                ->where($this->referenceKey, literal($values[0]))
+                ->where($this->referenceKey, is_int($values[0]) ? literal($values[0]) : stringLiteral($values[0]))
                 ->array();
         } else {
             $results = $referenceModel::select()

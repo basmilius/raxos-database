@@ -369,9 +369,12 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orderByAsc(string $field): static
+    public function orderByAsc(Literal|string $field): static
     {
-        $field = $this->dialect->escapeFields($field);
+        if (is_string($field)) {
+            $field = $this->dialect->escapeFields($field);
+        }
+
         $clause = $this->currentClause === 'order by' ? trim($this->dialect->fieldSeparator) : 'order by';
 
         return $this->addPiece($clause, $field . ' asc');
@@ -382,9 +385,12 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orderByDesc(string $field): static
+    public function orderByDesc(Literal|string $field): static
     {
-        $field = $this->dialect->escapeFields($field);
+        if (is_string($field)) {
+            $field = $this->dialect->escapeFields($field);
+        }
+
         $clause = $this->currentClause === 'order by' ? trim($this->dialect->fieldSeparator) : 'order by';
 
         return $this->addPiece($clause, $field . ' desc');
