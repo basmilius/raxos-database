@@ -3,13 +3,18 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
+use ArrayAccess;
+use IteratorAggregate;
 use Raxos\Foundation\Collection\ArrayList;
 
 /**
  * Class ModelArrayList
  *
- * @template-covariant T
- * @extends ArrayList<T>
+ * @template TKey of array-key
+ * @template TValue of Model
+ * @extends ArrayList<TKey, TValue>
+ * @implements ArrayAccess<TKey, TValue>
+ * @implements IteratorAggregate<TKey, TValue>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm

@@ -16,7 +16,7 @@ use Stringable;
 /**
  * Interface QueryInterface
  *
- * @template TModel of Model
+ * @template TModel
  *
  * @author Bas Milius <bas@glybe.nl>
  * @package Raxos\Database\Query
@@ -297,7 +297,7 @@ interface QueryBaseInterface
      * @param int $fetchMode
      * @param array $options
      *
-     * @return ArrayList<TModel>|ModelArrayList<TModel>
+     * @return ArrayList<array-key, TModel>|ModelArrayList<array-key, TModel>|iterable<array-key, TModel>
      * @throws CollectionException
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
@@ -344,6 +344,8 @@ interface QueryBaseInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     *
+     * @noinspection PhpDocSignatureInspection
      */
     public function single(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array|null;
 
@@ -358,6 +360,8 @@ interface QueryBaseInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     *
+     * @noinspection PhpDocSignatureInspection
      */
     public function singleOrFail(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array;
 

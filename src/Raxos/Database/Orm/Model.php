@@ -48,8 +48,6 @@ use function ucfirst;
 /**
  * Class Model
  *
- * @template-extends ModelDatabaseAccess<static>
- *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.0

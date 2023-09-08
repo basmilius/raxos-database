@@ -5,7 +5,6 @@ namespace Raxos\Database\Query;
 
 use BackedEnum;
 use Raxos\Database\Error\{DatabaseException, QueryException};
-use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Struct\Literal;
 use Raxos\Database\Query\Struct\Value;
 use Stringable;
@@ -13,7 +12,7 @@ use Stringable;
 /**
  * Interface QueryInterface
  *
- * @template TModel of Model
+ * @template TModel
  * @template-extends QueryBaseInterface<TModel>
  *
  * @author Bas Milius <bas@glybe.nl>
