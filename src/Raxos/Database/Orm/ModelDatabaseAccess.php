@@ -23,8 +23,6 @@ use function Raxos\Database\Query\literal;
 /**
  * Trait ModelDatabaseAccess
  *
- * @template TModel of Model
- *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.0
@@ -38,7 +36,7 @@ trait ModelDatabaseAccess
      * @param int $offset
      * @param int $limit
      *
-     * @return TModel[]
+     * @return static[]
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -185,7 +183,7 @@ trait ModelDatabaseAccess
      *
      * @param array[]|string[]|int[] $primaryKeys
      *
-     * @return TModel[]
+     * @return static[]
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -214,7 +212,7 @@ trait ModelDatabaseAccess
      *
      * @param array|string|int $primaryKey
      *
-     * @return TModel|null
+     * @return static|null
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -238,7 +236,7 @@ trait ModelDatabaseAccess
      *
      * @param array|string|int $primaryKey
      *
-     * @return TModel
+     * @return static
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -255,7 +253,7 @@ trait ModelDatabaseAccess
      * @param Stringable|Value|string|int|float|bool|null $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -272,7 +270,7 @@ trait ModelDatabaseAccess
      *
      * @param Query $query
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -290,7 +288,7 @@ trait ModelDatabaseAccess
      * @param Literal|string $field
      * @param array $options
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -307,7 +305,7 @@ trait ModelDatabaseAccess
      *
      * @param Query $query
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -325,7 +323,7 @@ trait ModelDatabaseAccess
      * @param Literal|string $field
      * @param array $options
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -342,7 +340,7 @@ trait ModelDatabaseAccess
      *
      * @param Literal|string $field
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -359,7 +357,7 @@ trait ModelDatabaseAccess
      *
      * @param Literal|string $field
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -376,7 +374,7 @@ trait ModelDatabaseAccess
      *
      * @param bool $isPrepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -396,7 +394,7 @@ trait ModelDatabaseAccess
      * @param string[]|string|int $fields
      * @param bool $isPrepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -413,7 +411,7 @@ trait ModelDatabaseAccess
      * @param string[]|string|int $fields
      * @param bool $isPrepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -430,7 +428,7 @@ trait ModelDatabaseAccess
      * @param string[]|string|int $fields
      * @param bool $isPrepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -448,7 +446,7 @@ trait ModelDatabaseAccess
      * @param string[]|string|int $fields
      * @param bool $isPrepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -487,7 +485,7 @@ trait ModelDatabaseAccess
      * @param Stringable|Value|string|int|float|bool|null $cmp
      * @param Stringable|Value|string|int|float|bool|null $rhs
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -504,7 +502,7 @@ trait ModelDatabaseAccess
      *
      * @param Query $query
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -522,7 +520,7 @@ trait ModelDatabaseAccess
      * @param Literal|string $field
      * @param array $options
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -539,7 +537,7 @@ trait ModelDatabaseAccess
      *
      * @param Query $query
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -557,7 +555,7 @@ trait ModelDatabaseAccess
      * @param Literal|string $field
      * @param array $options
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -574,7 +572,7 @@ trait ModelDatabaseAccess
      *
      * @param Literal|string $field
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -591,7 +589,7 @@ trait ModelDatabaseAccess
      *
      * @param Literal|string $field
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -694,7 +692,7 @@ trait ModelDatabaseAccess
      * @param callable $fn
      * @param string[]|string|int $fields
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

@@ -48,7 +48,7 @@ use function ucfirst;
 /**
  * Class Model
  *
- * @template-implements ModelDatabaseAccess<static>
+ * @template-extends ModelDatabaseAccess<static>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
@@ -905,10 +905,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
             throw new ModelException(sprintf('Model %s does not have a relation named %s.', static::class, $field->name), ModelException::ERR_RELATION_NOT_FOUND);
         }
 
-        $relationType = $field->relation ?? throw new ModelException(sprintf('Model %s does not have a relation named %s.', static::class, $field->name), ModelException::ERR_RELATION_NOT_FOUND);
-
         return static::$__relations[static::class][$field->property] = new LazyRelation(
-            $relationType,
+            $field->relation,
             static::class,
             $field,
             static::connection()
@@ -1046,8 +1044,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     *
-     * @noinspection PhpDocRedundantThrowsInspection
      */
     protected static function getDefaultFields(array|string|int $fields): array|string|int
     {
@@ -1063,8 +1059,6 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     *
-     * @noinspection PhpDocRedundantThrowsInspection
      */
     protected static function getDefaultJoins(Query $query): QueryInterface
     {
