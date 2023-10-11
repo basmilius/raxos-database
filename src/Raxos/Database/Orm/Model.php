@@ -454,6 +454,8 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
             $this->emit(ModelEvent::UPDATE);
         }
+
+        $this->modified = [];
     }
 
     /**
