@@ -617,7 +617,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
 
                 // note: enum support.
                 if (is_subclass_of($def->types[0], BackedEnum::class)) {
-                    $value = $value->value;
+                    $value = $value?->value;
                 }
 
                 // note: assume that the data is valid and does not need casting.
