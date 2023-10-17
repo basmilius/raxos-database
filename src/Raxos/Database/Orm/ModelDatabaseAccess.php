@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
+use BackedEnum;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
@@ -249,9 +250,9 @@ trait ModelDatabaseAccess
     /**
      * Sets up a having query for the model.
      *
-     * @param Stringable|Value|string|int|float|bool|null $lhs
-     * @param Stringable|Value|string|int|float|bool|null $cmp
-     * @param Stringable|Value|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<static>
      * @throws DatabaseException
@@ -259,7 +260,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::having()
      */
-    public static function having(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): QueryInterface
+    public static function having(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): QueryInterface
     {
         return static::select()
             ->having($lhs, $cmp, $rhs);
@@ -481,9 +482,9 @@ trait ModelDatabaseAccess
     /**
      * Sets up a where query for the model.
      *
-     * @param Stringable|Value|string|int|float|bool|null $lhs
-     * @param Stringable|Value|string|int|float|bool|null $cmp
-     * @param Stringable|Value|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<static>
      * @throws DatabaseException
@@ -491,7 +492,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::where()
      */
-    public static function where(Stringable|Value|string|int|float|bool|null $lhs = null, Stringable|Value|string|int|float|bool|null $cmp = null, Stringable|Value|string|int|float|bool|null $rhs = null): QueryInterface
+    public static function where(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): QueryInterface
     {
         return static::select()
             ->where($lhs, $cmp, $rhs);
