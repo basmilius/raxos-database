@@ -60,13 +60,14 @@ interface QueryInterface extends QueryBaseInterface
     /**
      * Adds a `group by $fields` expression.
      *
-     * @param string[]|string $fields
+     * @param Literal|Literal[]|string[]|string $fields
      *
      * @return QueryInterface<TModel>
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function groupBy(array|string $fields): static;
+    public function groupBy(Literal|array|string $fields): static;
 
     /**
      * Adds a `having $field $comparator $value` expression.
@@ -336,14 +337,14 @@ interface QueryInterface extends QueryBaseInterface
     /**
      * Adds a `order by $fields` expression.
      *
-     * @param Value[]|string[]|Value|string $fields
+     * @param Literal[]|string[]|Literal|string $fields
      *
      * @return QueryInterface<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orderBy(array|string $fields): static;
+    public function orderBy(Literal|array|string $fields): static;
 
     /**
      * Adds a `order by $field asc` expression.

@@ -98,12 +98,13 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function groupBy(array|string $fields): static
+    public function groupBy(Literal|array|string $fields): static
     {
-        if (is_string($fields)) {
+        if (!is_array($fields)) {
             $fields = [$fields];
         }
 
+        $fields = array_map(fn(Literal|string $field) => (string)$field, $fields);
         $fields = array_map($this->dialect->escapeFields(...), $fields);
 
         return $this->addPiece('group by', $fields, $this->dialect->fieldSeparator);
@@ -339,8 +340,12 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orderBy(array|string $fields): static
+    public function orderBy(Literal|array|string $fields): static
     {
+        if ($fields instanceof Literal) {
+            $fields = [$fields->get($this)];
+        }
+
         if (is_string($fields)) {
             $fields = [$fields];
         }

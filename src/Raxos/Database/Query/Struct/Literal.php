@@ -20,12 +20,14 @@ class Literal extends Value implements Stringable
     /**
      * Literal constructor.
      *
-     * @param string|int|float $value
+     * @param Stringable|string|int|float $value
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(protected string|int|float $value)
+    public function __construct(
+        protected Stringable|string|int|float $value
+    )
     {
     }
 
@@ -36,6 +38,10 @@ class Literal extends Value implements Stringable
      */
     public function get(QueryBaseInterface $query): string|int|float
     {
+        if ($this->value instanceof Stringable) {
+            return (string)$this->value;
+        }
+
         return $this->value;
     }
 
@@ -58,13 +64,13 @@ class Literal extends Value implements Stringable
     /**
      * Returns a `$value` literal.
      *
-     * @param string|int|float|bool $value
+     * @param Stringable|string|int|float|bool $value
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function with(string|int|float|bool $value): self
+    public static function with(Stringable|string|int|float|bool $value): self
     {
         return new Literal($value);
     }

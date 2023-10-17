@@ -9,7 +9,7 @@ use Stringable;
 /**
  * Returns a `$value` literal.
  *
- * @param string|int|float|bool $value
+ * @param Stringable|string|int|float|bool $value
  *
  * @return Literal
  * @author Bas Milius <bas@mili.us>
@@ -17,7 +17,7 @@ use Stringable;
  * @see Literal
  * @see Literal::with()
  */
-function literal(string|int|float|bool $value): Literal
+function literal(Stringable|string|int|float|bool $value): Literal
 {
     return new Literal($value);
 }
@@ -41,15 +41,15 @@ function stringLiteral(Stringable|string $value): Literal
 /**
  * Returns a `between $from and $to` literal.
  *
- * @param Literal|string|float|int $from
- * @param Literal|string|float|int $to
+ * @param Stringable|Literal|string|float|int $from
+ * @param Stringable|Literal|string|float|int $to
  *
  * @return ComparatorAwareLiteral
  * @author Bas Milius <bas@mili.us>
  * @since 1.0.0
  * @see BetweenComparatorAwareLiteral
  */
-function between(Literal|string|float|int $from, Literal|string|float|int $to): ComparatorAwareLiteral
+function between(Stringable|Literal|string|float|int $from, Stringable|Literal|string|float|int $to): ComparatorAwareLiteral
 {
     return new BetweenComparatorAwareLiteral($from, $to);
 }
