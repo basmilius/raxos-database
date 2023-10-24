@@ -50,16 +50,16 @@
         },
         {
             "name": "raxos/foundation",
-            "version": "1.0.5",
+            "version": "1.0.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/basmilius/raxos-foundation.git",
-                "reference": "fd46d8859953c2d46935abb3064afd6ba75a46ef"
+                "reference": "d40c214036610604c98d3d8afc209d98c0f12bf1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/basmilius/raxos-foundation/zipball/fd46d8859953c2d46935abb3064afd6ba75a46ef",
-                "reference": "fd46d8859953c2d46935abb3064afd6ba75a46ef",
+                "url": "https://api.github.com/repos/basmilius/raxos-foundation/zipball/d40c214036610604c98d3d8afc209d98c0f12bf1",
+                "reference": "d40c214036610604c98d3d8afc209d98c0f12bf1",
                 "shasum": ""
             },
             "require": {
@@ -90,9 +90,9 @@
             "description": "Base stuff for all Raxos libraries.",
             "support": {
                 "issues": "https://github.com/basmilius/raxos-foundation/issues",
-                "source": "https://github.com/basmilius/raxos-foundation/tree/1.0.5"
+                "source": "https://github.com/basmilius/raxos-foundation/tree/1.0.13"
             },
-            "time": "2022-10-06T06:35:47+00:00"
+            "time": "2023-09-08T09:35:24+00:00"
         }
     ],
     "packages-dev": [],
@@ -108,5 +108,5 @@
     "platform-overrides": {
         "php": "8.1"
     },
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }
