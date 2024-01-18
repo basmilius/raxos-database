@@ -20,7 +20,7 @@ use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 abstract class Connector implements DebugInfoInterface, JsonSerializable
 {
 
-    private const DEFAULT_OPTIONS = [
+    private const array DEFAULT_OPTIONS = [
         PDO::ATTR_CASE => PDO::CASE_NATURAL,
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_STRINGIFY_FETCHES => false

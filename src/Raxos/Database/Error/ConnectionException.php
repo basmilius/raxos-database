@@ -13,13 +13,13 @@ namespace Raxos\Database\Error;
 final class ConnectionException extends DatabaseException
 {
 
-    public const ERR_INCOMPLETE_OPTIONS = 1;
-    public const ERR_UNDEFINED_CONNECTION = 2;
-    public const ERR_INVALID_CONNECTION = 4;
-    public const ERR_DISCONNECTED = 8;
-    public const ERR_SCHEMA_ERROR = 8;
+    public const int ERR_INCOMPLETE_OPTIONS = 1;
+    public const int ERR_UNDEFINED_CONNECTION = 2;
+    public const int ERR_INVALID_CONNECTION = 4;
+    public const int ERR_DISCONNECTED = 8;
+    public const int ERR_SCHEMA_ERROR = 8;
 
-    public const ERR_ACCESS_DENIED = 1045;
-    public const ERR_ACCESS_DENIED_PASSWORD = 1698;
+    public const int ERR_ACCESS_DENIED = 1045;
+    public const int ERR_ACCESS_DENIED_PASSWORD = 1698;
 
 }

@@ -58,7 +58,7 @@ abstract class Model extends ModelBase implements DebugInfoInterface, Stringable
     use Emitter;
     use ModelDatabaseAccess;
 
-    protected final const ATTRIBUTES = [
+    protected final const array ATTRIBUTES = [
         Alias::class,
         Caster::class,
         Column::class,

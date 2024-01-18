@@ -22,7 +22,7 @@ use function sprintf;
 class Db
 {
 
-    public const ATTRIBUTES = [
+    public const array ATTRIBUTES = [
         PDO::ATTR_AUTOCOMMIT,
         PDO::ATTR_CASE,
         PDO::ATTR_CLIENT_VERSION,
@@ -37,7 +37,7 @@ class Db
         PDO::ATTR_TIMEOUT
     ];
 
-    public const TYPES = [
+    public const array TYPES = [
         PDO::PARAM_BOOL,
         PDO::PARAM_NULL,
         PDO::PARAM_INT,

@@ -29,8 +29,8 @@ abstract class Connection
 
     use Emitter;
 
-    public const EVENT_CONNECT = 'connect';
-    public const EVENT_DISCONNECT = 'disconnect';
+    public const string EVENT_CONNECT = 'connect';
+    public const string EVENT_DISCONNECT = 'disconnect';
 
     public readonly Cache $cache;
     public readonly Dialect $dialect;

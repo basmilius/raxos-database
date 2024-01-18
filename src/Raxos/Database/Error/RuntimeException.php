@@ -13,7 +13,7 @@ namespace Raxos\Database\Error;
 final class RuntimeException extends DatabaseException
 {
 
-    public const ERR_NOT_IMPLEMENTED = 1;
-    public const ERR_NOT_SUPPORTED = 2;
+    public const int ERR_NOT_IMPLEMENTED = 1;
+    public const int ERR_NOT_SUPPORTED = 2;
 
 }

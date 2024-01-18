@@ -13,7 +13,7 @@ namespace Raxos\Database\Error;
 final class SchemaException extends DatabaseException
 {
 
-    public const ERR_NO_SUCH_COLUMN = 1054;
-    public const ERR_NO_SUCH_TABLE = 1146;
+    public const int ERR_NO_SUCH_COLUMN = 1054;
+    public const int ERR_NO_SUCH_TABLE = 1146;
 
 }
