@@ -406,10 +406,10 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function set(string $field, BackedEnum|Stringable|Value|string|int|float|bool|null $value): static
+    public function set(Stringable|Value|string $field, BackedEnum|Stringable|Value|string|int|float|bool|null $value): static
     {
         $value = $this->addParam($value);
-        $expression = $this->dialect->escapeFields($field) . ' = ' . $value;
+        $expression = $this->dialect->escapeFields((string)$field) . ' = ' . $value;
 
         if ($this->currentClause === 'set') {
             $index = count($this->pieces) - 1;

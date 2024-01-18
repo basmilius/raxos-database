@@ -371,7 +371,7 @@ interface QueryInterface extends QueryBaseInterface
     /**
      * Adds a `set $field = $value` expression.
      *
-     * @param string $field
+     * @param Stringable|Value|string $field
      * @param BackedEnum|Stringable|Value|string|int|float|bool|null $value
      *
      * @return QueryInterface<TModel>
@@ -379,7 +379,7 @@ interface QueryInterface extends QueryBaseInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function set(string $field, BackedEnum|Stringable|Value|string|int|float|bool|null $value): static;
+    public function set(Stringable|Value|string $field, BackedEnum|Stringable|Value|string|int|float|bool|null $value): static;
 
     /**
      * Adds a `union $query` expression.
