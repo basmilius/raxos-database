@@ -49,7 +49,8 @@ class HasManyRelation extends Relation
         bool $eagerLoad,
         string $fieldName,
         public readonly string $key,
-        public readonly string $referenceKey
+        public readonly string $referenceKey,
+        public readonly ?string $orderBy = null
     )
     {
         parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName);
@@ -91,7 +92,9 @@ class HasManyRelation extends Relation
         $referenceModel = $this->referenceModel;
 
         return $referenceModel::select()
-            ->where($this->referenceKey, $model->{$this->key});
+            ->where($this->referenceKey, $model->{$this->key})
+            ->conditional($this->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->orderBy));
     }
 
     /**

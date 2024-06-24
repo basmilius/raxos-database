@@ -33,6 +33,7 @@ readonly class HasMany extends RelationAttribute
      * @param string|null $column
      * @param string|null $referenceColumn
      * @param bool $eagerLoad
+     * @param string|null $orderBy
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -41,7 +42,8 @@ readonly class HasMany extends RelationAttribute
         protected string $type,
         protected ?string $column = null,
         protected ?string $referenceColumn = null,
-        bool $eagerLoad = false
+        bool $eagerLoad = false,
+        protected ?string $orderBy = null
     )
     {
         parent::__construct($eagerLoad);
@@ -76,6 +78,7 @@ readonly class HasMany extends RelationAttribute
             $field->name,
             $this->column ?? $primaryKey,
             $this->referenceColumn ?? $modelClass::table() . '_' . $primaryKey,
+            $this->orderBy
         );
     }
 
@@ -94,7 +97,8 @@ readonly class HasMany extends RelationAttribute
             $state['type'],
             $state['column'],
             $state['referenceColumn'],
-            $state['eagerLoad']
+            $state['eagerLoad'],
+            $state['orderBy']
         );
     }
 

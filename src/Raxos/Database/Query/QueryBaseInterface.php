@@ -8,6 +8,7 @@ use Generator;
 use PDO;
 use Raxos\Database\Error\{DatabaseException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Query\Struct\Literal;
 use Raxos\Database\Query\Struct\Value;
 use Raxos\Foundation\Collection\{ArrayList, CollectionException};
 use stdClass;
@@ -332,6 +333,18 @@ interface QueryBaseInterface
      * @see Statement::run()
      */
     public function run(array $options = []): void;
+
+    /**
+     * Returns a query that returns a value. Useful for insert queries.
+     *
+     * @param Literal|string $column
+     *
+     * @return string|int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     * @throws DatabaseException
+     */
+    public function runReturning(Literal|string $column): string|int;
 
     /**
      * Executes the query and returns the first row. When no result is found

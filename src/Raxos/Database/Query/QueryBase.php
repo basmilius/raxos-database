@@ -9,9 +9,9 @@ use JetBrains\PhpStorm\ArrayShape;
 use PDO;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Error\{DatabaseException, QueryException};
+use Raxos\Database\Error\QueryException;
 use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ComparatorAwareLiteral, Value};
+use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ComparatorAwareLiteral, Literal, Value};
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ArrayUtil;
@@ -555,19 +555,14 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
     }
 
     /**
-     * Runs a query that returns a value. Useful for insert queries.
-     *
-     * @param string $column
-     *
-     * @return string|int
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
+     * @since 1.0.16
      */
-    public function runReturning(string $column): string|int
+    public function runReturning(Literal|string $column): string|int
     {
         $statement = $this
-            ->raw('returning ' . $this->dialect->escapeField($column))
+            ->raw('returning ' . ($column instanceof Literal ? $column->get($this) : $this->dialect->escapeField($column)))
             ->statement();
 
         $statement->run();

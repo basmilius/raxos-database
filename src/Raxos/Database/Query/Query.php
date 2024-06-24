@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use BackedEnum;
+use JsonSerializable;
 use Raxos\Database\Error\{DatabaseException, QueryException};
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, Literal, SubQueryLiteral, Value};
@@ -34,7 +35,7 @@ use function trim;
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-abstract class Query extends QueryBase implements QueryInterface
+abstract class Query extends QueryBase implements QueryInterface, JsonSerializable
 {
 
     private bool $isDoingJoin = false;
@@ -991,5 +992,15 @@ abstract class Query extends QueryBase implements QueryInterface
      * @since 1.0.0
      */
     public abstract function truncateTable(string $table): static;
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 23/06/2024
+     */
+    public function jsonSerialize(): string
+    {
+        return $this->toSql();
+    }
 
 }
