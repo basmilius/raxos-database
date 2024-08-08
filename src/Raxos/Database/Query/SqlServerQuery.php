@@ -66,7 +66,6 @@ class SqlServerQuery extends Query
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @noinspection SqlNoDataSourceInspection
      */
     public function optimizeTable(string $table): static
     {

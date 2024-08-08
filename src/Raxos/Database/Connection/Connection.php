@@ -10,9 +10,9 @@ use Raxos\Database\Connector\Connector;
 use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
+use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
-use Raxos\Database\Query\{Query, QueryInterface, QueryLog, Statement};
-use Raxos\Foundation\Event\Emitter;
+use Raxos\Database\Query\{QueryInterface, Statement};
 use function array_key_exists;
 use function in_array;
 use function sprintf;
@@ -24,19 +24,14 @@ use function sprintf;
  * @package Raxos\Database\Connection
  * @since 1.0.0
  */
-abstract class Connection
+abstract class Connection implements ConnectionInterface
 {
-
-    use Emitter;
-
-    public const string EVENT_CONNECT = 'connect';
-    public const string EVENT_DISCONNECT = 'disconnect';
 
     public readonly Cache $cache;
     public readonly Dialect $dialect;
+    public readonly Logger $logger;
 
     protected ?array $columnsPerTable = null;
-    protected ?QueryLog $logger = null;
     protected ?PDO $pdo = null;
 
     /**
@@ -55,95 +50,43 @@ abstract class Connection
     {
         $this->cache = new Cache();
         $this->dialect = $this->initializeDialect();
+        $this->logger = new Logger();
     }
 
     /**
-     * Enables the built-in query logged.
-     *
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function enableQueryLogging(): void
-    {
-        $this->logger = new QueryLog();
-    }
-
-    /**
-     * Returns the amount rows that were found.
-     *
-     * @return int
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public abstract function foundRows(): int;
-
-    /**
-     * Loads the database schema.
-     *
-     * @return array
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public abstract function loadDatabaseSchema(): array;
-
-    /**
-     * Starts a new query.
-     *
-     * @param bool $isPrepared
-     *
-     * @return QueryInterface
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public abstract function query(bool $isPrepared = true): QueryInterface;
-
-    /**
-     * Initializes the used dialect.
-     *
-     * @return Dialect
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    protected abstract function initializeDialect(): Dialect;
-
-    /**
-     * Connects to the database.
-     *
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function connect(): void
     {
         $this->pdo = $this->connector->createInstance();
-        $this->emit(self::EVENT_CONNECT);
     }
 
     /**
-     * Disconnects from the database.
-     *
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function disconnect(): void
     {
         $this->pdo = null;
-        $this->emit(self::EVENT_DISCONNECT);
     }
 
     /**
-     * Gets a connection attribute.
-     *
-     * @param int $attribute
-     *
-     * @return mixed
-     * @throws ConnectionException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see PDO::getAttribute()
+     */
+    public function isConnected(): bool
+    {
+        return $this->pdo !== null;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
      */
     public function attribute(int $attribute): mixed
     {
@@ -153,17 +96,13 @@ abstract class Connection
     }
 
     /**
-     * Executes the given query and returns the first column.
-     *
-     * @param Query|string $query
-     *
-     * @return string|int
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function column(Query|string $query): string|int
+    public function column(QueryInterface|string $query): string|int
     {
-        if ($query instanceof Query) {
+        if ($query instanceof QueryInterface) {
             $query = $query->toSql();
         }
 
@@ -175,19 +114,13 @@ abstract class Connection
     }
 
     /**
-     * Executes the given query and returns the amount of affected rows.
-     *
-     * @param Query|string $query
-     *
-     * @return int
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see PDO::exec()
      */
-    public function execute(Query|string $query): int
+    public function execute(QueryInterface|string $query): int
     {
-        if ($query instanceof Query) {
+        if ($query instanceof QueryInterface) {
             $query = $query->toSql();
         }
 
@@ -201,26 +134,9 @@ abstract class Connection
     }
 
     /**
-     * Returns TRUE if we're connected.
-     *
-     * @return bool
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     */
-    public function isConnected(): bool
-    {
-        return $this->pdo !== null;
-    }
-
-    /**
-     * Gets the last insert id as string.
-     *
-     * @param string|null $name
-     *
-     * @return string
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @see PDO::lastInsertId()
      */
     public function lastInsertId(?string $name = null): string
     {
@@ -228,14 +144,9 @@ abstract class Connection
     }
 
     /**
-     * Gets the last insert id as int.
-     *
-     * @param string|null $name
-     *
-     * @return int
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see PDO::lastInsertId()
      */
     public function lastInsertIdInteger(?string $name = null): int
     {
@@ -243,28 +154,17 @@ abstract class Connection
     }
 
     /**
-     * Initializes a prepared statement.
-     *
-     * @param Query|string $query
-     * @param array $options
-     *
-     * @return Statement
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function prepare(Query|string $query, array $options = []): Statement
+    public function prepare(QueryInterface|string $query, array $options = []): Statement
     {
         return new Statement($this, $query, $options);
     }
 
     /**
-     * Quotes the given value.
-     *
-     * @param string|int|float|bool $value
-     * @param int $type
-     *
-     * @return string
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -280,47 +180,31 @@ abstract class Connection
     }
 
     /**
-     * Returns TRUE if the given column exists in the given table.
-     *
-     * @param string $table
-     * @param string $column
-     *
-     * @return bool
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function tableColumnExists(string $table, string $column): bool
     {
-        return $this->tableExists($table) && in_array($column, $this->columnsPerTable[$table]);
+        return $this->tableExists($table) && in_array($column, $this->columnsPerTable[$table], true);
     }
 
     /**
-     * Gets all the columns of the given table.
-     *
-     * @param string $table
-     *
-     * @return bool
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function tableColumns(string $table): bool
+    public function tableColumns(string $table): array
     {
         if (!$this->tableExists($table)) {
             throw new ConnectionException(sprintf('Table "%s" does not exists in the current database.', $table), ConnectionException::ERR_SCHEMA_ERROR);
         }
 
-        return $this->columnsPerTable[$table];
+        return $this->columnsPerTable[$table] ?? [];
     }
 
     /**
-     * Returns TRUE if the given table exists.
-     *
-     * @param string $table
-     *
-     * @return bool
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -332,10 +216,7 @@ abstract class Connection
     }
 
     /**
-     * Commits the transaction.
-     *
-     * @return bool
-     * @throws QueryException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -349,9 +230,7 @@ abstract class Connection
     }
 
     /**
-     * Returns TRUE when in a transaction.
-     *
-     * @return bool
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -361,10 +240,7 @@ abstract class Connection
     }
 
     /**
-     * Rolls the transaction back.
-     *
-     * @return bool
-     * @throws QueryException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -378,9 +254,7 @@ abstract class Connection
     }
 
     /**
-     * Begins a transaction.
-     *
-     * @return bool
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -390,28 +264,27 @@ abstract class Connection
     }
 
     /**
-     * Gets the query logger.
-     *
-     * @return QueryLog|null
+     * {@inheritdoc}
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function getLogger(): ?QueryLog
+    public final function getPdo(): PDO
     {
-        return $this->logger;
+        $this->ensureConnected();
+
+        return $this->pdo;
     }
 
     /**
-     * Gets the PDO instance.
+     * Initializes the used dialect.
      *
-     * @return PDO|null
+     * @return Dialect
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public final function getPdo(): ?PDO
-    {
-        return $this->pdo;
-    }
+    #[Pure]
+    protected abstract function initializeDialect(): Dialect;
 
     /**
      * Ensures that there is an active connection.

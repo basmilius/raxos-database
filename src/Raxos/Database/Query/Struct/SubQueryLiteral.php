@@ -12,7 +12,7 @@ use Raxos\Database\Query\QueryBaseInterface;
  * @package Raxos\Database\Query\Struct
  * @since 1.0.0
  */
-class SubQueryLiteral extends ComparatorAwareLiteral implements AfterExpressionInterface
+readonly class SubQueryLiteral extends ComparatorAwareLiteral implements AfterExpressionInterface
 {
 
     /**

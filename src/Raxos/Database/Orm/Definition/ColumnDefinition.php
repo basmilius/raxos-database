@@ -4,36 +4,35 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Definition;
 
 use JetBrains\PhpStorm\ArrayShape;
-use Raxos\Database\Orm\Attribute\RelationAttribute;
+use Raxos\Database\Orm\Attribute\RelationAttributeInterface;
 use Raxos\Foundation\Collection\Arrayable;
 
 /**
- * Class FieldDefinition
+ * Class ColumnDefinition
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Definition
  * @since 1.0.0
  */
-final readonly class FieldDefinition implements Arrayable
+final readonly class ColumnDefinition implements Arrayable
 {
 
-    public string $key;
-    public string $name;
-
     /**
-     * FieldDefinition constructor.
+     * ColumnDefinition constructor.
      *
      * @param string|null $alias
      * @param string|null $cast
-     * @param string|null $dataKey
      * @param mixed $default
      * @param bool $isImmutable
      * @param bool $isPrimary
+     * @param bool $isForeign
      * @param bool $isHidden
      * @param bool $isVisible
-     * @param string $property
-     * @param RelationAttribute|null $relation
+     * @param string $key
+     * @param string $name
+     * @param RelationAttributeInterface|null $relation
      * @param array $types
+     * @param string[]|null $hiddenOnly
      * @param string[]|null $visibleOnly
      *
      * @author Bas Milius <bas@mili.us>
@@ -42,20 +41,20 @@ final readonly class FieldDefinition implements Arrayable
     public function __construct(
         public ?string $alias,
         public ?string $cast,
-        public ?string $dataKey,
         public mixed $default,
         public bool $isImmutable,
         public bool $isPrimary,
+        public bool $isForeign,
         public bool $isHidden,
         public bool $isVisible,
-        public string $property,
-        public ?RelationAttribute $relation,
+        public string $name,
+        public string $key,
+        public ?RelationAttributeInterface $relation,
         public array $types,
+        public ?array $hiddenOnly,
         public ?array $visibleOnly
     )
     {
-        $this->name = $alias ?? $property;
-        $this->key = $dataKey ?? $this->name;
     }
 
     /**
@@ -66,31 +65,35 @@ final readonly class FieldDefinition implements Arrayable
     #[ArrayShape([
         'alias' => 'string|null',
         'cast' => 'string|null',
-        'data_key' => 'string|null',
         'default' => 'mixed',
         'is_immutable' => 'bool',
         'is_primary' => 'bool',
+        'is_foreign' => 'bool',
         'is_hidden' => 'bool',
         'is_visible' => 'bool',
-        'property' => 'string',
+        'name' => 'string',
+        'key' => 'string',
         'relation' => '\Raxos\Database\Orm\Attribute\RelationAttribute|null',
         'types' => 'array',
+        'hidden_only' => 'string[]|null',
         'visible_only' => 'string[]|null'
     ])]
-    public final function toArray(): array
+    public function toArray(): array
     {
         return [
             'alias' => $this->alias,
             'cast' => $this->cast,
-            'data_key' => $this->default,
             'default' => $this->default,
             'is_immutable' => $this->isImmutable,
             'is_primary' => $this->isPrimary,
+            'is_foreign' => $this->isForeign,
             'is_hidden' => $this->isHidden,
             'is_visible' => $this->isVisible,
-            'property' => $this->property,
+            'name' => $this->name,
+            'key' => $this->key,
             'relation' => $this->relation,
             'types' => $this->types,
+            'hidden_only' => $this->hiddenOnly,
             'visible_only' => $this->visibleOnly
         ];
     }
@@ -109,15 +112,17 @@ final readonly class FieldDefinition implements Arrayable
         return new self(
             $state['alias'],
             $state['cast'],
-            $state['data_key'],
             $state['default'],
             $state['isImmutable'],
             $state['isPrimary'],
+            $state['isForeign'],
             $state['isHidden'],
             $state['isVisible'],
-            $state['property'],
+            $state['name'],
+            $state['key'],
             $state['relation'],
             $state['types'],
+            $state['hidden_only'],
             $state['visible_only']
         );
     }

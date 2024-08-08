@@ -6,12 +6,13 @@ namespace Raxos\Database\Query;
 use BackedEnum;
 use Generator;
 use JetBrains\PhpStorm\ArrayShape;
+use JsonSerializable;
 use PDO;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ComparatorAwareLiteral, Literal, Value};
+use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ComparatorAwareLiteral, Literal, ValueInterface};
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ArrayUtil;
@@ -27,7 +28,6 @@ use function is_bool;
 use function is_int;
 use function is_string;
 use function sprintf;
-use function str_ends_with;
 
 /**
  * Class QueryBase
@@ -39,20 +39,22 @@ use function str_ends_with;
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stringable
+abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryBaseInterface, Stringable
 {
 
     private static int $index = 0;
-    private int $paramsIndex;
 
-    protected readonly Dialect $dialect;
+    public readonly Dialect $dialect;
 
     protected string $currentClause = '';
-    protected array $eagerLoad = [];
-    protected array $eagerLoadDisable = [];
+    /** @var class-string<Model>|null */
     protected ?string $modelClass = null;
-    protected array $params = [];
     protected array $pieces = [];
+
+    private array $eagerLoad = [];
+    private array $eagerLoadDisable = [];
+    private array $params = [];
+    private readonly int $paramsIndex;
 
     /**
      * QueryBase constructor.
@@ -63,7 +65,10 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public readonly Connection $connection, protected bool $isPrepared = true)
+    public function __construct(
+        public readonly Connection $connection,
+        public readonly bool $isPrepared = true
+    )
     {
         $this->dialect = $connection->dialect;
         $this->paramsIndex = ++self::$index;
@@ -74,7 +79,12 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function addExpression(string $clause, BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function addExpression(
+        string $clause,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): static
     {
         if ($rhs === null && $cmp !== null) {
             $rhs = $cmp;
@@ -89,7 +99,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
             $rhs = is_string($rhs->value) ? stringLiteral($rhs->value) : literal($rhs);
         }
 
-        if ($rhs instanceof Value) {
+        if ($rhs instanceof ValueInterface) {
             if ($rhs instanceof ComparatorAwareLiteral) {
                 $cmp = null;
             }
@@ -102,7 +112,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
         if ($lhs !== null && !($lhs instanceof ComparatorAwareLiteral)) {
             if (is_string($lhs)) {
                 $lhs = $this->dialect->escapeFields($lhs);
-            } else if ($lhs instanceof Value) {
+            } else if ($lhs instanceof ValueInterface) {
                 $lhs = $lhs->get($this);
             }
 
@@ -141,9 +151,9 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function addParam(BackedEnum|Stringable|Value|string|int|float|bool|null $value): string|int
+    public function addParam(BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $value): string|int
     {
-        if ($value instanceof Value) {
+        if ($value instanceof ValueInterface) {
             $value = $value->get($this);
         }
 
@@ -163,7 +173,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
             $value = (string)$value;
         }
 
-        $name = 'p' . $this->paramsIndex . '_' . count($this->params);
+        $name = $this->paramsIndex . '_' . count($this->params);
         $this->params[] = [$name, $value];
 
         return ':' . $name;
@@ -222,10 +232,12 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
     {
         if (is_string($relations)) {
             $this->eagerLoad[] = $relations;
-        } else {
-            foreach ($relations as $relation) {
-                $this->eagerLoad[] = $relation;
-            }
+
+            return $this;
+        }
+
+        foreach ($relations as $relation) {
+            $this->eagerLoad[] = $relation;
         }
 
         return $this;
@@ -240,10 +252,12 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
     {
         if (is_string($relations)) {
             $this->eagerLoadDisable[] = $relations;
-        } else {
-            foreach ($relations as $relation) {
-                $this->eagerLoadDisable[] = $relation;
-            }
+
+            return $this;
+        }
+
+        foreach ($relations as $relation) {
+            $this->eagerLoadDisable[] = $relation;
         }
 
         return $this;
@@ -317,7 +331,11 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function parenthesisOpen(?string $lhs = null, ?string $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function parenthesisOpen(
+        ?string $lhs = null,
+        ?string $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): static
     {
         return $this->addExpression('(', $lhs, $cmp, $rhs);
     }
@@ -341,7 +359,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
     {
         $clauses = array_column($this->pieces, 0);
 
-        return in_array($clause, $clauses);
+        return in_array($clause, $clauses, true);
     }
 
     /**
@@ -361,7 +379,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      */
     public function removeClause(string $clause): static
     {
-        $index = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === $clause);
+        $index = ArrayUtil::findIndex($this->pieces, static fn(array $piece) => $piece[0] === $clause);
 
         if ($index !== null) {
             array_splice($this->pieces, $index, 1);
@@ -381,7 +399,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
      */
     public function replaceClause(string $clause, callable $fn): static
     {
-        $index = ArrayUtil::findIndex($this->pieces, fn(array $piece) => $piece[0] === $clause);
+        $index = ArrayUtil::findIndex($this->pieces, static fn(array $piece) => $piece[0] === $clause);
 
         if ($index === null) {
             throw new QueryException(sprintf('Clause "%s" is not defined in the query.', $clause), QueryException::ERR_CLAUSE_NOT_DEFINED);
@@ -430,20 +448,10 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
                 $data = implode($separator ?? ',', $data);
             }
 
-            $addSpace = !empty($query) && !str_ends_with($query, '(') && !str_ends_with($query, ' ');
+            $pieces[] = ' ';
 
             if (!empty($clause)) {
-                if ($clause[0] === ',' || $clause[0] === ')') {
-                    $addSpace = false;
-                }
-
-                if ($addSpace) {
-                    $pieces[] = ' ';
-                }
-
                 $pieces[] = $clause;
-            } else if ($addSpace) {
-                $pieces[] = ' ';
             }
 
             if (!empty($data)) {
@@ -483,7 +491,7 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
         $original = clone $this;
 
         if (!$original->isClauseDefined('having')) {
-            $original->replaceClause('select', function (array $piece): array {
+            $original->replaceClause('select', static function (array $piece): array {
                 $piece[1] = 1;
 
                 return $piece;
@@ -636,6 +644,16 @@ abstract class QueryBase implements DebugInfoInterface, QueryBaseInterface, Stri
         $this->pieces = [];
 
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public function jsonSerialize(): string
+    {
+        return $this->toSql();
     }
 
     /**

@@ -34,7 +34,7 @@ class ModelArrayList extends ArrayList
      */
     public function makeHidden(string|array $fields): static
     {
-        return $this->mapTransform(fn(Model $model) => $model->makeHidden($fields));
+        return $this->mapTransform(static fn(Model $model) => $model->makeHidden($fields));
     }
 
     /**
@@ -48,7 +48,7 @@ class ModelArrayList extends ArrayList
      */
     public function makeVisible(string|array $fields): static
     {
-        return $this->mapTransform(fn(Model $model) => $model->makeVisible($fields));
+        return $this->mapTransform(static fn(Model $model) => $model->makeVisible($fields));
     }
 
 }

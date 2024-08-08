@@ -4,22 +4,23 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use BackedEnum;
-use Raxos\Database\Connection\Connection;
+use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\{DatabaseException, ModelException, QueryException};
-use Raxos\Database\Query\{Query, QueryInterface};
-use Raxos\Database\Query\Struct\{ComparatorAwareLiteral, Literal, Value};
+use Raxos\Database\Query\QueryInterface;
+use Raxos\Database\Query\Struct\{ColumnLiteral, ComparatorAwareLiteral, Literal, ValueInterface};
 use Stringable;
 use function array_map;
 use function array_shift;
 use function count;
+use function implode;
 use function is_array;
 use function is_float;
 use function is_int;
 use function is_string;
-use function json_encode;
 use function Raxos\Database\Query\literal;
+use function sprintf;
 
 /**
  * Trait ModelDatabaseAccess
@@ -56,7 +57,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::$cache
+     * @see ConnectionInterface::$cache
      */
     public static function cache(): Cache
     {
@@ -70,7 +71,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::$dialect
+     * @see ConnectionInterface::$dialect
      */
     public static function dialect(): Dialect
     {
@@ -83,55 +84,44 @@ trait ModelDatabaseAccess
      *
      * @param string $column
      *
-     * @return Literal
+     * @return ColumnLiteral
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.6
      */
-    public static function col(string $column): Literal
+    public static function col(string $column): ColumnLiteral
     {
-        return self::column($column, literal: true);
+        return new ColumnLiteral(self::dialect(), $column, static::table());
     }
 
     /**
      * Returns the fully qualified name for the given column.
      *
      * @param string $column
-     * @param string|null $table
-     * @param bool $literal
      *
-     * @return Literal|string
+     * @return string
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function column(string $column, ?string $table = null, bool $literal = false): Literal|string
+    public static function column(string $column): string
     {
-        $table ??= static::table();
-        $column = static::connection()
-            ->dialect
-            ->escapeFields("{$table}.{$column}");
-
-        if ($literal) {
-            return new Literal($column);
-        }
-
-        return $column;
+        return (string)self::col($column);
     }
 
     /**
      * Gets the connection instance.
      *
-     * @return Connection
+     * @return ConnectionInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function connection(): Connection
+    public static function connection(): ConnectionInterface
     {
-        static::initialize();
+        InternalModelData::initialize(static::class);
 
-        return Db::getOrFail(static::$connectionId);
+        return Db::getOrFail(InternalModelData::$connectionId[static::class] ?? 'default');
     }
 
     /**
@@ -244,15 +234,15 @@ trait ModelDatabaseAccess
      */
     public static function getOrFail(array|string|int $primaryKey): static
     {
-        return static::get($primaryKey) ?? throw new ModelException(sprintf('Model with primary key "%s" not found.', json_encode($primaryKey)), ModelException::ERR_NOT_FOUND);
+        return static::get($primaryKey) ?? throw new ModelException(sprintf('Model with primary key "%s" not found.', implode(', ', $primaryKey)), ModelException::ERR_NOT_FOUND);
     }
 
     /**
      * Sets up a having query for the model.
      *
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<static>
      * @throws DatabaseException
@@ -260,7 +250,11 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::having()
      */
-    public static function having(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): QueryInterface
+    public static function having(
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): QueryInterface
     {
         return static::select()
             ->having($lhs, $cmp, $rhs);
@@ -269,7 +263,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `having exists $query` query for the model.
      *
-     * @param Query $query
+     * @param QueryInterface $query
      *
      * @return QueryInterface<static>
      * @throws DatabaseException
@@ -277,7 +271,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::havingExists()
      */
-    public static function havingExists(Query $query): QueryInterface
+    public static function havingExists(QueryInterface $query): QueryInterface
     {
         return static::select()
             ->havingExists($query);
@@ -304,7 +298,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `having not exists $query` query for the model.
      *
-     * @param Query $query
+     * @param QueryInterface $query
      *
      * @return QueryInterface<static>
      * @throws DatabaseException
@@ -312,7 +306,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::havingNotExists()
      */
-    public static function havingNotExists(Query $query): QueryInterface
+    public static function havingNotExists(QueryInterface $query): QueryInterface
     {
         return static::select()
             ->havingNotExists($query);
@@ -379,8 +373,7 @@ trait ModelDatabaseAccess
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::query()
-     * @see Query
+     * @see ConnectionInterface::query()
      */
     public static function query(bool $isPrepared = true): QueryInterface
     {
@@ -455,7 +448,7 @@ trait ModelDatabaseAccess
      */
     public static function selectSuffix(string $suffix, array|string|int $fields = [], bool $isPrepared = true): QueryInterface
     {
-        return self::baseSelect(fn(array|string|int $fields) => static::query($isPrepared)->selectSuffix($suffix, $fields), $fields);
+        return self::baseSelect(static fn(array|string|int $fields) => static::query($isPrepared)->selectSuffix($suffix, $fields), $fields);
     }
 
     /**
@@ -482,9 +475,9 @@ trait ModelDatabaseAccess
     /**
      * Sets up a where query for the model.
      *
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<static>
      * @throws DatabaseException
@@ -492,7 +485,11 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::where()
      */
-    public static function where(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): QueryInterface
+    public static function where(
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): QueryInterface
     {
         return static::select()
             ->where($lhs, $cmp, $rhs);
@@ -501,7 +498,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `where exists $query` query for the model.
      *
-     * @param Query $query
+     * @param QueryInterface $query
      *
      * @return QueryInterface<static>
      * @throws DatabaseException
@@ -509,7 +506,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::whereExists()
      */
-    public static function whereExists(Query $query): QueryInterface
+    public static function whereExists(QueryInterface $query): QueryInterface
     {
         return static::select()
             ->whereExists($query);
@@ -536,7 +533,7 @@ trait ModelDatabaseAccess
     /**
      * Sets up a `where not exists $query` query for the model.
      *
-     * @param Query $query
+     * @param QueryInterface $query
      *
      * @return QueryInterface<static>
      * @throws DatabaseException
@@ -544,7 +541,7 @@ trait ModelDatabaseAccess
      * @since 1.0.0
      * @see QueryInterface::whereNotExists()
      */
-    public static function whereNotExists(Query $query): QueryInterface
+    public static function whereNotExists(QueryInterface $query): QueryInterface
     {
         return static::select()
             ->whereNotExists($query);
@@ -603,6 +600,59 @@ trait ModelDatabaseAccess
     }
 
     /**
+     * Gets the primary key(s) of the model.
+     *
+     * @return string[]|string|null
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public static function getPrimaryKey(): array|string|null
+    {
+        static $knownPrimaryKey = [];
+
+        return $knownPrimaryKey[static::class] ??= (static function (): array|string|null {
+            $columns = [];
+
+            foreach (InternalModelData::getColumns(static::class) as $def) {
+                if ($def->isPrimary) {
+                    $columns[] = $def->key;
+                }
+            }
+
+            $length = count($columns);
+
+            if ($length === 0) {
+                return null;
+            }
+
+            if ($length === 1) {
+                return $columns[0];
+            }
+
+            return $columns;
+        })();
+    }
+
+    /**
+     * Gets the table of the model.
+     *
+     * @return string
+     * @throws ModelException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public static function table(): string
+    {
+        if (isset(InternalModelData::$table[static::class])) {
+            return InternalModelData::$table[static::class];
+        }
+
+        InternalModelData::initialize(static::class);
+
+        return InternalModelData::$table[static::class] ?? throw new ModelException(sprintf('Model "%s" does not have a table assigned.', static::class), ModelException::ERR_NO_TABLE_ASSIGNED);
+    }
+
+    /**
      * Adds primary key where clauses to the given query.
      *
      * @param QueryInterface $query
@@ -618,7 +668,7 @@ trait ModelDatabaseAccess
             $primaryKey = [$primaryKey];
         }
 
-        foreach (static::getFields() as $field) {
+        foreach (InternalModelData::getColumns(static::class) as $field) {
             if (!$field->isPrimary) {
                 continue;
             }
@@ -654,8 +704,6 @@ trait ModelDatabaseAccess
      */
     private static function addPrimaryKeyInClauses(QueryInterface $query, array $primaryKeys): void
     {
-        $index = 0;
-
         if (!is_array($primaryKeys[0])) {
             $primaryKeys = [$primaryKeys];
         }
@@ -668,7 +716,7 @@ trait ModelDatabaseAccess
             $primaryKeyFields = array_map(static::col(...), $primaryKeyFields);
 
             while (($keys = array_shift($primaryKeys)) !== null) {
-                $query->parenthesis(function () use (&$index, $keys, $query, $primaryKeyFields): void {
+                $query->parenthesis(function () use ($keys, $query, $primaryKeyFields): void {
                     foreach ($keys as $kIndex => $key) {
                         $primaryKeyField = $primaryKeyFields[$kIndex];
 
@@ -690,10 +738,11 @@ trait ModelDatabaseAccess
     /**
      * Starts a new select query for the current model.
      *
-     * @param callable $fn
+     * @param callable(array|int|string):QueryInterface $fn
      * @param string[]|string|int $fields
      *
      * @return QueryInterface<static>
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

@@ -3,8 +3,36 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
+use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Query\Struct\{BetweenComparatorAwareLiteral, ComparatorAwareLiteral, InComparatorAwareLiteral, Literal, NotInComparatorAwareLiteral};
 use Stringable;
+
+/**
+ * Returns a `coalesce($a, $b)` literal.
+ *
+ * @param Literal|QueryInterface|string $a
+ * @param Literal|QueryInterface|string $b
+ *
+ * @return Literal
+ * @author Bas Milius <bas@mili.us>
+ * @since 1.0.16
+ */
+#[Pure]
+function coalesce(
+    Literal|QueryInterface|string $a,
+    Literal|QueryInterface|string $b
+): Literal
+{
+    if ($a instanceof QueryInterface) {
+        $a = "({$a})";
+    }
+
+    if ($b instanceof QueryInterface) {
+        $b = "({$b})";
+    }
+
+    return new Literal("coalesce({$a}, {$b})");
+}
 
 /**
  * Returns a `$value` literal.
@@ -17,6 +45,7 @@ use Stringable;
  * @see Literal
  * @see Literal::with()
  */
+#[Pure]
 function literal(Stringable|string|int|float|bool $value): Literal
 {
     return new Literal($value);
@@ -33,6 +62,7 @@ function literal(Stringable|string|int|float|bool $value): Literal
  * @see Literal
  * @see Literal::string()
  */
+#[Pure]
 function stringLiteral(Stringable|string $value): Literal
 {
     return Literal::string((string)$value);
@@ -41,17 +71,21 @@ function stringLiteral(Stringable|string $value): Literal
 /**
  * Returns a `between $from and $to` literal.
  *
- * @param Stringable|Literal|string|float|int $from
- * @param Stringable|Literal|string|float|int $to
+ * @param Stringable|Literal|string|float|int $lower
+ * @param Stringable|Literal|string|float|int $upper
  *
  * @return ComparatorAwareLiteral
  * @author Bas Milius <bas@mili.us>
  * @since 1.0.0
  * @see BetweenComparatorAwareLiteral
  */
-function between(Stringable|Literal|string|float|int $from, Stringable|Literal|string|float|int $to): ComparatorAwareLiteral
+#[Pure]
+function between(
+    Stringable|Literal|string|float|int $lower,
+    Stringable|Literal|string|float|int $upper
+): Literal
 {
-    return new BetweenComparatorAwareLiteral($from, $to);
+    return new BetweenComparatorAwareLiteral($lower, $upper);
 }
 
 /**
@@ -64,7 +98,8 @@ function between(Stringable|Literal|string|float|int $from, Stringable|Literal|s
  * @since 1.0.0
  * @see InComparatorAwareLiteral
  */
-function in(array $options): ComparatorAwareLiteral
+#[Pure]
+function in(array $options): Literal
 {
     return new InComparatorAwareLiteral($options);
 }
@@ -79,7 +114,8 @@ function in(array $options): ComparatorAwareLiteral
  * @since 1.0.0
  * @see NotInComparatorAwareLiteral
  */
-function notIn(array $options): ComparatorAwareLiteral
+#[Pure]
+function notIn(array $options): Literal
 {
     return new NotInComparatorAwareLiteral($options);
 }
@@ -92,7 +128,8 @@ function notIn(array $options): ComparatorAwareLiteral
  * @since 1.0.0
  * @see ComparatorAwareLiteral::isNotNull()
  */
-function isNotNull(): ComparatorAwareLiteral
+#[Pure]
+function isNotNull(): Literal
 {
     return ComparatorAwareLiteral::isNotNull();
 }
@@ -105,7 +142,8 @@ function isNotNull(): ComparatorAwareLiteral
  * @since 1.0.0
  * @see ComparatorAwareLiteral::isNull()
  */
-function isNull(): ComparatorAwareLiteral
+#[Pure]
+function isNull(): Literal
 {
     return ComparatorAwareLiteral::isNull();
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use JetBrains\PhpStorm\Pure;
 
 /**
  * Class Column
@@ -13,18 +14,21 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final readonly class Column
+readonly class Column implements AttributeInterface
 {
 
     /**
      * Column constructor.
      *
-     * @param string|int|float|null $default
+     * @param string|null $key
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public string|int|float|null $default = null)
+    #[Pure]
+    public function __construct(
+        public ?string $key = null
+    )
     {
     }
 

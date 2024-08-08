@@ -1,24 +1,24 @@
 <?php
-/** @noinspection PhpUnused */
 declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
 use BackedEnum;
-use JsonSerializable;
 use Raxos\Database\Error\{DatabaseException, QueryException};
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, Literal, SubQueryLiteral, Value};
+use Raxos\Database\Orm\{InternalModelData, Model};
+use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, Literal, SubQueryLiteral, ValueInterface};
 use Stringable;
 use function array_is_list;
 use function array_keys;
 use function array_map;
 use function array_values;
+use function class_exists;
 use function count;
 use function is_array;
 use function is_int;
 use function is_numeric;
 use function is_string;
+use function is_subclass_of;
 use function sprintf;
 use function str_contains;
 use function substr;
@@ -35,7 +35,7 @@ use function trim;
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-abstract class Query extends QueryBase implements QueryInterface, JsonSerializable
+abstract class Query extends QueryBase implements QueryInterface
 {
 
     private bool $isDoingJoin = false;
@@ -66,7 +66,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function from(self|array|string $tables, ?string $alias = null): static
+    public function from(QueryInterface|array|string $tables, ?string $alias = null): static
     {
         if ($tables instanceof self) {
             $this->addPiece('from');
@@ -79,19 +79,23 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
             }
 
             return $this;
-        } else {
-            if (is_string($tables)) {
-                $tables = [$tables];
-            }
-
-            $tables = array_map($this->dialect->escapeTable(...), $tables);
-
-            if ($alias !== null && count($tables) === 1) {
-                $tables = array_map(fn(string $table): string => "{$table} as {$alias}", $tables);
-            }
-
-            return $this->addPiece('from', $tables, $this->dialect->tableSeparator);
         }
+
+        if (is_string($tables)) {
+            if (class_exists($tables) && is_subclass_of($tables, Model::class)) {
+                $tables = $tables::table();
+            }
+
+            $tables = [$tables];
+        }
+
+        $tables = array_map($this->dialect->escapeTable(...), $tables);
+
+        if ($alias !== null && count($tables) === 1) {
+            $tables = array_map(static fn(string $table): string => "{$table} as {$alias}", $tables);
+        }
+
+        return $this->addPiece('from', $tables, $this->dialect->tableSeparator);
     }
 
     /**
@@ -105,7 +109,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
             $fields = [$fields];
         }
 
-        $fields = array_map(fn(Literal|string $field) => (string)$field, $fields);
+        $fields = array_map(static fn(Literal|string $field) => (string)$field, $fields);
         $fields = array_map($this->dialect->escapeFields(...), $fields);
 
         return $this->addPiece('group by', $fields, $this->dialect->fieldSeparator);
@@ -116,7 +120,11 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function having(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function having(
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): static
     {
         return $this->addExpression($this->isClauseDefined('having') ? 'and' : 'having', $lhs, $cmp, $rhs);
     }
@@ -126,7 +134,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function havingExists(self $query): static
+    public function havingExists(QueryInterface $query): static
     {
         return $this->having(SubQueryLiteral::exists($query));
     }
@@ -146,7 +154,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.2
      */
-    public function havingNotExists(self $query): static
+    public function havingNotExists(QueryInterface $query): static
     {
         return $this->having(SubQueryLiteral::notExists($query));
     }
@@ -212,7 +220,11 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function on(Stringable|Value|string|int|float|bool $lhs, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function on(
+        Stringable|ValueInterface|string|int|float|bool $lhs,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): static
     {
         $didOn = $this->isOnDefined;
         $this->isOnDefined = true;
@@ -241,7 +253,11 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhere(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function orWhere(
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): static
     {
         return $this->addExpression('or', $lhs, $cmp, $rhs);
     }
@@ -251,7 +267,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhereExists(self $query): static
+    public function orWhereExists(QueryInterface $query): static
     {
         return $this->orWhere(SubQueryLiteral::exists($query));
     }
@@ -261,9 +277,9 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhereHas(string $relation, callable $fn): static
+    public function orWhereHas(string $relation, ?callable $fn = null): static
     {
-        return $this->baseWhereHas($relation, $fn, 'orWhere');
+        return $this->baseWhereHas($relation, $fn, $this->orWhere(...));
     }
 
     /**
@@ -281,7 +297,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function orWhereNotExists(Query $query): static
+    public function orWhereNotExists(QueryInterface $query): static
     {
         return $this->orWhere(SubQueryLiteral::notExists($query));
     }
@@ -293,7 +309,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      */
     public function orWhereNotHas(string $relation, callable $fn): static
     {
-        return $this->baseWhereHas($relation, $fn, 'orWhere', true);
+        return $this->baseWhereHas($relation, $fn, $this->orWhere(...), true);
     }
 
     /**
@@ -331,9 +347,14 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhereRelation(string $relation, BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function orWhereRelation(
+        string $relation,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): static
     {
-        return $this->orWhereHas($relation, fn(self $query) => $query->where($lhs, $cmp, $rhs));
+        return $this->orWhereHas($relation, $lhs !== null ? static fn(self $query) => $query->where($lhs, $cmp, $rhs) : null);
     }
 
     /**
@@ -351,8 +372,8 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
             $fields = [$fields];
         }
 
-        $fields = array_map(function (Value|string $field): string {
-            if ($field instanceof Value) {
+        $fields = array_map(function (ValueInterface|string $field): string {
+            if ($field instanceof ValueInterface) {
                 $field = $field->get($this);
             }
 
@@ -407,7 +428,10 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function set(Stringable|Value|string $field, BackedEnum|Stringable|Value|string|int|float|bool|null $value): static
+    public function set(
+        Stringable|ValueInterface|string $field,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $value
+    ): static
     {
         $value = $this->addParam($value);
         $expression = $this->dialect->escapeFields((string)$field) . ' = ' . $value;
@@ -435,7 +459,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function union(self $query): static
+    public function union(QueryInterface $query): static
     {
         $this->addPiece('union');
 
@@ -447,7 +471,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function unionAll(self $query): static
+    public function unionAll(QueryInterface $query): static
     {
         $this->addPiece('union all');
 
@@ -494,7 +518,11 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function where(BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function where(
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): static
     {
         return $this->addExpression($this->isClauseDefined('where') || $this->isDoingJoin ? 'and' : 'where', $lhs, $cmp, $rhs);
     }
@@ -504,7 +532,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function whereExists(self $query): static
+    public function whereExists(QueryInterface $query): static
     {
         return $this->where(SubQueryLiteral::exists($query));
     }
@@ -514,9 +542,9 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function whereHas(string $relation, callable $fn): static
+    public function whereHas(string $relation, ?callable $fn = null): static
     {
-        return $this->baseWhereHas($relation, $fn, 'where');
+        return $this->baseWhereHas($relation, $fn, $this->where(...));
     }
 
     /**
@@ -534,7 +562,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function whereNotExists(Query $query): static
+    public function whereNotExists(QueryInterface $query): static
     {
         return $this->where(SubQueryLiteral::notExists($query));
     }
@@ -546,7 +574,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      */
     public function whereNotHas(string $relation, callable $fn): static
     {
-        return $this->baseWhereHas($relation, $fn, 'where', true);
+        return $this->baseWhereHas($relation, $fn, $this->where(...), true);
     }
 
     /**
@@ -584,9 +612,14 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function whereRelation(string $relation, BackedEnum|Stringable|Value|string|int|float|bool|null $lhs = null, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static
+    public function whereRelation(
+        string $relation,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): static
     {
-        return $this->whereHas($relation, fn(self $query) => $query->where($lhs, $cmp, $rhs));
+        return $this->whereHas($relation, $lhs !== null ? static fn(self $query) => $query->where($lhs, $cmp, $rhs) : null);
     }
 
     /**
@@ -790,7 +823,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function with(string $name, self $query): static
+    public function with(string $name, QueryInterface $query): static
     {
         return $this->baseWith('with', $name, $query);
     }
@@ -800,7 +833,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function withRecursive(string $name, self $query): static
+    public function withRecursive(string $name, QueryInterface $query): static
     {
         return $this->baseWith('with recursive', $name, $query);
     }
@@ -874,10 +907,18 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
     protected function baseSelect(string $clause, array|string|int $fields): static
     {
         if (empty($fields)) {
+            if ($this->modelClass !== null) {
+                return $this->addPiece($clause, $this->modelClass::column('*'));
+            }
+
             return $this->addPiece($clause, '*');
-        } else if (is_int($fields)) {
+        }
+
+        if (is_int($fields)) {
             return $this->addPiece($clause, $fields);
-        } else if (is_string($fields)) {
+        }
+
+        if (is_string($fields)) {
             return $this->addPiece($clause, $this->dialect->escapeFields($fields));
         }
 
@@ -889,7 +930,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
 
                 if ($field === null || $field === true) {
                     $result[] = $alias;
-                } else if ($field instanceof QueryBase) {
+                } else if ($field instanceof QueryBaseInterface) {
                     $sql = $field->toSql();
 
                     $result[] = "({$sql}) as {$alias}";
@@ -899,7 +940,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
                     $sql = $query->toSql();
 
                     $result[] = "({$sql}) as {$alias}";
-                } else if ($field instanceof Value) {
+                } else if ($field instanceof ValueInterface) {
                     $field = $field->get($this);
 
                     $result[] = "{$field} as {$alias}";
@@ -913,7 +954,7 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
                     $result[] = $this->dialect->escapeFields($field[0]) . ' as ' . $this->dialect->escapeFields($field[1]);
                 } else if (is_numeric($field)) {
                     $result[] = (string)$field;
-                } else if ($field instanceof Value) {
+                } else if ($field instanceof ValueInterface) {
                     $result[] = $field->get($this);
                 } else {
                     $result[] = $this->dialect->escapeFields((string)$field);
@@ -928,8 +969,8 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * Base function to create `[where|and|or] (not) exists (query)` expressions.
      *
      * @param string $relation
-     * @param callable $fn
-     * @param string $methodName
+     * @param callable|null $fn
+     * @param callable $clause
      * @param bool $negate
      *
      * @return static<TModel>
@@ -937,21 +978,22 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseWhereHas(string $relation, callable $fn, string $methodName, bool $negate = false): static
+    protected function baseWhereHas(string $relation, ?callable $fn, callable $clause, bool $negate = false): static
     {
         if ($this->modelClass === null) {
             throw new QueryException('The query needs a model to use the whereHas function.', QueryException::ERR_INVALID_MODEL);
         }
 
-        /** @var Model|class-string<Model> $model */
-        $model = $this->modelClass;
-        $field = $model::getField($relation) ?? throw new QueryException(sprintf('Could not find relationship %s in model %s.', $relation, $this->modelClass), QueryException::ERR_FIELD_NOT_FOUND);
-        $r = $model::getRelation($field);
+        $field = InternalModelData::getField($this->modelClass, $relation) ?? throw new QueryException(sprintf('Could not find relationship %s in model %s.', $relation, $this->modelClass), QueryException::ERR_FIELD_NOT_FOUND);
+        $r = InternalModelData::getRelation($this->modelClass, $field);
 
-        $query = $r->getRaw($model, $this->isPrepared);
-        $fn($query);
+        $query = $r->rawQuery();
 
-        $this->{$methodName}();
+        if ($fn !== null) {
+            $fn($query);
+        }
+
+        $clause();
         $this->raw($negate ? 'not exists (' : 'exists (');
         $this->merge($query);
         $this->raw(')');
@@ -964,14 +1006,14 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      *
      * @param string $clause
      * @param string $name
-     * @param Query $query
+     * @param QueryInterface $query
      *
      * @return static<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseWith(string $clause, string $name, self $query): static
+    protected function baseWith(string $clause, string $name, QueryInterface $query): static
     {
         $this->addPiece($this->currentClause === $clause ? ',' : $clause, "{$name} as");
         $this->parenthesis(fn() => $this->merge($query), false);
@@ -992,15 +1034,5 @@ abstract class Query extends QueryBase implements QueryInterface, JsonSerializab
      * @since 1.0.0
      */
     public abstract function truncateTable(string $table): static;
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 23/06/2024
-     */
-    public function jsonSerialize(): string
-    {
-        return $this->toSql();
-    }
 
 }

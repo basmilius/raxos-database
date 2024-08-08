@@ -36,19 +36,11 @@ abstract class DatabaseException extends RaxosException
             $code = (int)base_convert(hash('crc32', $code), 16, 10);
         }
 
-        /** @noinspection PhpSwitchCanBeReplacedWithMatchExpressionInspection */
-        switch ($code) {
-            case ConnectionException::ERR_ACCESS_DENIED:
-            case ConnectionException::ERR_ACCESS_DENIED_PASSWORD:
-                return new ConnectionException($message, $code);
-
-            case SchemaException::ERR_NO_SUCH_COLUMN:
-            case SchemaException::ERR_NO_SUCH_TABLE:
-                return new SchemaException($message, $code, $err);
-
-            default:
-                return new RuntimeException($message, $code, $err);
-        }
+        return match ($code) {
+            ConnectionException::ERR_ACCESS_DENIED, ConnectionException::ERR_ACCESS_DENIED_PASSWORD => new ConnectionException($message, $code),
+            SchemaException::ERR_NO_SUCH_COLUMN, SchemaException::ERR_NO_SUCH_TABLE => new SchemaException($message, $code, $err),
+            default => new RuntimeException($message, $code, $err),
+        };
     }
 
 }

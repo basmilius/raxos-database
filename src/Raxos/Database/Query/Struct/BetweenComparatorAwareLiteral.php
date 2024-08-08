@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
+use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Query\QueryBaseInterface;
 use Stringable;
 use function is_string;
@@ -14,21 +15,22 @@ use function is_string;
  * @package Raxos\Database\Query\Struct
  * @since 1.0.0
  */
-class BetweenComparatorAwareLiteral extends ComparatorAwareLiteral
+readonly class BetweenComparatorAwareLiteral extends ComparatorAwareLiteral
 {
 
     /**
      * BetweenComparatorAwareLiteral constructor.
      *
-     * @param Stringable|Literal|string|float|int $from
-     * @param Stringable|Literal|string|float|int $to
+     * @param Stringable|Literal|string|float|int $lower
+     * @param Stringable|Literal|string|float|int $upper
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public function __construct(
-        private Stringable|Literal|string|float|int $from,
-        private Stringable|Literal|string|float|int $to
+        private Stringable|Literal|string|float|int $lower,
+        private Stringable|Literal|string|float|int $upper
     )
     {
         parent::__construct('');
@@ -41,15 +43,18 @@ class BetweenComparatorAwareLiteral extends ComparatorAwareLiteral
      */
     public function get(QueryBaseInterface $query): string|int|float
     {
-        if (!($this->from instanceof Literal) && (is_string($this->from) || $this->from instanceof Stringable)) {
-            $this->from = $query->connection->quote((string)$this->from);
+        $lower = $this->lower;
+        $upper = $this->upper;
+
+        if (!($lower instanceof Literal) && (is_string($lower) || $lower instanceof Stringable)) {
+            $lower = $query->connection->quote((string)$lower);
         }
 
-        if (!($this->to instanceof Literal) && (is_string($this->to) || $this->to instanceof Stringable)) {
-            $this->to = $query->connection->quote((string)$this->to);
+        if (!($upper instanceof Literal) && (is_string($upper) || $upper instanceof Stringable)) {
+            $upper = $query->connection->quote((string)$upper);
         }
 
-        return "between {$this->from} and {$this->to}";
+        return "between {$lower} and {$upper}";
     }
 
 }

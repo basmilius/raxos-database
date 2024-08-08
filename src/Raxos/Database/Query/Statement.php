@@ -6,10 +6,11 @@ namespace Raxos\Database\Query;
 use Generator;
 use PDO;
 use PDOStatement;
-use Raxos\Database\Connection\Connection;
+use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Error\{DatabaseException, QueryException};
-use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Foundation\Collection\{ArrayList, CollectionException};
+use Raxos\Database\Logger\QueryEvent;
+use Raxos\Database\Orm\{InternalModelData, Model, ModelArrayList};
+use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use function array_filter;
@@ -35,24 +36,27 @@ class Statement
     private array $eagerLoadDisable = [];
 
     /**
-     * @template M of Model
-     * @var class-string<M>|null
+     * @var class-string<Model>|null
      */
     private ?string $modelClass = null;
 
     /**
      * Statement constructor.
      *
-     * @param Connection $connection
-     * @param Query|string $query
+     * @param ConnectionInterface $connection
+     * @param QueryInterface|string $query
      * @param array $options
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public readonly Connection $connection, public readonly Query|string $query, private readonly array $options = [])
+    public function __construct(
+        public readonly ConnectionInterface $connection,
+        public readonly QueryInterface|string $query,
+        private readonly array $options = []
+    )
     {
-        $this->sql = $query instanceof Query ? $query->toSql() : $query;
+        $this->sql = $query instanceof QueryInterface ? $query->toSql() : $query;
         $this->pdoStatement = $connection->getPdo()->prepare($this->sql, $options);
     }
 
@@ -102,7 +106,6 @@ class Statement
      * @param int $fetchMode
      *
      * @return ArrayList|ModelArrayList
-     * @throws CollectionException
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -110,13 +113,13 @@ class Statement
     public final function arrayList(int $fetchMode = PDO::FETCH_ASSOC): ArrayList|ModelArrayList
     {
         $results = $this->array($fetchMode);
-        $isAllModels = empty(array_filter($results, fn(mixed $result) => !($result instanceof Model)));
+        $isAllModels = empty(array_filter($results, static fn(mixed $result) => !($result instanceof Model)));
 
         if ($isAllModels) {
-            return ModelArrayList::of($results);
+            return new ModelArrayList($results);
         }
 
-        return ArrayList::of($results);
+        return new ArrayList($results);
     }
 
     /**
@@ -203,14 +206,11 @@ class Statement
             throw new QueryException('Cannot create model instance, no model was assigned to the query.', QueryException::ERR_INVALID_MODEL);
         }
 
-        /** @var Model|string $modelClass */
-        $modelClass = $this->modelClass;
-
-        if (!class_exists($modelClass)) {
+        if (!class_exists($this->modelClass)) {
             throw new QueryException('Cannot create model instance, the assigned model does not exist.', QueryException::ERR_INVALID_MODEL);
         }
 
-        return $modelClass::createInstance($result);
+        return InternalModelData::createInstance($this->modelClass, $result);
     }
 
     /**
@@ -348,9 +348,11 @@ class Statement
             throw new QueryException('Eager loading is only available for models.', QueryException::ERR_EAGER_NOT_AVAILABLE);
         }
 
-        if (($logger = $this->connection->getLogger()) !== null) {
-            $result = Stopwatch::measure($time, $this->pdoStatement->execute(...), Stopwatch::SECONDS);
-            $logger->addQuery(new QueryLogEntry($this->pdoStatement->queryString, $time));
+        if ($this->connection->logger->isEnabled()) {
+            $stopwatch = new Stopwatch(__METHOD__);
+            $result = $stopwatch->run($this->pdoStatement->execute(...));
+
+            $this->connection->logger->log(new QueryEvent($this->pdoStatement->queryString, $stopwatch));
         } else {
             $result = $this->pdoStatement->execute();
         }
@@ -363,25 +365,28 @@ class Statement
     /**
      * Eager loads the relationships.
      *
-     * @param Model|array $models
+     * @param Model|array $instances
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    private function loadRelationships(Model|array $models): void
+    private function loadRelationships(Model|array $instances): void
     {
-        if (!is_array($models)) {
-            $models = [$models];
+        if (!is_array($instances)) {
+            $instances = [$instances];
         }
 
-        if (empty($models)) {
+        if (empty($instances)) {
             return;
         }
 
-        /** @var Model&string $modelClass */
-        $modelClass = $this->modelClass;
-        $modelClass::eagerLoadRelationships($models, $this->eagerLoad, $this->eagerLoadDisable);
+        InternalModelData::eagerLoadRelationships(
+            $this->modelClass,
+            $instances,
+            $this->eagerLoad,
+            $this->eagerLoadDisable
+        );
     }
 
     /**

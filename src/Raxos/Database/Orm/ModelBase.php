@@ -7,8 +7,9 @@ use ArrayAccess;
 use JsonSerializable;
 use Raxos\Database\Error\{DatabaseException, ModelException};
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
-use Raxos\Foundation\PHP\MagicMethods\SerializableInterface;
-use function array_key_exists;
+use Raxos\Foundation\Collection\Arrayable;
+use Raxos\Foundation\PHP\MagicMethods\{DebugInfoInterface, SerializableInterface};
+use function extension_loaded;
 use function sprintf;
 
 /**
@@ -18,25 +19,41 @@ use function sprintf;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class ModelBase implements ArrayAccess, JsonSerializable, SerializableInterface
+abstract class ModelBase implements Arrayable, ArrayAccess, DebugInfoInterface, JsonSerializable, SerializableInterface
 {
 
     use ArrayAccessible;
     use ObjectAccessible;
 
+    /** @var array<string, mixed> */
+    protected array $__data;
+
+    /**
+     * @internal
+     * @private
+     */
+    public ?self $__master;
+
     /**
      * ModelBase constructor.
      *
-     * @param array $__data
-     * @param static|null $__master
+     * @param array<string, mixed> $data
+     * @param static|null $master
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(protected array $__data = [], protected ?self $__master = null)
+    public function __construct(
+        array $data = [],
+        ?self $master = null
+    )
     {
-        if ($this->__master !== null) {
-            $this->__data = &$this->__master->__data;
+        if ($master !== null) {
+            $this->__data = &$master->__data;
+            $this->__master = $master;
+        } else {
+            $this->__data = $data;
+            $this->__master = $this;
         }
     }
 
@@ -49,93 +66,77 @@ abstract class ModelBase implements ArrayAccess, JsonSerializable, SerializableI
      */
     public function clone(): static
     {
-        $master = $this;
-
         if ($this->__master !== null) {
-            $master = $this->__master;
+            return new static(master: $this->__master);
         }
 
-        return new static(__master: $master);
-    }
-
-    /**
-     * Gets the master model instance.
-     *
-     * @return static
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getModelMaster(): static
-    {
-        return $this->__master ?? $this;
+        return new static(master: $this);
     }
 
     /**
      * Gets the value of the given field.
      *
-     * @param string $field
+     * @param string $key
      *
      * @return mixed
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function getValue(string $field): mixed
+    protected function getValue(string $key): mixed
     {
-        if (array_key_exists($field, $this->__data)) {
-            return $this->__data[$field];
+        if (array_key_exists($key, $this->__data)) {
+            return $this->__data[$key];
         }
 
-        throw new ModelException(sprintf('Field "%s" does not exists in "%s".', $field, static::class), ModelException::ERR_FIELD_NOT_FOUND);
+        throw new ModelException(sprintf('Column "%s" does not exist and does not have a default value in "%s".', $key, static::class), ModelException::ERR_FIELD_NOT_FOUND);
     }
 
     /**
      * Returns TRUE if the given field exists.
      *
-     * @param string $field
+     * @param string $key
      *
      * @return bool
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function hasValue(string $field): bool
+    protected function hasValue(string $key): bool
     {
-        return array_key_exists($field, $this->__data);
+        return array_key_exists($key, $this->__data);
     }
 
     /**
      * Sets the given field to the given value.
      *
-     * @param string $field
+     * @param string $key
      * @param mixed $value
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function setValue(string $field, mixed $value): void
+    protected function setValue(string $key, mixed $value): void
     {
-        $this->__data[$field] = $value;
+        $this->__data[$key] = $value;
     }
 
     /**
      * Unsets the given field.
      *
-     * @param string $field
+     * @param string $key
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function unsetValue(string $field): void
+    protected function unsetValue(string $key): void
     {
-        unset($this->__data[$field]);
+        unset($this->__data[$key]);
     }
 
     /**
-     * Converts the model to an array.
-     *
-     * @return array
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
     public function toArray(): array
     {
@@ -148,6 +149,20 @@ abstract class ModelBase implements ArrayAccess, JsonSerializable, SerializableI
      * @since 1.0.0
      */
     public abstract function jsonSerialize(): array;
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public function __debugInfo(): ?array
+    {
+        if (extension_loaded('xdebug')) {
+            return $this->__data;
+        }
+
+        return $this->toArray();
+    }
 
     /**
      * {@inheritdoc}

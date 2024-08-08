@@ -3,138 +3,164 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Connection\Connection;
-use Raxos\Database\Orm\Model;
+use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Orm\{InternalHelper, InternalModelData, Model};
+use Raxos\Database\Orm\Attribute\HasOne;
+use Raxos\Database\Orm\Definition\ColumnDefinition;
 use Raxos\Database\Query\QueryInterface;
-use function array_column;
-use function array_filter;
-use function array_map;
-use function array_unique;
-use function array_values;
-use function intval;
-use function is_int;
+use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Foundation\Collection\ArrayList;
+use function assert;
 use function is_numeric;
-use function Raxos\Database\Query\{in, literal, stringLiteral};
+use function Raxos\Database\Query\in;
 
 /**
  * Class HasOneRelation
  *
- * @template TModel of Model
+ * @template TDeclaringModel of Model
+ * @template TReferenceModel of Model
+ * @implements RelationInterface<TDeclaringModel, TReferenceModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 1.0.0
+ * @since 1.0.16
  */
-class HasOneRelation extends Relation
+final readonly class HasOneRelation implements RelationInterface, WritableRelationInterface
 {
+
+    /** @var class-string<TReferenceModel>|class-string<Model> */
+    public string $referenceModel;
+
+    public ColumnLiteral $referenceKey;
+    public ColumnLiteral $declaringKey;
 
     /**
      * HasOneRelation constructor.
      *
-     * @param Connection $connection
-     * @param class-string<TModel> $referenceModel
-     * @param bool $eagerLoad
-     * @param string $fieldName
-     * @param string $key
-     * @param string $referenceKey
+     * @param HasOne $attribute
+     * @param ColumnDefinition $column
+     * @param class-string<TDeclaringModel>|class-string<Model> $declaringModel
      *
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
     public function __construct(
-        Connection $connection,
-        string $referenceModel,
-        bool $eagerLoad,
-        string $fieldName,
-        public readonly string $key,
-        public readonly string $referenceKey
+        public HasOne $attribute,
+        public ColumnDefinition $column,
+        public string $declaringModel
     )
     {
-        parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName);
+        $this->referenceModel = $this->column->types[0] ?? 0;
+        InternalModelData::initialize($this->referenceModel);
+
+        $dialect = $this->referenceModel::dialect();
+        $declaringPrimaryKey = InternalHelper::getRelationPrimaryKey($this->declaringModel);
+
+        $this->referenceKey = InternalHelper::composeRelationKey(
+            $dialect,
+            $this->attribute->referenceKey,
+            $this->attribute->referenceKeyTable,
+            $declaringPrimaryKey->asForeignKeyFor($this->referenceModel)
+        );
+
+        $this->declaringKey = InternalHelper::composeRelationKey(
+            $dialect,
+            $this->attribute->declaringKey,
+            $this->attribute->declaringKeyTable,
+            $declaringPrimaryKey
+        );
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function get(Model $model): ?Model
+    public function fetch(Model $instance): ?Model
     {
-        $pk = $model->{$this->key};
+        $primaryKey = $instance->{$this->declaringKey->column};
 
-        if ($pk === null || (is_numeric($pk) && intval($pk) === 0)) {
+        if ($primaryKey === null || (is_numeric($primaryKey) && (int)$primaryKey === 0)) {
             return null;
         }
 
-        $referenceModel = $this->referenceModel;
+        $cache = $instance::cache();
 
-        if ($model::cache()->has($referenceModel, $pk)) {
-            return $model::cache()->get($referenceModel, $pk);
+        if (($cached = $cache->find($this->referenceModel, fn(Model $model) => $model->{$this->referenceKey->column} === $instance->{$this->declaringKey->column})) !== null) {
+            return $cached;
         }
 
         return $this
-            ->getQuery($model)
+            ->query($instance)
             ->single();
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function getQuery(Model $model): QueryInterface
+    public function query(Model $instance): QueryInterface
     {
-        /** @var Model $referenceModel */
-        $referenceModel = $this->referenceModel;
-
-        return $referenceModel::select()
-            ->where($this->referenceKey, $model->{$this->key});
+        return $this->referenceModel::where($this->referenceKey, $instance->{$this->declaringKey->column});
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function getRaw(string $modelClass, bool $isPrepared): QueryInterface
+    public function rawQuery(): QueryInterface
     {
-        /** @var Model $modelClass */
-        /** @var Model $referenceModel */
-        $referenceModel = $this->referenceModel;
-
-        return $referenceModel::select(isPrepared: $isPrepared)
-            ->where($this->referenceKey, $modelClass::column($this->key, literal: true));
+        return $this->referenceModel::select(isPrepared: false)
+            ->where($this->referenceKey, $this->declaringKey);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function eagerLoad(array $models): void
+    public function eagerLoad(ArrayList $instances): void
     {
-        /** @var Model|string $referenceModel */
-        $referenceModel = $this->referenceModel;
+        $cache = $this->referenceModel::cache();
 
-        $values = array_column($models, $this->key);
-        $values = array_unique($values);
-        $values = array_filter($values, fn($value) => $value !== null && $value !== 0 && !$referenceModel::cache()->has($referenceModel, $value));
-        $values = array_values($values);
+        $values = $instances
+            ->column($this->declaringKey->column)
+            ->unique()
+            ->filter(fn(string|int $key) => !$cache->has($this->referenceModel, $key));
 
-        if (empty($values)) {
+        if ($values->isEmpty()) {
             return;
         }
 
-        $values = array_map(fn(mixed $value) => is_int($value) ? literal($value) : stringLiteral($value), $values);
+        $this->referenceModel::select()
+            ->where($this->referenceKey, in($values->toArray()))
+            ->arrayList();
+    }
 
-        if (!isset($values[1])) {
-            $referenceModel::select()
-                ->where($this->referenceKey, $values[0])
-                ->array();
-        } else {
-            $referenceModel::select()
-                ->where($this->referenceKey, in($values))
-                ->array();
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public function write(Model $instance, ColumnDefinition $column, mixed $newValue): void
+    {
+        assert($newValue === null || $newValue instanceof $this->referenceModel);
+
+        // note(Bas): remove the relation between the previous value and the instance.
+        $oldValue = $instance->{$this->column->name};
+
+        if ($oldValue instanceof Model) {
+            $oldValue->{$this->referenceKey->column} = null;
+            $instance->__saveTasks[] = static fn() => $oldValue->save();
+        }
+
+        // note(Bas): create a relation between the new value and the instance.
+        if ($newValue instanceof Model) {
+            $newValue->{$this->referenceKey->column} = $instance->{$this->declaringKey->column};
+            $instance->__saveTasks[] = static fn() => $newValue->save();
         }
     }
 

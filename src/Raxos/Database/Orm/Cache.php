@@ -5,14 +5,12 @@ namespace Raxos\Database\Orm;
 
 use JetBrains\PhpStorm\{ArrayShape, Pure};
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
-use function array_filter;
+use Raxos\Foundation\Util\ArrayUtil;
 use function array_keys;
 use function array_map;
-use function array_values;
 use function get_class;
 use function implode;
 use function is_scalar;
-use function json_encode;
 use function sprintf;
 
 /**
@@ -25,8 +23,28 @@ use function sprintf;
 class Cache implements DebugInfoInterface
 {
 
-    /** @var Model[][] */
+    /** @var array<class-string<Model>, Model[]> */
     private array $instances = [];
+
+    /**
+     * Tries to find a cached model of the given type.
+     *
+     * @template TModel of Model
+     *
+     * @param class-string<TModel> $modelClass
+     * @param callable(TModel):bool $predicate
+     *
+     * @return (TModel&Model)|null
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    #[Pure]
+    public function find(string $modelClass, callable $predicate): ?Model
+    {
+        $instances = $this->instances[$modelClass] ?? [];
+
+        return ArrayUtil::first($instances, $predicate);
+    }
 
     /**
      * Flushes the cache. When a model class is given, only those models
@@ -62,25 +80,6 @@ class Cache implements DebugInfoInterface
         $key = $this->key($key);
 
         return $this->instances[$modelClass][$key] ?? null;
-    }
-
-    /**
-     * Gets multiple cached models by their primary keys.
-     *
-     * @param class-string<Model> $modelClass
-     * @param array $keys
-     *
-     * @return Model[]
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function getAll(string $modelClass, array $keys): array
-    {
-        $keys = array_map($this->key(...), $keys);
-        $results = array_map(fn(string $key) => $this->get($modelClass, $key), $keys);
-        $results = array_filter($results, fn(?Model $model) => $model !== null);
-
-        return array_values($results);
     }
 
     /**
@@ -193,7 +192,7 @@ class Cache implements DebugInfoInterface
     ])]
     public function __debugInfo(): ?array
     {
-        return array_map(fn($models) => array_map(fn($model) => sprintf('%s(%s)', get_class($model), json_encode($model->getPrimaryKeyValues())), $models), $this->instances);
+        return array_map(static fn($models) => array_map(static fn($model) => sprintf('%s(%s)', get_class($model), implode(', ', $model->getPrimaryKeyValues())), $models), $this->instances);
     }
 
 }

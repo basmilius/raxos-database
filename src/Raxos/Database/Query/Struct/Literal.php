@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
+use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Query\QueryBaseInterface;
 use Stringable;
 use function addslashes;
@@ -14,7 +15,7 @@ use function addslashes;
  * @package Raxos\Database\Query\Struct
  * @since 1.0.0
  */
-class Literal extends Value implements Stringable
+readonly class Literal implements ValueInterface
 {
 
     /**
@@ -46,6 +47,26 @@ class Literal extends Value implements Stringable
     }
 
     /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public function jsonSerialize(): string
+    {
+        return (string)$this;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function __toString(): string
+    {
+        return (string)$this->value;
+    }
+
+    /**
      * Returns a `'$str'` literal.
      *
      * @param string $str
@@ -54,6 +75,7 @@ class Literal extends Value implements Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public static function string(string $str): self
     {
         $str = addslashes($str);
@@ -70,19 +92,10 @@ class Literal extends Value implements Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public static function with(Stringable|string|int|float|bool $value): self
     {
         return new Literal($value);
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function __toString(): string
-    {
-        return (string)$this->value;
     }
 
 }

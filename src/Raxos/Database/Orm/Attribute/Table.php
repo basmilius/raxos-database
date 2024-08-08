@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use JetBrains\PhpStorm\Pure;
 
 /**
  * Class Table
@@ -13,18 +14,21 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_CLASS)]
-final readonly class Table
+final readonly class Table implements AttributeInterface
 {
 
     /**
      * Table constructor.
      *
-     * @param string $name
+     * @param string|null $name
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public string $name)
+    #[Pure]
+    public function __construct(
+        public ?string $name = null
+    )
     {
     }
 

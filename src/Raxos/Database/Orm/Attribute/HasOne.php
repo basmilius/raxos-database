@@ -4,93 +4,54 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use Raxos\Database\Connection\Connection;
-use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Definition\FieldDefinition;
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\Relation\{HasOneRelation, Relation};
-use function is_array;
-use function is_subclass_of;
-use function sprintf;
+use JetBrains\PhpStorm\Pure;
 
 /**
  * Class HasOne
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.0
+ * @since 1.0.16
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-readonly class HasOne extends RelationAttribute
+final readonly class HasOne implements AttributeInterface, RelationAttributeInterface
 {
 
     /**
      * HasOne constructor.
      *
-     * @param string|null $column
-     * @param string|null $referenceColumn
+     * @param string|null $referenceKey
+     * @param string|null $referenceKeyTable
+     * @param string|null $declaringKey
+     * @param string|null $declaringKeyTable
      * @param bool $eagerLoad
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
+    #[Pure]
     public function __construct(
-        protected ?string $column = null,
-        protected ?string $referenceColumn = null,
-        bool $eagerLoad = false
+        public ?string $referenceKey = null,
+        public ?string $referenceKeyTable = null,
+        public ?string $declaringKey = null,
+        public ?string $declaringKeyTable = null,
+        public bool $eagerLoad = false
     )
     {
-        parent::__construct($eagerLoad);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function create(Connection $connection, string $modelClass, FieldDefinition $field): Relation
-    {
-        $referenceModel = $field->types[0] ?? null;
-
-        if ($referenceModel === 'self') {
-            $referenceModel = $modelClass;
-        }
-
-        if (!is_subclass_of($referenceModel, Model::class)) {
-            throw new ModelException(sprintf('Referenced model %s is not a model.', $referenceModel), ModelException::ERR_NOT_A_MODEL);
-        }
-
-        $referenceModel::initializeFromRelation();
-        $primaryKey = $referenceModel::getPrimaryKey();
-
-        if (is_array($primaryKey)) {
-            $primaryKey = $primaryKey[0];
-        }
-
-        return new HasOneRelation(
-            $connection,
-            $referenceModel,
-            $this->eagerLoad,
-            $field->name,
-            $this->column ?? $field->name . '_' . $primaryKey,
-            $this->referenceColumn ?? $referenceModel::column($primaryKey)
-        );
-    }
-
-    /**
-     * Restores the state of the class from exported data.
-     *
-     * @param array $state
-     *
-     * @return self
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
     public static function __set_state(array $state): self
     {
         return new self(
-            $state['column'],
-            $state['referenceColumn'],
+            $state['referenceKey'],
+            $state['referenceKeyTable'],
+            $state['declaringKey'],
+            $state['declaringKeyTable'],
             $state['eagerLoad']
         );
     }

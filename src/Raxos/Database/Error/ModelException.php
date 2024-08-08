@@ -25,5 +25,7 @@ final class ModelException extends DatabaseException
     public const int ERR_NOT_SUPPORTED = 512;
     public const int ERR_RELATION_NOT_FOUND = 1024;
     public const int ERR_INVALID_TYPE = 2048;
+    public const int ERR_MACRO_FAILED = 4096;
+    public const int ERR_REFLECTION_FAILED = 8192;
 
 }

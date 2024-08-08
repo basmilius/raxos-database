@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
+use JetBrains\PhpStorm\Pure;
 use Stringable;
 
 /**
@@ -12,25 +13,26 @@ use Stringable;
  * @package Raxos\Database\Query\Struct
  * @since 1.0.0
  */
-class ComparatorAwareLiteral extends Literal
+readonly class ComparatorAwareLiteral extends Literal
 {
 
     /**
      * Returns a `between $from and $to` literal.
      *
-     * @param Stringable|Literal|string|float|int $from
-     * @param Stringable|Literal|string|float|int $to
+     * @param Stringable|Literal|string|float|int $lower
+     * @param Stringable|Literal|string|float|int $upper
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public static function between(
-        Stringable|Literal|string|float|int $from,
-        Stringable|Literal|string|float|int $to
+        Stringable|Literal|string|float|int $lower,
+        Stringable|Literal|string|float|int $upper
     ): self
     {
-        return new BetweenComparatorAwareLiteral($from, $to);
+        return new BetweenComparatorAwareLiteral($lower, $upper);
     }
 
     /**
@@ -42,6 +44,7 @@ class ComparatorAwareLiteral extends Literal
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public static function in(array $options): self
     {
         return new InComparatorAwareLiteral($options);
@@ -56,6 +59,7 @@ class ComparatorAwareLiteral extends Literal
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public static function notIn(array $options): self
     {
         return new NotInComparatorAwareLiteral($options);
@@ -68,6 +72,7 @@ class ComparatorAwareLiteral extends Literal
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public static function isNotNull(): self
     {
         return new self('is not null');
@@ -80,6 +85,7 @@ class ComparatorAwareLiteral extends Literal
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
+    #[Pure]
     public static function isNull(): self
     {
         return new self('is null');

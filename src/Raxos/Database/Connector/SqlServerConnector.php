@@ -13,7 +13,7 @@ use PDO;
  * @package Raxos\Database\Connector
  * @since 1.0.0
  */
-class SqlServerConnector extends Connector
+readonly class SqlServerConnector extends Connector
 {
 
     /**
@@ -29,10 +29,17 @@ class SqlServerConnector extends Connector
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @noinspection SpellCheckingInspection
      */
     #[Pure]
-    public function __construct(string $host, public readonly string $database, public readonly string $schema = 'dbo', ?string $username = null, ?string $password = null, int $port = 1433, array $options = [])
+    public function __construct(
+        string $host,
+        public string $database,
+        public string $schema = 'dbo',
+        ?string $username = null,
+        ?string $password = null,
+        int $port = 1433,
+        array $options = []
+    )
     {
         parent::__construct("sqlsrv:Server={$host}, {$port}; Database={$database}", $username, $password, $options);
     }

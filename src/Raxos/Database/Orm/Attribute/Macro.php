@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use JetBrains\PhpStorm\Pure;
 
 /**
  * Class Macro
@@ -13,18 +14,23 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final readonly class Macro
+final readonly class Macro implements AttributeInterface
 {
 
     /**
      * Macro constructor.
      *
-     * @param bool $isCacheable
+     * @param (callable&string)|(callable&array) $implementation
+     * @param bool $cached
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function __construct(public bool $isCacheable = true)
+    #[Pure]
+    public function __construct(
+        public string|array $implementation,
+        public bool $cached = true
+    )
     {
     }
 

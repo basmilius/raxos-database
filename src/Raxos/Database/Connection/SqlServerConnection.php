@@ -7,7 +7,7 @@ use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Connector\SqlServerConnector;
 use Raxos\Database\Dialect\{Dialect, SqlServerDialect};
 use Raxos\Database\Error\QueryException;
-use Raxos\Database\Query\{Query, SqlServerQuery};
+use Raxos\Database\Query\{QueryInterface, SqlServerQuery};
 
 /**
  * Class SqlServerConnection
@@ -61,7 +61,7 @@ class SqlServerConnection extends Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function query(bool $isPrepared = true): Query
+    public function query(bool $isPrepared = true): QueryInterface
     {
         return new SqlServerQuery($this, $isPrepared);
     }

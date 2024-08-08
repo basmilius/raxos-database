@@ -17,7 +17,7 @@ use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
  * @package Raxos\Database\Connector
  * @since 1.0.0
  */
-abstract class Connector implements DebugInfoInterface, JsonSerializable
+abstract readonly class Connector implements DebugInfoInterface, JsonSerializable
 {
 
     private const array DEFAULT_OPTIONS = [
@@ -26,7 +26,7 @@ abstract class Connector implements DebugInfoInterface, JsonSerializable
         PDO::ATTR_STRINGIFY_FETCHES => false
     ];
 
-    public readonly array $options;
+    public array $options;
 
     /**
      * Connector constructor.
@@ -41,9 +41,9 @@ abstract class Connector implements DebugInfoInterface, JsonSerializable
      */
     #[Pure]
     public function __construct(
-        public readonly string $dsn,
-        public readonly ?string $username = null,
-        public readonly ?string $password = null,
+        public string $dsn,
+        public ?string $username = null,
+        public ?string $password = null,
         array $options = []
     )
     {

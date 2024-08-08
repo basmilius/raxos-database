@@ -5,10 +5,10 @@ namespace Raxos\Database;
 
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use Raxos\Database\Connection\Connection;
+use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Connector\Connector;
 use Raxos\Database\Error\{ConnectionException, DatabaseException};
-use Raxos\Database\Query\{Query, QueryInterface, Statement};
+use Raxos\Database\Query\{QueryInterface, Statement};
 use function is_subclass_of;
 use function sprintf;
 
@@ -46,7 +46,7 @@ class Db
 
     protected static string $connectionId = 'default';
 
-    /** @var Connection[] */
+    /** @var ConnectionInterface[] */
     private static array $connections = [];
     private static array $connected = [];
 
@@ -58,18 +58,18 @@ class Db
      * @param string $id
      * @param bool $connectImmediately
      *
-     * @return Connection
+     * @return ConnectionInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function create(string $connectionClass, Connector $connector, string $id = 'default', bool $connectImmediately = true): Connection
+    public static function create(string $connectionClass, Connector $connector, string $id = 'default', bool $connectImmediately = true): ConnectionInterface
     {
-        if (!is_subclass_of($connectionClass, Connection::class)) {
-            throw new ConnectionException(sprintf('Connection classes should extend "%s".', Connection::class), ConnectionException::ERR_INVALID_CONNECTION);
+        if (!is_subclass_of($connectionClass, ConnectionInterface::class)) {
+            throw new ConnectionException(sprintf('Connection classes should implement "%s".', ConnectionInterface::class), ConnectionException::ERR_INVALID_CONNECTION);
         }
 
-        /** @var Connection $connection */
+        /** @var ConnectionInterface $connection */
         $connection = new $connectionClass($id, $connector);
 
         if ($connectImmediately) {
@@ -90,12 +90,12 @@ class Db
      *
      * @param string|null $id
      *
-     * @return Connection|null
+     * @return ConnectionInterface|null
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function get(?string $id = null): ?Connection
+    public static function get(?string $id = null): ?ConnectionInterface
     {
         $id ??= static::$connectionId;
         $connection = self::$connections[$id] ?? null;
@@ -118,12 +118,12 @@ class Db
      *
      * @param string|null $id
      *
-     * @return Connection
+     * @return ConnectionInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function getOrFail(?string $id = null): Connection
+    public static function getOrFail(?string $id = null): ConnectionInterface
     {
         $id ??= static::$connectionId;
 
@@ -133,12 +133,12 @@ class Db
     /**
      * Registers the given connection with the given ID.
      *
-     * @param Connection $connection
+     * @param ConnectionInterface $connection
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function register(Connection $connection): void
+    public static function register(ConnectionInterface $connection): void
     {
         self::$connections[$connection->id] = $connection;
     }
@@ -146,14 +146,14 @@ class Db
     /**
      * Unregisters
      *
-     * @param Connection|string $idOrConnection
+     * @param ConnectionInterface|string $idOrConnection
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function unregister(Connection|string $idOrConnection): void
+    public static function unregister(ConnectionInterface|string $idOrConnection): void
     {
-        if ($idOrConnection instanceof Connection) {
+        if ($idOrConnection instanceof ConnectionInterface) {
             $idOrConnection = $idOrConnection->id;
         }
 
@@ -170,7 +170,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::attribute()
+     * @see ConnectionInterface::attribute()
      */
     public static function attribute(#[ExpectedValues(self::ATTRIBUTES)] int $attribute, ?string $id = null): mixed
     {
@@ -180,16 +180,16 @@ class Db
     /**
      * Executes the given query and returns the first column.
      *
-     * @param Query|string $query
+     * @param QueryInterface|string $query
      * @param string|null $id
      *
      * @return string|int
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::column()
+     * @see ConnectionInterface::column()
      */
-    public static function column(Query|string $query, ?string $id = null): string|int
+    public static function column(QueryInterface|string $query, ?string $id = null): string|int
     {
         return static::getOrFail($id)->column($query);
     }
@@ -197,16 +197,16 @@ class Db
     /**
      * Executes the given query and returns the amount of affected rows.
      *
-     * @param Query|string $query
+     * @param QueryInterface|string $query
      * @param string|null $id
      *
      * @return int
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::execute()
+     * @see ConnectionInterface::execute()
      */
-    public static function execute(Query|string $query, ?string $id = null): int
+    public static function execute(QueryInterface|string $query, ?string $id = null): int
     {
         return static::getOrFail($id)->execute($query);
     }
@@ -220,7 +220,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::foundRows()
+     * @see ConnectionInterface::foundRows()
      */
     public static function foundRows(?string $id = null): int
     {
@@ -237,7 +237,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::lastInsertId()
+     * @see ConnectionInterface::lastInsertId()
      */
     public static function lastInsertId(?string $name = null, ?string $id = null): string
     {
@@ -254,7 +254,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::lastInsertIdInteger()
+     * @see ConnectionInterface::lastInsertIdInteger()
      */
     public static function lastInsertIdInteger(?string $name = null, ?string $id = null): int
     {
@@ -264,7 +264,7 @@ class Db
     /**
      * Initializes a prepared statement.
      *
-     * @param Query|string $query
+     * @param QueryInterface|string $query
      * @param array $options
      * @param string|null $id
      *
@@ -272,9 +272,9 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::prepare()
+     * @see ConnectionInterface::prepare()
      */
-    public static function prepare(Query|string $query, array $options = [], ?string $id = null): Statement
+    public static function prepare(QueryInterface|string $query, array $options = [], ?string $id = null): Statement
     {
         return static::getOrFail($id)->prepare($query, $options);
     }
@@ -289,7 +289,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::query()
+     * @see ConnectionInterface::query()
      */
     public static function query(bool $isPrepared = true, ?string $id = null): QueryInterface
     {
@@ -307,7 +307,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::quote()
+     * @see ConnectionInterface::quote()
      */
     public static function quote(string|int|float|bool $value, #[ExpectedValues(self::TYPES)] int $type = PDO::PARAM_STR, ?string $id = null): string
     {
@@ -325,7 +325,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::tableColumnExists()
+     * @see ConnectionInterface::tableColumnExists()
      */
     public static function tableColumnExists(string $table, string $column, ?string $id = null): bool
     {
@@ -338,13 +338,13 @@ class Db
      * @param string $table
      * @param string|null $id
      *
-     * @return bool
+     * @return string[]
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::tableColumns()
+     * @see ConnectionInterface::tableColumns()
      */
-    public static function tableColumns(string $table, ?string $id = null): bool
+    public static function tableColumns(string $table, ?string $id = null): array
     {
         return static::getOrFail($id)->tableColumns($table);
     }
@@ -359,7 +359,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Connection::tableExists()
+     * @see ConnectionInterface::tableExists()
      */
     public static function tableExists(string $table, ?string $id = null): bool
     {
@@ -375,6 +375,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see ConnectionInterface::commit()
      */
     public static function commit(?string $id = null): bool
     {
@@ -390,6 +391,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see ConnectionInterface::inTransaction()
      */
     public static function inTransaction(?string $id = null): bool
     {
@@ -405,6 +407,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see ConnectionInterface::rollBack()
      */
     public static function rollBack(?string $id = null): bool
     {
@@ -420,6 +423,7 @@ class Db
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
+     * @see ConnectionInterface::transaction()
      */
     public static function transaction(?string $id = null): bool
     {

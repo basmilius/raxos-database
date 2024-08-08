@@ -3,101 +3,180 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Connection\Connection;
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Query\{Query, QueryInterface};
-use function Raxos\Database\Query\literal;
+use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Orm\{InternalHelper, InternalModelData, Model, ModelArrayList};
+use Raxos\Database\Orm\Attribute\HasManyThrough;
+use Raxos\Database\Orm\Definition\ColumnDefinition;
+use Raxos\Database\Query\QueryInterface;
+use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Foundation\Collection\ArrayList;
+use function Raxos\Database\Query\in;
 
 /**
  * Class HasManyThroughRelation
  *
- * @template TModel of Model
+ * @template TDeclaringModel of Model
+ * @template TLinkingModel of Model
+ * @template TReferenceModel of Model
+ * @implements RelationInterface<TDeclaringModel, TReferenceModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 1.0.0
+ * @since 1.0.16
  */
-class HasManyThroughRelation extends HasManyRelation
+final readonly class HasManyThroughRelation implements RelationInterface
 {
+
+    private const string LOCAL_LINKING_KEY = '__local_linking_key';
+
+    /** @var class-string<TReferenceModel>|class-string<Model> */
+    public string $referenceModel;
+
+    /** @var class-string<TLinkingModel>|class-string<Model> */
+    public string $linkingModel;
+
+    public ColumnLiteral $referenceKey;
+    public ColumnLiteral $referenceLinkingKey;
+    public ColumnLiteral $declaringKey;
+    public ColumnLiteral $declaringLinkingKey;
 
     /**
      * HasManyThroughRelation constructor.
      *
-     * @param Connection $connection
-     * @param class-string<TModel> $referenceModel
-     * @param bool $eagerLoad
-     * @param string $fieldName
-     * @param string $key
-     * @param string $referenceKey
-     * @param class-string<TModel> $throughModel
-     * @param string $throughKey
-     * @param string $referenceThroughKey
+     * @param HasManyThrough $attribute
+     * @param ColumnDefinition $column
+     * @param class-string<TDeclaringModel>|class-string<Model> $declaringModel
      *
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
     public function __construct(
-        Connection $connection,
-        string $referenceModel,
-        bool $eagerLoad,
-        string $fieldName,
-        string $key,
-        string $referenceKey,
-        public readonly string $throughModel,
-        public readonly string $throughKey,
-        public readonly string $referenceThroughKey
+        public HasManyThrough $attribute,
+        public ColumnDefinition $column,
+        public string $declaringModel
     )
     {
-        parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName, $key, $referenceKey);
+        $this->referenceModel = $this->attribute->referenceModel;
+        $this->linkingModel = $this->attribute->linkingModel;
+        InternalModelData::initialize($this->referenceModel);
+        InternalModelData::initialize($this->linkingModel);
+
+        $dialect = $this->referenceModel::dialect();
+        $declaringPrimaryKey = InternalHelper::getRelationPrimaryKey($this->declaringModel);
+        $linkingPrimaryKey = InternalHelper::getRelationPrimaryKey($this->linkingModel);
+
+        $this->referenceKey = InternalHelper::composeRelationKey(
+            $dialect,
+            $this->attribute->referenceKey,
+            $this->attribute->referenceKeyTable,
+            $linkingPrimaryKey->asForeignKeyFor($this->referenceModel)
+        );
+
+        $this->referenceLinkingKey = InternalHelper::composeRelationKey(
+            $dialect,
+            $this->attribute->referenceLinkingKey,
+            $this->attribute->referenceLinkingKeyTable,
+            $linkingPrimaryKey
+        );
+
+        $this->declaringLinkingKey = InternalHelper::composeRelationKey(
+            $dialect,
+            $this->attribute->declaringLinkingKey,
+            $this->attribute->declaringLinkingKeyTable,
+            $declaringPrimaryKey->asForeignKeyFor($this->linkingModel)
+        );
+
+        $this->declaringKey = InternalHelper::composeRelationKey(
+            $dialect,
+            $this->attribute->declaringKey,
+            $this->attribute->declaringKeyTable,
+            $declaringPrimaryKey
+        );
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function getQuery(Model $model): QueryInterface
+    public function fetch(Model $instance): Model|ModelArrayList|null
     {
-        /** @var Model $referenceModel */
-        $referenceModel = $this->referenceModel;
+        $cache = $instance::cache();
+        $relationCache = InternalHelper::getRelationCache($this);
 
-        /** @var Model $throughModel */
-        $throughModel = $this->throughModel;
+        $relationCache[$instance->__master] ??= $this
+            ->query($instance)
+            ->arrayList()
+            ->map(InternalHelper::getRelationCacheHelper($cache));
 
-        return $referenceModel::select()
-            ->join($throughModel::table(), fn(Query $q) => $q
-                ->on($throughModel::column($this->referenceThroughKey), literal($referenceModel::column($this->referenceKey))))
-            ->where($throughModel::column($this->throughKey), $model->{$this->key});
+        return $relationCache[$instance->__master];
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function getRaw(string $modelClass, bool $isPrepared): QueryInterface
+    public function query(Model $instance): QueryInterface
     {
-        /** @var Model $modelClass */
-        /** @var Model $referenceModel */
-        $referenceModel = $this->referenceModel;
-
-        /** @var Model $throughModel */
-        $throughModel = $this->throughModel;
-
-        return $referenceModel::select()
-            ->join($throughModel::table(), fn(Query $q) => $q
-                ->on($throughModel::column($this->referenceThroughKey), literal($referenceModel::column($this->referenceKey))))
-            ->where($throughModel::column($this->throughKey), $modelClass::column($this->key, literal: true));
+        return $this->referenceModel::select()
+            ->join($this->linkingModel::table(), fn(QueryInterface $query) => $query
+                ->on($this->referenceKey, $this->referenceLinkingKey))
+            ->where($this->declaringLinkingKey, $instance->{$this->declaringKey->column})
+            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->attribute->orderBy));
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function eagerLoad(array $models): void
+    public function rawQuery(): QueryInterface
     {
-        // todo(Bas): Implement eager loading for this relation.
+        return $this->referenceModel::select()
+            ->join($this->linkingModel::table(), fn(QueryInterface $query) => $query
+                ->on($this->referenceKey, $this->referenceLinkingKey))
+            ->where($this->declaringLinkingKey, $this->declaringKey)
+            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->attribute->orderBy));
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public function eagerLoad(ArrayList $instances): void
+    {
+        $relationCache = InternalHelper::getRelationCache($this);
+
+        $values = $instances
+            ->filter(fn(Model $instance) => !isset($relationCache[$instance->__master]))
+            ->column($this->declaringKey->column)
+            ->unique();
+
+        if ($values->isEmpty()) {
+            return;
+        }
+
+        $select = [
+            $this->referenceModel::column('*') => true,
+            self::LOCAL_LINKING_KEY => $this->declaringLinkingKey
+        ];
+
+        $results = $this->referenceModel::select($select)
+            ->join($this->linkingModel::table(), fn(QueryInterface $query) => $query
+                ->on($this->referenceKey, $this->referenceLinkingKey))
+            ->where($this->declaringLinkingKey, in($values->toArray()))
+            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->attribute->orderBy))
+            ->arrayList();
+
+        foreach ($instances as $instance) {
+            $relationCache[$instance->__master] = $results->filter(fn(Model $reference) => $reference->getData(self::LOCAL_LINKING_KEY) === $instance->{$this->declaringKey->column});
+        }
     }
 
 }

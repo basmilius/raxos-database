@@ -3,11 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Dialect;
 
-use Raxos\Database\Error\{DatabaseException, RuntimeException};
 use function array_map;
 use function explode;
 use function implode;
-use function sprintf;
 use function str_contains;
 
 /**
@@ -61,10 +59,10 @@ abstract class Dialect
             return $this->escapeField($fields);
         }
 
-        $fields = explode('.', $fields);
-        $fields = array_map($this->escapeField(...), $fields);
+        $items = explode('.', $fields);
+        $items = array_map($this->escapeField(...), $items);
 
-        return implode('.', $fields);
+        return implode('.', $items);
     }
 
     /**
@@ -86,21 +84,6 @@ abstract class Dialect
         $parts[0] = $this->escapeFields($parts[0]);
 
         return implode(' ', $parts);
-    }
-
-    /**
-     * Returns a not implemented RuntimeException for the given method.
-     *
-     * @param string $method
-     *
-     * @return DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @noinspection PhpUnused
-     */
-    protected final function notImplemented(string $method): DatabaseException
-    {
-        return new RuntimeException(sprintf('Method "%s" is not implemented in "%s".', $method, static::class), RuntimeException::ERR_NOT_IMPLEMENTED);
     }
 
 }

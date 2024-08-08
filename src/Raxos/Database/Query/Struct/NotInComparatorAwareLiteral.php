@@ -12,7 +12,7 @@ use Raxos\Database\Query\QueryBaseInterface;
  * @package Raxos\Database\Query\Struct
  * @since 1.0.2
  */
-class NotInComparatorAwareLiteral extends InComparatorAwareLiteral
+readonly class NotInComparatorAwareLiteral extends InComparatorAwareLiteral
 {
 
     /**

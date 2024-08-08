@@ -8,9 +8,8 @@ use Generator;
 use PDO;
 use Raxos\Database\Error\{DatabaseException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Query\Struct\Literal;
-use Raxos\Database\Query\Struct\Value;
-use Raxos\Foundation\Collection\{ArrayList, CollectionException};
+use Raxos\Database\Query\Struct\{Literal, ValueInterface};
+use Raxos\Foundation\Collection\ArrayList;
 use stdClass;
 use Stringable;
 
@@ -30,29 +29,34 @@ interface QueryBaseInterface
      * Adds an expression to the query.
      *
      * @param string $clause
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function addExpression(string $clause, BackedEnum|Stringable|Value|string|int|float|bool|null $lhs, BackedEnum|Stringable|Value|string|int|float|bool|null $cmp, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs): static;
+    public function addExpression(
+        string $clause,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
+    ): static;
 
     /**
      * Adds a param and returns its name or when not in prepared mode, returns the
      * value as string or int.
      *
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $value
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $value
      *
      * @return string|int
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function addParam(BackedEnum|Stringable|Value|string|int|float|bool|null $value): string|int;
+    public function addParam(BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $value): string|int;
 
     /**
      * Adds a query piece.
@@ -161,14 +165,18 @@ interface QueryBaseInterface
      *
      * @param string|null $lhs
      * @param string|null $cmp
-     * @param BackedEnum|Stringable|Value|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return $this
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function parenthesisOpen(?string $lhs = null, ?string $cmp = null, BackedEnum|Stringable|Value|string|int|float|bool|null $rhs = null): static;
+    public function parenthesisOpen(
+        ?string $lhs = null,
+        ?string $cmp = null,
+        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+    ): static;
 
     /**
      * Adds the given raw expression to the query.
@@ -298,8 +306,7 @@ interface QueryBaseInterface
      * @param int $fetchMode
      * @param array $options
      *
-     * @return ArrayList<array-key, TModel>|ModelArrayList<array-key, TModel>|iterable<array-key, TModel>
-     * @throws CollectionException
+     * @return ModelArrayList<int, TModel>|iterable<int, TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -313,12 +320,11 @@ interface QueryBaseInterface
      * @param int $fetchMode
      * @param array $options
      *
-     * @return Generator<TModel>|TModel[]
+     * @return Generator<TModel>
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see Statement::cursor()
-     * @noinspection PhpDocSignatureInspection
      */
     public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Generator;
 
@@ -340,9 +346,9 @@ interface QueryBaseInterface
      * @param Literal|string $column
      *
      * @return string|int
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
      * @throws DatabaseException
+     * @since 1.0.16
+     * @author Bas Milius <bas@mili.us>
      */
     public function runReturning(Literal|string $column): string|int;
 
@@ -357,8 +363,6 @@ interface QueryBaseInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     *
-     * @noinspection PhpDocSignatureInspection
      */
     public function single(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array|null;
 
@@ -373,8 +377,6 @@ interface QueryBaseInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     *
-     * @noinspection PhpDocSignatureInspection
      */
     public function singleOrFail(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array;
 

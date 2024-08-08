@@ -3,157 +3,142 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Connection\Connection;
-use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Orm\{InternalHelper, InternalModelData, Model, ModelArrayList};
+use Raxos\Database\Orm\Attribute\HasMany;
+use Raxos\Database\Orm\Definition\ColumnDefinition;
 use Raxos\Database\Query\QueryInterface;
-use Raxos\Foundation\Collection\CollectionException;
-use WeakMap;
-use function array_column;
-use function array_filter;
-use function array_unique;
-use function Raxos\Database\Query\{in, literal, stringLiteral};
-use function is_int;
+use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Foundation\Collection\ArrayList;
+use function Raxos\Database\Query\in;
 
 /**
  * Class HasManyRelation
  *
- * @template TModel of Model
+ * @template TDeclaringModel of Model
+ * @template TReferenceModel of Model
+ * @implements RelationInterface<TDeclaringModel, TReferenceModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 1.0.0
+ * @since 1.0.16
  */
-class HasManyRelation extends Relation
+final readonly class HasManyRelation implements RelationInterface
 {
 
-    protected WeakMap $results;
+    /** @var class-string<TReferenceModel>|class-string<Model> */
+    public string $referenceModel;
+
+    public ColumnLiteral $referenceKey;
+    public ColumnLiteral $declaringKey;
 
     /**
      * HasManyRelation constructor.
      *
-     * @template M of Model
+     * @param HasMany $attribute
+     * @param ColumnDefinition $column
+     * @param class-string<TDeclaringModel>|class-string<Model> $declaringModel
      *
-     * @param Connection $connection
-     * @param class-string<TModel> $referenceModel
-     * @param bool $eagerLoad
-     * @param string $fieldName
-     * @param string $key
-     * @param string $referenceKey
-     *
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
     public function __construct(
-        Connection $connection,
-        string $referenceModel,
-        bool $eagerLoad,
-        string $fieldName,
-        public readonly string $key,
-        public readonly string $referenceKey,
-        public readonly ?string $orderBy = null
+        public HasMany $attribute,
+        public ColumnDefinition $column,
+        public string $declaringModel
     )
     {
-        parent::__construct($connection, $referenceModel, $eagerLoad, $fieldName);
+        $this->referenceModel = $this->attribute->referenceModel;
+        InternalModelData::initialize($this->referenceModel);
 
-        $this->results = new WeakMap();
+        $dialect = $this->referenceModel::dialect();
+        $declaringPrimaryKey = InternalHelper::getRelationPrimaryKey($this->declaringModel);
+
+        $this->referenceKey = InternalHelper::composeRelationKey(
+            $dialect,
+            $this->attribute->referenceKey,
+            $this->attribute->referenceKeyTable,
+            $declaringPrimaryKey->asForeignKeyFor($this->referenceModel)
+        );
+
+        $this->declaringKey = InternalHelper::composeRelationKey(
+            $dialect,
+            $this->attribute->declaringKey,
+            $this->attribute->declaringKeyTable,
+            $declaringPrimaryKey
+        );
     }
 
     /**
      * {@inheritdoc}
-     * @throws CollectionException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function get(Model $model): ModelArrayList
+    public function fetch(Model $instance): Model|ModelArrayList|null
     {
-        return $this->results[$model->getModelMaster()] ??= $this
-            ->getQuery($model)
+        $cache = $instance::cache();
+        $relationCache = InternalHelper::getRelationCache($this);
+
+        $relationCache[$instance->__master] ??= $this
+            ->query($instance)
             ->arrayList()
-            ->map(function (Model $referenceModel): Model {
-                $cache = $this->connection->cache;
-                $pk = $referenceModel->getPrimaryKeyValues();
+            ->map(InternalHelper::getRelationCacheHelper($cache));
 
-                if ($cache->has($referenceModel::class, $pk)) {
-                    return $cache->get($referenceModel::class, $pk);
-                }
-
-                return $referenceModel;
-            });
+        return $relationCache[$instance->__master];
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function getQuery(Model $model): QueryInterface
+    public function query(Model $instance): QueryInterface
     {
-        /** @var Model $referenceModel */
-        $referenceModel = $this->referenceModel;
-
-        return $referenceModel::select()
-            ->where($this->referenceKey, $model->{$this->key})
-            ->conditional($this->orderBy !== null, fn(QueryInterface $query) => $query
-                ->orderBy($this->orderBy));
+        return $this->referenceModel::where($this->referenceKey, $instance->{$this->declaringKey->column})
+            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->attribute->orderBy));
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function getRaw(string $modelClass, bool $isPrepared): QueryInterface
+    public function rawQuery(): QueryInterface
     {
-        /** @var Model $modelClass */
-        /** @var Model $referenceModel */
-        $referenceModel = $this->referenceModel;
-
-        return $referenceModel::select(isPrepared: $isPrepared)
-            ->where($this->referenceKey, $modelClass::column($this->key));
+        return $this->referenceModel::query(false)
+            ->where($this->referenceKey, $this->declaringKey)
+            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->attribute->orderBy));
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public function eagerLoad(array $models): void
+    public function eagerLoad(ArrayList $instances): void
     {
-        /** @var Model $referenceModel */
-        $referenceModel = $this->referenceModel;
+        $relationCache = InternalHelper::getRelationCache($this);
 
-        $values = array_filter($models, fn(Model $model) => !isset($this->results[$model->getModelMaster()]));
-        $values = array_column($values, $this->key);
-        $values = array_unique($values);
-        $values = array_filter($values, fn($value) => !$this->connection->cache->has($this->referenceModel, $value));
-        $values = array_values($values);
+        $values = $instances
+            ->filter(fn(Model $instance) => !isset($relationCache[$instance->__master]))
+            ->column($this->declaringKey->column)
+            ->unique();
 
-        if (empty($values)) {
+        if ($values->isEmpty()) {
             return;
         }
 
-        if (!isset($values[1])) {
-            $results = $referenceModel::select()
-                ->where($this->referenceKey, is_int($values[0]) ? literal($values[0]) : stringLiteral($values[0]))
-                ->array();
-        } else {
-            $results = $referenceModel::select()
-                ->where($this->referenceKey, in($values))
-                ->array();
-        }
+        $results = $this->referenceModel::select()
+            ->where($this->referenceKey, in($values->toArray()))
+            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->attribute->orderBy))
+            ->arrayList();
 
-        foreach ($models as $model) {
-            $references = [];
-
-            foreach ($results as $result) {
-                if ($result->{$this->referenceKey} !== $model->{$this->key}) {
-                    continue;
-                }
-
-                $references[] = $result;
-            }
-
-            $this->results[$model->getModelMaster()] = new ModelArrayList($references);
+        foreach ($instances as $instance) {
+            $relationCache[$instance->__master] = $results->filter(fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column});
         }
     }
 

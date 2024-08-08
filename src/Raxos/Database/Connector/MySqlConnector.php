@@ -14,7 +14,7 @@ use Raxos\Database\Error\{ConnectionException, DatabaseException};
  * @package Raxos\Database\Connector
  * @since 1.0.0
  */
-class MySqlConnector extends Connector
+readonly class MySqlConnector extends Connector
 {
 
     /**
@@ -31,11 +31,18 @@ class MySqlConnector extends Connector
      * @since 1.0.0
      */
     #[Pure]
-    public function __construct(string $host, public readonly string $database, ?string $username = null, ?string $password = null, int $port = 3306, array $options = [])
+    public function __construct(
+        string $host,
+        public string $database,
+        ?string $username = null,
+        ?string $password = null,
+        int $port = 3306,
+        array $options = []
+    )
     {
         $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
 
-        $options = $options + [PDO::ATTR_EMULATE_PREPARES => false];
+        $options += [PDO::ATTR_EMULATE_PREPARES => false];
 
         parent::__construct($dsn, $username, $password, $options);
     }

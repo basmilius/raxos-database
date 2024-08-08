@@ -3,29 +3,30 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use Raxos\Database\Error\DatabaseException;
+use JsonSerializable;
 use Raxos\Database\Query\QueryBaseInterface;
+use Stringable;
 
 /**
- * Class Value
+ * Interface ValueInterface
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Struct
- * @since 1.0.0
+ * @since 1.0.16
  */
-abstract class Value
+interface ValueInterface extends JsonSerializable, Stringable
 {
 
     /**
-     * Gets the value. The query instance is provided for setting params when needed.
+     * Returns the value. The query instance is provided for setting
+     * params when needed.
      *
      * @param QueryBaseInterface $query
      *
      * @return string|int|float
-     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    public abstract function get(QueryBaseInterface $query): string|int|float;
+    public function get(QueryBaseInterface $query): string|int|float;
 
 }
