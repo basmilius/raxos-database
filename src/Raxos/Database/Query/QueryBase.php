@@ -19,7 +19,6 @@ use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
 use Stringable;
 use function array_column;
-use function array_push;
 use function array_splice;
 use function count;
 use function implode;
