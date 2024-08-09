@@ -97,8 +97,6 @@ final class Logger
      * @return void
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
-     * @internal
-     * @private
      */
     public function replace(int $index, Event $event): void
     {

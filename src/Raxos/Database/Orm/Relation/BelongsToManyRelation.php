@@ -182,7 +182,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
             ->arrayList();
 
         foreach ($instances as $instance) {
-            $relationCache[$instance->__master] = $results->filter(fn(Model $reference) => $reference->getData(self::LOCAL_LINKING_KEY) === $instance->{$this->declaringKey->column});
+            $relationCache[$instance->__master] = $results->filter(fn(Model $reference) => $reference->__data[self::LOCAL_LINKING_KEY] === $instance->{$this->declaringKey->column});
         }
     }
 

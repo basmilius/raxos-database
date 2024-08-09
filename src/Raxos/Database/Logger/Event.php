@@ -18,8 +18,6 @@ use const DIRECTORY_SEPARATOR;
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Logger
  * @since 1.0.16
- * @internal
- * @private
  */
 abstract readonly class Event
 {

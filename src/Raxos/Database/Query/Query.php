@@ -21,6 +21,7 @@ use function is_string;
 use function is_subclass_of;
 use function sprintf;
 use function str_contains;
+use function strval;
 use function substr;
 use function trim;
 
@@ -109,7 +110,7 @@ abstract class Query extends QueryBase implements QueryInterface
             $fields = [$fields];
         }
 
-        $fields = array_map(static fn(Literal|string $field) => (string)$field, $fields);
+        $fields = array_map(strval(...), $fields);
         $fields = array_map($this->dialect->escapeFields(...), $fields);
 
         return $this->addPiece('group by', $fields, $this->dialect->fieldSeparator);
@@ -985,9 +986,8 @@ abstract class Query extends QueryBase implements QueryInterface
         }
 
         $field = InternalModelData::getField($this->modelClass, $relation) ?? throw new QueryException(sprintf('Could not find relationship %s in model %s.', $relation, $this->modelClass), QueryException::ERR_FIELD_NOT_FOUND);
-        $r = InternalModelData::getRelation($this->modelClass, $field);
-
-        $query = $r->rawQuery();
+        $query = InternalModelData::getRelation($this->modelClass, $field)
+            ->rawQuery();
 
         if ($fn !== null) {
             $fn($query);

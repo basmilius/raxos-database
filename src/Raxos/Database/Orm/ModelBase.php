@@ -3,12 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
-use ArrayAccess;
-use JsonSerializable;
-use Raxos\Database\Error\{DatabaseException, ModelException};
+use Raxos\Database\Error\ModelException;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
-use Raxos\Foundation\Collection\Arrayable;
-use Raxos\Foundation\PHP\MagicMethods\{DebugInfoInterface, SerializableInterface};
 use function extension_loaded;
 use function sprintf;
 
@@ -19,14 +15,18 @@ use function sprintf;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class ModelBase implements Arrayable, ArrayAccess, DebugInfoInterface, JsonSerializable, SerializableInterface
+abstract class ModelBase implements ModelBaseInterface
 {
 
     use ArrayAccessible;
     use ObjectAccessible;
 
-    /** @var array<string, mixed> */
-    protected array $__data;
+    /**
+     * @var array<string, mixed>
+     * @internal
+     * @private
+     */
+    public array $__data;
 
     /**
      * @internal
@@ -58,11 +58,9 @@ abstract class ModelBase implements Arrayable, ArrayAccess, DebugInfoInterface, 
     }
 
     /**
-     * Clones the model.
-     *
-     * @return $this
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
     public function clone(): static
     {
@@ -74,16 +72,11 @@ abstract class ModelBase implements Arrayable, ArrayAccess, DebugInfoInterface, 
     }
 
     /**
-     * Gets the value of the given field.
-     *
-     * @param string $key
-     *
-     * @return mixed
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    protected function getValue(string $key): mixed
+    public function getValue(string $key): mixed
     {
         if (array_key_exists($key, $this->__data)) {
             return $this->__data[$key];
@@ -93,42 +86,31 @@ abstract class ModelBase implements Arrayable, ArrayAccess, DebugInfoInterface, 
     }
 
     /**
-     * Returns TRUE if the given field exists.
-     *
-     * @param string $key
-     *
-     * @return bool
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    protected function hasValue(string $key): bool
+    public function hasValue(string $key): bool
     {
         return array_key_exists($key, $this->__data);
     }
 
     /**
-     * Sets the given field to the given value.
-     *
-     * @param string $key
-     * @param mixed $value
-     *
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    protected function setValue(string $key, mixed $value): void
+    public function setValue(string $key, mixed $value): void
     {
         $this->__data[$key] = $value;
     }
 
     /**
-     * Unsets the given field.
-     *
-     * @param string $key
-     *
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.16
      */
-    protected function unsetValue(string $key): void
+    public function unsetValue(string $key): void
     {
         unset($this->__data[$key]);
     }
@@ -148,7 +130,10 @@ abstract class ModelBase implements Arrayable, ArrayAccess, DebugInfoInterface, 
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public abstract function jsonSerialize(): array;
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
 
     /**
      * {@inheritdoc}
@@ -162,6 +147,16 @@ abstract class ModelBase implements Arrayable, ArrayAccess, DebugInfoInterface, 
         }
 
         return $this->toArray();
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public function __toString(): string
+    {
+        return static::class;
     }
 
     /**

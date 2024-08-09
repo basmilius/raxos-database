@@ -9,6 +9,7 @@ use Raxos\Database\Orm\Relation\RelationInterface;
 use Raxos\Database\Query\Struct\ColumnLiteral;
 use Raxos\Foundation\Collection\ArrayList;
 use WeakMap;
+use function array_shift;
 use function is_array;
 
 /**
@@ -108,6 +109,36 @@ final class InternalHelper
         }
 
         return new ColumnLiteral($modelClass::dialect(), $key, $table);
+    }
+
+    /**
+     * Groups the given instances by their model. If a master model
+     * is given, that model is filtered out, because it probably is
+     * the master model within a polymorphic structure.
+     *
+     * @param Model[] $instances
+     * @param string|null $polymorphicMasterClass
+     *
+     * @return array<class-string<Model>, Model[]>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public static function groupModels(array $instances, ?string $polymorphicMasterClass = null): array
+    {
+        $groups = [];
+
+        while (!empty($instances)) {
+            $instance = array_shift($instances);
+
+            if ($instance::class === $polymorphicMasterClass) {
+                continue;
+            }
+
+            $groups[$instance::class] ??= [];
+            $groups[$instance::class][] = $instance;
+        }
+
+        return $groups;
     }
 
 }

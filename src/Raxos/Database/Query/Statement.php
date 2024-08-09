@@ -381,7 +381,7 @@ class Statement
             return;
         }
 
-        InternalModelData::eagerLoadRelationships(
+        InternalModelData::eagerLoadRelations(
             $this->modelClass,
             $instances,
             $this->eagerLoad,

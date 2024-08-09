@@ -20,35 +20,27 @@ use Raxos\Foundation\Collection\ArrayList;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-class ModelArrayList extends ArrayList
+class ModelArrayList extends ArrayList implements MarkVisibilityInterface
 {
 
     /**
-     * Marks the given fields as hidden for every model in the list.
-     *
-     * @param string|array $fields
-     *
-     * @return $this
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function makeHidden(string|array $fields): static
+    public function makeHidden(string|array $keys): static
     {
-        return $this->mapTransform(static fn(Model $model) => $model->makeHidden($fields));
+        return $this->mapTransform(static fn(Model $model) => $model->makeHidden($keys));
     }
 
     /**
-     * Marks the given fields as visible for every model in the list.
-     *
-     * @param string|array $fields
-     *
-     * @return $this
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function makeVisible(string|array $fields): static
+    public function makeVisible(string|array $keys): static
     {
-        return $this->mapTransform(static fn(Model $model) => $model->makeVisible($fields));
+        return $this->mapTransform(static fn(Model $model) => $model->makeVisible($keys));
     }
 
 }

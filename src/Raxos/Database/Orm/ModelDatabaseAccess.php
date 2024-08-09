@@ -33,6 +33,58 @@ trait ModelDatabaseAccess
 {
 
     /**
+     * Gets the value(s) of the primary key(s) of the model.
+     *
+     * @return array|string|int|null
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function getPrimaryKeyValues(): array|string|int|null
+    {
+        $keys = static::getPrimaryKey();
+
+        if ($keys === null) {
+            return null;
+        }
+
+        if (is_string($keys)) {
+            $keys = [$keys];
+        }
+
+        $values = array_map($this->getValue(...), $keys);
+
+        if (count($values) === 1) {
+            return $values[0];
+        }
+
+        return $values;
+    }
+
+    /**
+     * Queries the given relation.
+     *
+     * @param string $field
+     *
+     * @return QueryInterface
+     * @throws DatabaseException
+     * @throws ModelException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @no-named-arguments
+     */
+    public function queryRelation(string $field): QueryInterface
+    {
+        $def = InternalModelData::getField(static::class, $field);
+
+        if ($def === null || !InternalModelData::isRelation($def)) {
+            throw new ModelException(sprintf('Field %s is not a relation.', $field), ModelException::ERR_RELATION_NOT_FOUND);
+        }
+
+        return InternalModelData::getRelation(static::class, $def)
+            ->query($this);
+    }
+
+    /**
      * Queries all rows and returns them within the given bounds.
      *
      * @param int $offset
@@ -715,7 +767,7 @@ trait ModelDatabaseAccess
         } else {
             $primaryKeyFields = array_map(static::col(...), $primaryKeyFields);
 
-            while (($keys = array_shift($primaryKeys)) !== null) {
+            foreach ($primaryKeys as $keys) {
                 $query->parenthesis(function () use ($keys, $query, $primaryKeyFields): void {
                     foreach ($keys as $kIndex => $key) {
                         $primaryKeyField = $primaryKeyFields[$kIndex];

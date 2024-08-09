@@ -11,7 +11,7 @@ use Raxos\Database\Logger\EagerLoadEvent;
 use Raxos\Database\Orm\Attribute\{Alias, AttributeInterface, BelongsTo, BelongsToMany, Caster, Column, ConnectionId, CustomRelationInterface, ForeignKey, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttributeInterface, Table, Visible};
 use Raxos\Database\Orm\Cast\{BooleanCast, CastInterface, ModelAwareCastInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition};
-use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, RelationInterface};
+use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, RelationInterface, WritableRelationInterface};
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\Util\{ArrayUtil, ReflectionUtil, Singleton, Stopwatch};
 use ReflectionAttribute;
@@ -142,9 +142,7 @@ final class InternalModelData
      */
     public static function getFields(string $modelClass): Generator
     {
-        foreach (self::$fields[$modelClass] ?? [] as $def) {
-            yield $def;
-        }
+        yield from self::$fields[$modelClass] ?? [];
     }
 
     /**
@@ -222,6 +220,20 @@ final class InternalModelData
                 yield self::getRelation($modelClass, $def);
             }
         }
+    }
+
+    /**
+     * Returns TRUE if the given model class is polymorphic.
+     *
+     * @param class-string<Model> $modelClass
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public static function isPolymorphic(string $modelClass): bool
+    {
+        return isset(self::$polymorphicColumn[$modelClass]);
     }
 
     /**
@@ -329,9 +341,8 @@ final class InternalModelData
 
         try {
             $class = new ReflectionClass($modelClass);
-            $attributes = $class->getAttributes();
 
-            foreach ($attributes as $attribute) {
+            foreach ($class->getAttributes() as $attribute) {
                 if (!is_subclass_of($attribute->getName(), AttributeInterface::class)) {
                     continue;
                 }
@@ -436,7 +447,7 @@ final class InternalModelData
         $isVisible = false;
         $key = $property->name;
         $relation = null;
-        $types = ReflectionUtil::getTypes($property->getType()) ?? [];
+        $types = ($type = $property->getType()) !== null ? ReflectionUtil::getTypes($type) ?? [] : [];
         $validColumn = false;
         $hiddenOnly = null;
         $visibleOnly = null;
@@ -643,89 +654,111 @@ final class InternalModelData
     }
 
     /**
-     * Eager loads the relationships of the given models.
+     * Eager loads the given relation for the given model instances.
+     *
+     * @param RelationInterface $relation
+     * @param class-string<Model> $modelClass
+     * @param Model[] $instances
+     * @param string[] $forced
+     * @param string[] $disabled
+     *
+     * @return void
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
+    public static function eagerLoadRelation(RelationInterface $relation, string $modelClass, array $instances, array $forced = [], array $disabled = []): void
+    {
+        $connection = $modelClass::connection();
+        $column = $relation->column->name;
+        $eagerLoad = $relation->attribute->eagerLoad;
+
+        if ((!$eagerLoad && !in_array($column, $forced, true)) || in_array($column, $disabled, true)) {
+            return;
+        }
+
+        if ($connection->logger->isEnabled()) {
+            $deferred = $connection->logger->deferred();
+            $stopwatch = new Stopwatch(__METHOD__);
+            $stopwatch->run(fn() => $relation->eagerLoad(new ArrayList($instances)));
+
+            $deferred->commit(new EagerLoadEvent($relation, $stopwatch));
+        } else {
+            $relation->eagerLoad(new ArrayList($instances));
+        }
+    }
+
+    /**
+     * Eager loads the relations of the given models.
      *
      * @template TModel of Model
      *
      * @param class-string<TModel> $modelClass
      * @param Model[] $instances
-     * @param string[] $forceEagerLoad
-     * @param string[] $eagerLoadDisable
+     * @param string[] $forced
+     * @param string[] $disabled
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
+     * @see InternalModelData::eagerLoadRelation()
      */
-    public static function eagerLoadRelationships(string $modelClass, array $instances, array $forceEagerLoad = [], array $eagerLoadDisable = []): void
+    public static function eagerLoadRelations(string $modelClass, array $instances, array $forced = [], array $disabled = []): void
     {
-        $connection = $modelClass::connection();
+        // note(Bas): First we eager load all relations from the provided model
+        //  class. This ensures that if the model is polymorphic, the common
+        //  relations are eaged loaded together.
         $relations = self::getRelations($modelClass);
+        $loadedRelations = [];
 
         foreach ($relations as $relation) {
-            $column = $relation->column->name;
-            $eagerLoad = $relation->attribute->eagerLoad;
-
-            if ((!$eagerLoad && !in_array($column, $forceEagerLoad)) || in_array($column, $eagerLoadDisable)) {
-                continue;
-            }
-
-            if ($connection->logger->isEnabled()) {
-                $deferred = $connection->logger->deferred();
-                $stopwatch = new Stopwatch(__METHOD__);
-                $stopwatch->run(fn() => $relation->eagerLoad(new ArrayList($instances)));
-
-                $deferred->commit(new EagerLoadEvent($relation, $stopwatch));
-            } else {
-                $relation->eagerLoad(new ArrayList($instances));
-            }
+            self::eagerLoadRelation($relation, $modelClass, $instances, $forced, $disabled);
+            $loadedRelations[] = $relation->column->name;
         }
 
-//        return;
-//
-//        $relations = InternalModelData::getRelations($modelClass);
-//        $didRelations = [];
-//
-//        // note: first we need to determine which relations are in the current model,
-//        //  for polymorphic relations it's more performant to combine the relations
-//        //  of the underlying types into one big query.
-//        foreach ($relations as $relation) {
-//            $fieldName = $relation->fieldName;
-//
-//            if ((!$relation->eagerLoad && !in_array($fieldName, $forceEagerLoad)) || in_array($fieldName, $eagerLoadDisable)) {
-//                continue;
-//            }
-//
-//            $relation->eagerLoad($models);
-//            $didRelations[] = $fieldName;
-//        }
-//
-//        $classGroups = [];
-//
-//        while (!empty($models)) {
-//            $model = array_shift($models);
-//
-//            $classGroups[$model::class] ??= [];
-//            $classGroups[$model::class][] = $model;
-//        }
-//
-//        /**
-//         * @var class-string<Model> $childModelClass
-//         * @var Model[] $models
-//         */
-//        foreach ($classGroups as $childModelClass => $models) {
-//            $relations = InternalModelData::getRelations($childModelClass);
-//
-//            foreach ($relations as $relation) {
-//                $fieldName = $relation->fieldName;
-//
-//                if (in_array($fieldName, $didRelations) || (!$relation->eagerLoad && !in_array($fieldName, $forceEagerLoad)) || in_array($fieldName, $eagerLoadDisable)) {
-//                    continue;
-//                }
-//
-//                $relation->eagerLoad($models);
-//            }
-//        }
+        if (!self::isPolymorphic($modelClass)) {
+            return;
+        }
+
+        // note(Bas): Now we need to eager load all relations that are not common
+        //  within the polymorphic structure. The model instances are grouped by
+        //  their model class and checked.
+        foreach (InternalHelper::groupModels($instances, $modelClass) as $subModelClass => $subInstances) {
+            $relations = self::getRelations($subModelClass);
+
+            foreach ($relations as $relation) {
+                if (in_array($relation->column->name, $loadedRelations, true)) {
+                    continue;
+                }
+
+                self::eagerLoadRelation($relation, $subModelClass, $subInstances, $forced, $disabled);
+            }
+        }
     }
 
+    /**
+     * Writes to the given relation.
+     *
+     * @param Model $instance
+     * @param ColumnDefinition $def
+     * @param RelationInterface $relation
+     * @param mixed $value
+     *
+     * @return void
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     * @see WritableRelationInterface
+     */
+    public static function setRelationValue(Model $instance, ColumnDefinition $def, RelationInterface $relation, mixed $value): void
+    {
+        if ($relation instanceof WritableRelationInterface) {
+            $relation->write($instance, $def, $value);
+
+            return;
+        }
+
+        throw new ModelException(sprintf('Field "%s" on model "%s" is a relationship that is not writable.', $def->name, $instance::class), ModelException::ERR_IMMUTABLE);
+    }
 
 }

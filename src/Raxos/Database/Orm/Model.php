@@ -4,13 +4,11 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use BackedEnum;
-use JetBrains\PhpStorm\{ArrayShape, Pure};
+use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\{DatabaseException, ModelException};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition};
-use Raxos\Database\Orm\Relation\{RelationInterface, WritableRelationInterface};
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Foundation\Util\ArrayUtil;
-use Stringable;
 use function array_diff;
 use function array_is_list;
 use function array_key_exists;
@@ -34,7 +32,7 @@ use function str_starts_with;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class Model extends ModelBase implements Stringable
+abstract class Model extends ModelBase implements ModelInterface
 {
 
     use ModelDatabaseAccess;
@@ -96,9 +94,7 @@ abstract class Model extends ModelBase implements Stringable
     }
 
     /**
-     * Deletes the given model from the database.
-     *
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -109,113 +105,18 @@ abstract class Model extends ModelBase implements Stringable
     }
 
     /**
-     * Gets an original data value.
-     *
-     * @param string $key
-     *
-     * @return mixed
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function getData(string $key): mixed
-    {
-        return $this->__data[$key] ?? null;
-    }
-
-    /**
-     * Gets debug information about the model instance.
-     *
-     * @return array
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @internal
-     * @private
-     */
-    #[ArrayShape([
-        'type' => 'string',
-        'data' => 'array',
-        'fields' => 'array[]',
-        'macros' => 'string[]',
-        'modified' => 'string[]',
-        'table' => 'string'
-    ])]
-    public function getDebugInformation(): array
-    {
-        $fields = [];
-        $macros = [];
-
-        foreach (InternalModelData::getColumns(static::class) as $column) {
-            $column = $column->toArray();
-            $column['types'] = implode('|', $column['types']);
-
-            $fields[] = $column;
-        }
-
-        foreach (InternalModelData::getMacros(static::class) as $macro) {
-            $callableName = $macro->callable;
-
-            if (is_array($callableName)) {
-                $callableName = sprintf('%s::%s(...)', $callableName[0], $callableName[1]);
-            }
-
-            $macros[$macro->name] = sprintf('%s [%s]', $callableName, $macro->isCacheable ? 'cacheable' : 'dynamic');
-        }
-
-        return [
-            'type' => static::class,
-            'data' => $this->__data,
-            'fields' => $fields,
-            'macros' => $macros,
-            'modified' => $this->modified,
-            'table' => InternalModelData::$table[static::class]
-        ];
-    }
-
-    /**
-     * Gets the value(s) of the primary key(s) of the model.
-     *
-     * @return array|string|int|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function getPrimaryKeyValues(): array|string|int|null
-    {
-        $keys = static::getPrimaryKey();
-
-        if ($keys === null) {
-            return null;
-        }
-
-        if (is_string($keys)) {
-            $keys = [$keys];
-        }
-
-        $values = array_map($this->getValue(...), $keys);
-
-        if (count($values) === 1) {
-            return $values[0];
-        }
-
-        return $values;
-    }
-
-    /**
-     * Returns TRUE if the model is modified.
-     *
-     * @param string|null $field
-     *
-     * @return bool
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     #[Pure]
-    public function isModified(?string $field = null): bool
+    public function isModified(?string $key = null): bool
     {
         if (empty($this->modified)) {
             return false;
         }
 
-        if ($field !== null && !in_array($field, $this->modified, true)) {
+        if ($key !== null && !in_array($key, $this->modified, true)) {
             return false;
         }
 
@@ -223,102 +124,79 @@ abstract class Model extends ModelBase implements Stringable
     }
 
     /**
-     * Returns TRUE if the given field is hidden.
-     *
-     * @param string $field
-     *
-     * @return bool
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     #[Pure]
-    public function isHidden(string $field): bool
+    public function isHidden(string $key): bool
     {
-        return in_array($field, $this->hidden, true);
+        return in_array($key, $this->hidden, true);
     }
 
     /**
-     * Returns TRUE if the given field is visible.
-     *
-     * @param string $field
-     *
-     * @return bool
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     #[Pure]
-    public function isVisible(string $field): bool
+    public function isVisible(string $key): bool
     {
-        return in_array($field, $this->visible, true);
+        return in_array($key, $this->visible, true);
     }
 
     /**
-     * Marks the given fields as hidden.
-     *
-     * @param string[]|string $fields
-     *
-     * @return $this
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function makeHidden(array|string $fields): static
+    public function makeHidden(array|string $keys): static
     {
-        if (is_string($fields)) {
-            $fields = [$fields];
+        if (is_string($keys)) {
+            $keys = [$keys];
         }
 
         $clone = $this->clone();
-        $clone->hidden = array_unique([...$this->hidden, ...$fields]);
+        $clone->hidden = array_unique([...$this->hidden, ...$keys]);
         $clone->visible = array_diff($this->visible, $clone->hidden);
 
         return $clone;
     }
 
     /**
-     * Marks the given fields as visible.
-     *
-     * @param string[]|string $fields
-     *
-     * @return $this
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function makeVisible(array|string $fields): static
+    public function makeVisible(array|string $keys): static
     {
-        if (is_string($fields)) {
-            $fields = [$fields];
+        if (is_string($keys)) {
+            $keys = [$keys];
         }
 
         $clone = $this->clone();
-        $clone->visible = array_unique([...$this->visible, ...$fields]);
+        $clone->visible = array_unique([...$this->visible, ...$keys]);
         $clone->hidden = array_diff($this->hidden, $clone->visible);
 
         return $clone;
     }
 
     /**
-     * Marks all fields as hidden, except for the given fields.
-     *
-     * @param string[]|string $fields
-     *
-     * @return $this
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function only(array|string $fields): static
+    public function only(array|string $keys): static
     {
-        if (is_string($fields)) {
-            $fields = [$fields];
-        }
-
+        $fields = is_string($keys) ? [$keys] : $keys;
         $hidden = [];
 
         foreach (InternalModelData::getFields(static::class) as $field) {
-            if (in_array($field->name, $fields, true)) {
+            if (in_array($field->name, $keys, true)) {
                 continue;
             }
 
-            if (in_array($field->alias, $fields, true)) {
+            if (in_array($field->alias, $keys, true)) {
                 $fields[] = $field->name;
                 continue;
             }
@@ -334,33 +212,7 @@ abstract class Model extends ModelBase implements Stringable
     }
 
     /**
-     * Queries the given relation.
-     *
-     * @param string $field
-     *
-     * @return QueryInterface
-     * @throws DatabaseException
-     * @throws ModelException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @no-named-arguments
-     */
-    public function queryRelation(string $field): QueryInterface
-    {
-        $def = InternalModelData::getField(static::class, $field);
-
-        if ($def === null || !InternalModelData::isRelation($def)) {
-            throw new ModelException(sprintf('Field %s is not a relation.', $field), ModelException::ERR_RELATION_NOT_FOUND);
-        }
-
-        return InternalModelData::getRelation(static::class, $def)
-            ->query($this);
-    }
-
-    /**
-     * Saves the model.
-     *
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -448,9 +300,8 @@ abstract class Model extends ModelBase implements Stringable
 
             if (InternalModelData::isRelation($def)) {
                 if ($this->isVisible($def->name)) {
-                    $relation = InternalModelData::getRelation(static::class, $def);
-
-                    $data[$key] = $relation->fetch($this);
+                    $data[$key] = InternalModelData::getRelation(static::class, $def)
+                        ->fetch($this);
                 }
             } else if ($this->isNew && $def->isPrimary) {
                 $data[$key] = null;
@@ -520,7 +371,7 @@ abstract class Model extends ModelBase implements Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function getValue(string $key): mixed
+    public function getValue(string $key): mixed
     {
         $def = InternalModelData::getField(static::class, $key);
 
@@ -556,7 +407,7 @@ abstract class Model extends ModelBase implements Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function hasValue(string $key): bool
+    public function hasValue(string $key): bool
     {
         $def = InternalModelData::getField(static::class, $key);
 
@@ -573,13 +424,13 @@ abstract class Model extends ModelBase implements Stringable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function setValue(string $key, mixed $value): void
+    public function setValue(string $key, mixed $value): void
     {
         $def = InternalModelData::getField(static::class, $key);
 
         if ($def instanceof ColumnDefinition) {
             if (InternalModelData::isRelation($def)) {
-                $this->setValueOfRelation($def, InternalModelData::getRelation(static::class, $def), $value);
+                InternalModelData::setRelationValue($this, $def, InternalModelData::getRelation(static::class, $def), $value);
             } else {
                 if ($def->isPrimary && !$this->isNew) {
                     throw new ModelException(sprintf('Field "%s" is (part of) the primary key of model "%s" and is therefore not mutable.', $key, static::class), ModelException::ERR_IMMUTABLE);
@@ -619,34 +470,12 @@ abstract class Model extends ModelBase implements Stringable
     }
 
     /**
-     * Sets the value of a relation if possible.
-     *
-     * @param ColumnDefinition $def
-     * @param RelationInterface $relation
-     * @param mixed $value
-     *
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    protected function setValueOfRelation(ColumnDefinition $def, RelationInterface $relation, mixed $value): void
-    {
-        if ($relation instanceof WritableRelationInterface) {
-            $relation->write($this, $def, $value);
-
-            return;
-        }
-
-        throw new ModelException(sprintf('Field "%s" on model "%s" is a relationship that is not writable.', $def->name, static::class), ModelException::ERR_IMMUTABLE);
-    }
-
-    /**
      * {@inheritdoc}
      * @throws ModelException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function unsetValue(string $key): void
+    public function unsetValue(string $key): void
     {
         $def = InternalModelData::getField(static::class, $key);
 
@@ -704,17 +533,6 @@ abstract class Model extends ModelBase implements Stringable
                 $this->visible[] = $def->name;
             }
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
     }
 
     /**

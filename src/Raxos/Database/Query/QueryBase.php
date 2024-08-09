@@ -19,6 +19,7 @@ use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
 use Stringable;
 use function array_column;
+use function array_push;
 use function array_splice;
 use function count;
 use function implode;
@@ -447,8 +448,6 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
             if (is_array($data)) {
                 $data = implode($separator ?? ',', $data);
             }
-
-            $pieces[] = ' ';
 
             if (!empty($clause)) {
                 $pieces[] = $clause;
