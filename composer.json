@@ -2,7 +2,8 @@
 	"name": "raxos/database",
 	"description": "Database ORM and Query Builder.",
 	"license": "mit",
-	"minimum-stability": "stable",
+    "minimum-stability": "dev",
+    "prefer-stable" : true,
 	"type": "library",
 	"authors": [
 		{
@@ -20,12 +21,19 @@
 	},
 	"config": {
 		"platform": {
-			"php": "8.1"
+			"php": "8.3"
 		}
 	},
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../*",
+            "symlink": true
+        }
+    ],
 	"require": {
         "ext-pdo" : "*",
-		"jetbrains/phpstorm-attributes": "^1.0",
+		"jetbrains/phpstorm-attributes": "^1.1",
         "raxos/foundation": "*"
 	}
 }

@@ -28,8 +28,6 @@ final readonly class Table implements AttributeInterface
     #[Pure]
     public function __construct(
         public ?string $name = null
-    )
-    {
-    }
+    ) {}
 
 }

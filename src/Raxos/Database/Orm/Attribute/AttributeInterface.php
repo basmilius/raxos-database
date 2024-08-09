@@ -10,6 +10,4 @@ namespace Raxos\Database\Orm\Attribute;
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.16
  */
-interface AttributeInterface
-{
-}
+interface AttributeInterface {}

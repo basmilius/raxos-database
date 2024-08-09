@@ -53,9 +53,7 @@ final readonly class ColumnDefinition implements Arrayable
         public array $types,
         public ?array $hiddenOnly,
         public ?array $visibleOnly
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

@@ -637,7 +637,7 @@ final class InternalModelData
 
         if (is_array($primaryKey)) {
             $primaryKeyValue = array_map(static fn(string $key) => $result[$key], $primaryKey);
-        } else if (!empty($primaryKey)) {
+        } elseif (!empty($primaryKey)) {
             $primaryKeyValue = $result[$primaryKey];
         } else {
             $primaryKeyValue = null;

@@ -41,9 +41,7 @@ final readonly class HasMany implements AttributeInterface, RelationAttributeInt
         public ?string $declaringKeyTable = null,
         public bool $eagerLoad = false,
         public ?string $orderBy = null
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

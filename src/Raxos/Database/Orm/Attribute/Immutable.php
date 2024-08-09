@@ -13,6 +13,4 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final readonly class Immutable implements AttributeInterface
-{
-}
+final readonly class Immutable implements AttributeInterface {}

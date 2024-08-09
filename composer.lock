@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "35ce63c9b976e0ac20d82587e40bcd4d",
+    "content-hash": "61f73f6a797efdb9d88f57f7ed6dd4eb",
     "packages": [
         {
             "name": "jetbrains/phpstorm-attributes",
-            "version": "1.0",
+            "version": "1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-attributes.git",
-                "reference": "a7a83ae5df4dd3c0875484483de19de8edf60a9f"
+                "reference": "22fb28d679deceedba8366dbae65cc8ebfc17e26"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-attributes/zipball/a7a83ae5df4dd3c0875484483de19de8edf60a9f",
-                "reference": "a7a83ae5df4dd3c0875484483de19de8edf60a9f",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-attributes/zipball/22fb28d679deceedba8366dbae65cc8ebfc17e26",
+                "reference": "22fb28d679deceedba8366dbae65cc8ebfc17e26",
                 "shasum": ""
             },
             "type": "library",
@@ -44,23 +44,17 @@
             ],
             "support": {
                 "issues": "https://youtrack.jetbrains.com/newIssue?project=WI",
-                "source": "https://github.com/JetBrains/phpstorm-attributes/tree/1.0"
+                "source": "https://github.com/JetBrains/phpstorm-attributes/tree/1.1"
             },
-            "time": "2020-11-17T11:09:47+00:00"
+            "time": "2023-09-01T08:50:25+00:00"
         },
         {
             "name": "raxos/foundation",
-            "version": "1.0.13",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/basmilius/raxos-foundation.git",
-                "reference": "d40c214036610604c98d3d8afc209d98c0f12bf1"
-            },
+            "version": "dev-main",
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/basmilius/raxos-foundation/zipball/d40c214036610604c98d3d8afc209d98c0f12bf1",
-                "reference": "d40c214036610604c98d3d8afc209d98c0f12bf1",
-                "shasum": ""
+                "type": "path",
+                "url": "../foundation",
+                "reference": "d417a48fc8cf8d4c4e667f0792c5e856887fdacb"
             },
             "require": {
                 "ext-dom": "*",
@@ -69,7 +63,7 @@
                 "ext-mbstring": "*",
                 "ext-openssl": "*",
                 "ext-simplexml": "*",
-                "jetbrains/phpstorm-attributes": "^1.0"
+                "jetbrains/phpstorm-attributes": "^1.1"
             },
             "type": "library",
             "autoload": {
@@ -77,7 +71,6 @@
                     "Raxos\\Foundation\\": "src/Raxos/Foundation"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "mit"
             ],
@@ -88,25 +81,23 @@
                 }
             ],
             "description": "Base stuff for all Raxos libraries.",
-            "support": {
-                "issues": "https://github.com/basmilius/raxos-foundation/issues",
-                "source": "https://github.com/basmilius/raxos-foundation/tree/1.0.13"
-            },
-            "time": "2023-09-08T09:35:24+00:00"
+            "transport-options": {
+                "relative": true
+            }
         }
     ],
     "packages-dev": [],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": [],
-    "prefer-stable": false,
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "ext-pdo": "*"
     },
     "platform-dev": [],
     "platform-overrides": {
-        "php": "8.1"
+        "php": "8.3"
     },
     "plugin-api-version": "2.6.0"
 }

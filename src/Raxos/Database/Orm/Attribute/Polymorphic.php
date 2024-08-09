@@ -33,8 +33,6 @@ final readonly class Polymorphic implements AttributeInterface
     public function __construct(
         public string $column = 'type',
         public array $map = []
-    )
-    {
-    }
+    ) {}
 
 }

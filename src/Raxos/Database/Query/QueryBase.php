@@ -105,20 +105,20 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
             }
 
             $rhs = $rhs->get($this);
-        } else if ($cmp !== null) {
+        } elseif ($cmp !== null) {
             $rhs = $this->addParam($rhs);
         }
 
         if ($lhs !== null && !($lhs instanceof ComparatorAwareLiteral)) {
             if (is_string($lhs)) {
                 $lhs = $this->dialect->escapeFields($lhs);
-            } else if ($lhs instanceof ValueInterface) {
+            } elseif ($lhs instanceof ValueInterface) {
                 $lhs = $lhs->get($this);
             }
 
             if ($cmp === null && $rhs !== null) {
                 $expression = "{$lhs} {$rhs}";
-            } else if ($cmp === null) {
+            } elseif ($cmp === null) {
                 $expression = $lhs;
             } else {
                 $expression = "{$lhs} {$cmp} {$rhs}";

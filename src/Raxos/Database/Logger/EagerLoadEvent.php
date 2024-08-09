@@ -49,7 +49,7 @@ final readonly class EagerLoadEvent extends Event
 
         if ($declaringModel !== null && $linkingModel !== null && $referenceModel !== null) {
             $flow = "{$declaringModel} ➜ {$linkingModel} ➜ {$referenceModel}";
-        } else if ($declaringModel !== null && $referenceModel !== null) {
+        } elseif ($declaringModel !== null && $referenceModel !== null) {
             $flow = "{$declaringModel} ➜ {$referenceModel}";
         }
 

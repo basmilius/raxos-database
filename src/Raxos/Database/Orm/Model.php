@@ -272,7 +272,7 @@ abstract class Model extends ModelBase implements ModelInterface
             static::cache()->set($this);
 
             $this->macroCache = [];
-        } else if (!empty($pairs)) {
+        } elseif (!empty($pairs)) {
             $primaryKey = array_map($this->getValue(...), $primaryKey);
 
             static::update($primaryKey, $pairs);
@@ -303,16 +303,16 @@ abstract class Model extends ModelBase implements ModelInterface
                     $data[$key] = InternalModelData::getRelation(static::class, $def)
                         ->fetch($this);
                 }
-            } else if ($this->isNew && $def->isPrimary) {
+            } elseif ($this->isNew && $def->isPrimary) {
                 $data[$key] = null;
-            } else if ($this->hasValue($def->key)) {
+            } elseif ($this->hasValue($def->key)) {
                 $data[$key] = $this->{$def->key};
             }
 
             if ($def->visibleOnly !== null && array_key_exists($def->name, $data)) {
                 if ($data[$key] instanceof self) {
                     $data[$key] = $data[$key]->only($def->visibleOnly);
-                } else if (is_array($data[$key])) {
+                } elseif (is_array($data[$key])) {
                     $data[$key] = ArrayUtil::only($data[$key], $def->visibleOnly);
                 }
             }
@@ -362,9 +362,7 @@ abstract class Model extends ModelBase implements ModelInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function onPublish(array &$data): void
-    {
-    }
+    protected function onPublish(array &$data): void {}
 
     /**
      * {@inheritdoc}
@@ -454,7 +452,7 @@ abstract class Model extends ModelBase implements ModelInterface
 
                 parent::setValue($def->key, $value);
             }
-        } else if ($def instanceof MacroDefinition) {
+        } elseif ($def instanceof MacroDefinition) {
             if (!static::connection()->tableColumnExists(static::table(), $def->alias ?? $def->name)) {
                 throw new ModelException(sprintf('Field "%s" is a non-writable macro on model "%s".', $key, static::class), ModelException::ERR_IMMUTABLE);
             }
@@ -462,7 +460,7 @@ abstract class Model extends ModelBase implements ModelInterface
             $this->modified[] = $def->name;
 
             parent::setValue($def->name, $value);
-        } else if (str_starts_with($key, '__')) {
+        } elseif (str_starts_with($key, '__')) {
             parent::setValue($key, $value);
         } else {
             throw new ModelException(sprintf('Field "%s" is not writable on model "%s".', $key, static::class), ModelException::ERR_IMMUTABLE);
@@ -675,7 +673,7 @@ abstract class Model extends ModelBase implements ModelInterface
                 foreach ($relation as $r) {
                     $r::cache()->set($r);
                 }
-            } else if (isset($relation->__data)) {
+            } elseif (isset($relation->__data)) {
                 $relation::cache()->set($relation);
             }
         }

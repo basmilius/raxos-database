@@ -96,7 +96,7 @@ abstract readonly class Event
 
             if (isset($item['class'])) {
                 $call = $item['class'] . $item['type'] . $item['function'] . '(...)';
-            } else if (isset($item['function'])) {
+            } elseif (isset($item['function'])) {
                 $call = $item['function'] . '(...)';
             }
 

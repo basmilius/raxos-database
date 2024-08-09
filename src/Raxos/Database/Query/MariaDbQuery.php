@@ -16,6 +16,4 @@ use Raxos\Database\Orm\Model;
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-class MariaDbQuery extends MySqlQuery
-{
-}
+class MariaDbQuery extends MySqlQuery {}

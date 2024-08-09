@@ -28,8 +28,6 @@ readonly class Column implements AttributeInterface
     #[Pure]
     public function __construct(
         public ?string $key = null
-    )
-    {
-    }
+    ) {}
 
 }

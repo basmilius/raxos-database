@@ -36,9 +36,7 @@ final readonly class HasOne implements AttributeInterface, RelationAttributeInte
         public ?string $declaringKey = null,
         public ?string $declaringKeyTable = null,
         public bool $eagerLoad = false
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

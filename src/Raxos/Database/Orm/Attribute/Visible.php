@@ -28,8 +28,6 @@ final readonly class Visible implements AttributeInterface
     #[Pure]
     public function __construct(
         public array|string|null $only = null
-    )
-    {
-    }
+    ) {}
 
 }

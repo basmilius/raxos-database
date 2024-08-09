@@ -28,8 +28,6 @@ final readonly class Alias implements AttributeInterface
     #[Pure]
     public function __construct(
         public string $alias
-    )
-    {
-    }
+    ) {}
 
 }

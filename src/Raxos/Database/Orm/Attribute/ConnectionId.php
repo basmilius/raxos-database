@@ -28,8 +28,6 @@ final readonly class ConnectionId implements AttributeInterface
     #[Pure]
     public function __construct(
         public string $connectionId = 'default'
-    )
-    {
-    }
+    ) {}
 
 }

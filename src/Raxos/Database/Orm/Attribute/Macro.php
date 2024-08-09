@@ -30,8 +30,6 @@ final readonly class Macro implements AttributeInterface
     public function __construct(
         public string|array $implementation,
         public bool $cached = true
-    )
-    {
-    }
+    ) {}
 
 }

@@ -13,6 +13,4 @@ use Attribute;
  * @since 1.0.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final readonly class ForeignKey extends Column
-{
-}
+final readonly class ForeignKey extends Column {}

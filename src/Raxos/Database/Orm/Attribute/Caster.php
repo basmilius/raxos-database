@@ -31,8 +31,6 @@ final readonly class Caster implements AttributeInterface
     #[Pure]
     public function __construct(
         public string $caster
-    )
-    {
-    }
+    ) {}
 
 }

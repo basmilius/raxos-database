@@ -28,9 +28,7 @@ readonly class Literal implements ValueInterface
      */
     public function __construct(
         protected Stringable|string|int|float $value
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

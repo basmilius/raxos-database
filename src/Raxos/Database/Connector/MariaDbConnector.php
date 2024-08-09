@@ -10,6 +10,4 @@ namespace Raxos\Database\Connector;
  * @package Raxos\Database\Connector
  * @since 1.0.0
  */
-readonly class MariaDbConnector extends MySqlConnector
-{
-}
+readonly class MariaDbConnector extends MySqlConnector {}

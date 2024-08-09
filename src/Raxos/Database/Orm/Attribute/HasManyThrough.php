@@ -51,9 +51,7 @@ final readonly class HasManyThrough implements AttributeInterface, RelationAttri
         public ?string $declaringKeyTable = null,
         public bool $eagerLoad = false,
         public ?string $orderBy = null
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

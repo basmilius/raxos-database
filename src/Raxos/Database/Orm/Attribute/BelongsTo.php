@@ -36,9 +36,7 @@ final readonly class BelongsTo implements AttributeInterface, RelationAttributeI
         public ?string $declaringKey = null,
         public ?string $declaringKeyTable = null,
         public bool $eagerLoad = false
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

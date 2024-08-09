@@ -51,9 +51,7 @@ final readonly class BelongsToMany implements AttributeInterface, RelationAttrib
         public ?string $declaringLinkingKeyTable = null,
         public bool $eagerLoad = false,
         public ?string $orderBy = null
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

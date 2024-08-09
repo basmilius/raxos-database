@@ -931,17 +931,17 @@ abstract class Query extends QueryBase implements QueryInterface
 
                 if ($field === null || $field === true) {
                     $result[] = $alias;
-                } else if ($field instanceof QueryBaseInterface) {
+                } elseif ($field instanceof QueryBaseInterface) {
                     $sql = $field->toSql();
 
                     $result[] = "({$sql}) as {$alias}";
-                } else if ($field instanceof AfterExpressionInterface) {
+                } elseif ($field instanceof AfterExpressionInterface) {
                     $query = new static($this->connection);
                     $field->after($query);
                     $sql = $query->toSql();
 
                     $result[] = "({$sql}) as {$alias}";
-                } else if ($field instanceof ValueInterface) {
+                } elseif ($field instanceof ValueInterface) {
                     $field = $field->get($this);
 
                     $result[] = "{$field} as {$alias}";
@@ -953,9 +953,9 @@ abstract class Query extends QueryBase implements QueryInterface
             foreach ($fields as $field) {
                 if (is_array($field) && count($field) === 2) {
                     $result[] = $this->dialect->escapeFields($field[0]) . ' as ' . $this->dialect->escapeFields($field[1]);
-                } else if (is_numeric($field)) {
+                } elseif (is_numeric($field)) {
                     $result[] = (string)$field;
-                } else if ($field instanceof ValueInterface) {
+                } elseif ($field instanceof ValueInterface) {
                     $result[] = $field->get($this);
                 } else {
                     $result[] = $this->dialect->escapeFields((string)$field);
