@@ -128,7 +128,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         $values = $instances
             ->column($this->referenceKey->column)
             ->unique()
-            ->filter(fn(string|int $key) => !$cache->has($this->referenceModel, $key));
+            ->filter(fn(string|int|null $key) => $key !== null && !$cache->has($this->referenceModel, $key));
 
         if ($values->isEmpty()) {
             return;
