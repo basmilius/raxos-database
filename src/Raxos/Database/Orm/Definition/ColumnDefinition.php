@@ -26,6 +26,7 @@ final readonly class ColumnDefinition implements Arrayable
      * @param bool $isImmutable
      * @param bool $isPrimary
      * @param bool $isForeign
+     * @param bool $isComputed
      * @param bool $isHidden
      * @param bool $isVisible
      * @param string $key
@@ -45,6 +46,7 @@ final readonly class ColumnDefinition implements Arrayable
         public bool $isImmutable,
         public bool $isPrimary,
         public bool $isForeign,
+        public bool $isComputed,
         public bool $isHidden,
         public bool $isVisible,
         public string $name,
@@ -67,6 +69,7 @@ final readonly class ColumnDefinition implements Arrayable
         'is_immutable' => 'bool',
         'is_primary' => 'bool',
         'is_foreign' => 'bool',
+        'is_computed' => 'bool',
         'is_hidden' => 'bool',
         'is_visible' => 'bool',
         'name' => 'string',
@@ -85,6 +88,7 @@ final readonly class ColumnDefinition implements Arrayable
             'is_immutable' => $this->isImmutable,
             'is_primary' => $this->isPrimary,
             'is_foreign' => $this->isForeign,
+            'is_computed' => $this->isComputed,
             'is_hidden' => $this->isHidden,
             'is_visible' => $this->isVisible,
             'name' => $this->name,
@@ -114,6 +118,7 @@ final readonly class ColumnDefinition implements Arrayable
             $state['isImmutable'],
             $state['isPrimary'],
             $state['isForeign'],
+            $state['isComputed'],
             $state['isHidden'],
             $state['isVisible'],
             $state['name'],

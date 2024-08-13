@@ -166,7 +166,7 @@ final class ModelBackbone implements ModelBackboneInterface
 
         if ($this->isNew) {
             foreach (InternalStructure::getColumns($this->model) as $definition) {
-                if (isset($values[$definition->key]) || InternalStructure::isRelation($definition)) {
+                if (isset($values[$definition->key]) || $definition->isPrimary || $definition->isComputed || InternalStructure::isRelation($definition)) {
                     continue;
                 }
 
@@ -190,7 +190,7 @@ final class ModelBackbone implements ModelBackboneInterface
 
             $instance::cache()->set($instance);
         } elseif (!empty($values)) {
-            $primaryKey = array_map($this->getValue(...), $primaryKey);
+            $primaryKey = array_map(fn($key) => $this->getValue($instance, $key), $primaryKey);
             $instance::update($primaryKey, $values);
         }
 

@@ -8,7 +8,7 @@ use JetBrains\PhpStorm\ExpectedValues;
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Error\{DatabaseException, ModelException};
 use Raxos\Database\Logger\EagerLoadEvent;
-use Raxos\Database\Orm\Attribute\{Alias, AttributeInterface, BelongsTo, BelongsToMany, Caster, Column, ConnectionId, CustomRelationInterface, ForeignKey, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttributeInterface, Table, Visible};
+use Raxos\Database\Orm\Attribute\{Alias, AttributeInterface, BelongsTo, BelongsToMany, Caster, Column, Computed, ConnectionId, CustomRelationInterface, ForeignKey, HasMany, HasManyThrough, HasOne, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttributeInterface, Table, Visible};
 use Raxos\Database\Orm\Cast\{BooleanCast, CastInterface, ModelAwareCastInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, RelationInterface, WritableRelationInterface};
@@ -443,6 +443,7 @@ final class InternalStructure
         $isImmutable = false;
         $isPrimary = false;
         $isForeign = false;
+        $isComputed = false;
         $isHidden = false;
         $isVisible = false;
         $key = $property->name;
@@ -487,6 +488,10 @@ final class InternalStructure
                     $isImmutable = $attr instanceof PrimaryKey;
                     $isPrimary = $attr instanceof PrimaryKey;
                     $key = $attr->key ?? $property->name;
+                    break;
+
+                case $attr instanceof Computed:
+                    $isComputed = true;
                     break;
 
                 case $attr instanceof RelationAttributeInterface:
@@ -535,6 +540,7 @@ final class InternalStructure
             $isImmutable,
             $isPrimary,
             $isForeign,
+            $isComputed,
             $isHidden,
             $isVisible,
             $property->name,
