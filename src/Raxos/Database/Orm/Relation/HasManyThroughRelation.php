@@ -105,12 +105,12 @@ final readonly class HasManyThroughRelation implements RelationInterface
         $cache = $instance::cache();
         $relationCache = InternalHelper::getRelationCache($this);
 
-        $relationCache[$instance->__master] ??= $this
+        $relationCache[$instance->backbone] ??= $this
             ->query($instance)
             ->arrayList()
             ->map(InternalHelper::getRelationCacheHelper($cache));
 
-        return $relationCache[$instance->__master];
+        return $relationCache[$instance->backbone];
     }
 
     /**
@@ -135,7 +135,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
      */
     public function rawQuery(): QueryInterface
     {
-        return $this->referenceModel::select()
+        return $this->referenceModel::select(isPrepared: false)
             ->join($this->linkingModel::table(), fn(QueryInterface $query) => $query
                 ->on($this->referenceKey, $this->referenceLinkingKey))
             ->where($this->declaringLinkingKey, $this->declaringKey)
@@ -153,7 +153,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
         $relationCache = InternalHelper::getRelationCache($this);
 
         $values = $instances
-            ->filter(fn(Model $instance) => !isset($relationCache[$instance->__master]))
+            ->filter(fn(Model $instance) => !isset($relationCache[$instance->backbone]))
             ->column($this->declaringKey->column)
             ->unique();
 
@@ -175,7 +175,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
             ->arrayList();
 
         foreach ($instances as $instance) {
-            $relationCache[$instance->__master] = $results->filter(fn(Model $reference) => $reference->__data[self::LOCAL_LINKING_KEY] === $instance->{$this->declaringKey->column});
+            $relationCache[$instance->backbone] = $results->filter(fn(Model $reference) => $reference->__data[self::LOCAL_LINKING_KEY] === $instance->{$this->declaringKey->column});
         }
     }
 

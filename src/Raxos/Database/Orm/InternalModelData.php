@@ -500,12 +500,18 @@ final class InternalModelData
 
                 case $attr instanceof Hidden:
                     $isHidden = true;
-                    $hiddenOnly = is_string($attr->only) ? [$attr->only] : $attr->only;
+
+                    if ($attr->only !== null) {
+                        $hiddenOnly = is_string($attr->only) ? [$attr->only] : InternalHelper::normalizeFieldsArray($attr->only);
+                    }
                     break;
 
                 case $attr instanceof Visible:
                     $isVisible = true;
-                    $visibleOnly = is_string($attr->only) ? [$attr->only] : $attr->only;
+
+                    if ($attr->only !== null) {
+                        $visibleOnly = is_string($attr->only) ? [$attr->only] : InternalHelper::normalizeFieldsArray($attr->only);
+                    }
                     break;
 
                 default:
@@ -644,10 +650,15 @@ final class InternalModelData
         }
 
         if ($primaryKeyValue !== null && $cache->has($modelClass, $primaryKeyValue)) {
-            return $cache->get($modelClass, $primaryKeyValue);
+            return $cache
+                ->get($modelClass, $primaryKeyValue)
+                ->backbone
+                ->createInstance();
         }
 
-        $instance = new $modelClass($result, false);
+        $backbone = new ModelBackbone($modelClass, $result);
+        $instance = $backbone->createInstance();
+
         $cache->set($instance, $masterModel);
 
         return $instance;
@@ -758,7 +769,7 @@ final class InternalModelData
             return;
         }
 
-        throw new ModelException(sprintf('Field "%s" on model "%s" is a relationship that is not writable.', $def->name, $instance::class), ModelException::ERR_IMMUTABLE);
+        throw new ModelException(sprintf('Field "%s" on model "%s" is a relationship that is not writable.', $def->name, $instance->backbone->model), ModelException::ERR_IMMUTABLE);
     }
 
 }

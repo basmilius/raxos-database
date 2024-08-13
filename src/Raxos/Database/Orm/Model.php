@@ -3,100 +3,82 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
-use BackedEnum;
-use JetBrains\PhpStorm\Pure;
-use Raxos\Database\Error\{DatabaseException, ModelException};
-use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition};
+use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Orm\Definition\ColumnDefinition;
 use Raxos\Database\Query\QueryInterface;
-use Raxos\Foundation\Util\ArrayUtil;
-use function array_diff;
-use function array_is_list;
+use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
+use function array_diff_key;
 use function array_key_exists;
-use function array_map;
-use function array_merge;
-use function array_shift;
-use function array_unique;
-use function count;
+use function array_merge_recursive;
 use function implode;
-use function in_array;
 use function is_array;
-use function is_string;
-use function is_subclass_of;
 use function sprintf;
-use function str_starts_with;
 
 /**
  * Class Model
+ *
+ * @implements ModelInterface<static>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class Model extends ModelBase implements ModelInterface
+abstract class Model implements ModelInterface
 {
 
+    use ArrayAccessible;
+    use ObjectAccessible;
     use ModelDatabaseAccess;
 
-    private array $modified = [];
-    private array $hidden = [];
-    private array $visible = [];
-
-    private array $castedFields = [];
-    private array $macroCache = [];
-    private bool $isMacroCall = false;
-
     /**
-     * @var array<callable>
+     * @var ModelBackbone<static>
      * @internal
      * @private
      */
-    public array $__saveTasks = [];
+    public readonly ModelBackbone $backbone;
+
+    private array $hidden = [];
+    private array $visible = [];
 
     /**
      * ModelBase constructor.
      *
-     * @param array $data
-     * @param bool $isNew
-     * @param Model|null $master
+     * @param ModelBackbone|null $backbone
      *
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function __construct(
-        array $data = [],
-        protected bool $isNew = true,
-        ?self $master = null
+        ?ModelBackbone $backbone = null
     )
     {
-        parent::__construct($data, $master);
+        $this->backbone = $backbone ?? new ModelBackbone(static::class, [], true);
+        $this->backbone->addInstance($this);
+    }
 
-        InternalModelData::initialize(static::class);
-        $this->prepareModel();
-
-        if ($this->__master === null) {
-            $this->onInitialize($this->__data);
-        }
+    /**
+     * ModelBase destructor.
+     */
+    public function __destruct()
+    {
+        $this->backbone->removeInstance($this);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public function clone(): static
     {
-        $clone = parent::clone();
-        $clone->castedFields = &$this->castedFields;
-        $clone->isNew = &$this->isNew;
-
-        return $clone;
+        return $this->backbone->createInstance();
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public function destroy(): void
     {
@@ -109,56 +91,23 @@ abstract class Model extends ModelBase implements ModelInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
-    public function isModified(?string $key = null): bool
+    public function save(): void
     {
-        if (empty($this->modified)) {
-            return false;
-        }
-
-        if ($key !== null && !in_array($key, $this->modified, true)) {
-            return false;
-        }
-
-        return true;
+        $this->backbone->save($this);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    public function isHidden(string $key): bool
-    {
-        return in_array($key, $this->hidden, true);
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    public function isVisible(string $key): bool
-    {
-        return in_array($key, $this->visible, true);
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public function makeHidden(array|string $keys): static
     {
-        if (is_string($keys)) {
-            $keys = [$keys];
-        }
+        $keys = InternalHelper::normalizeFieldsArray($keys);
 
         $clone = $this->clone();
-        $clone->hidden = array_unique([...$this->hidden, ...$keys]);
-        $clone->visible = array_diff($this->visible, $clone->hidden);
+        $clone->hidden = array_merge_recursive($this->hidden, $keys);
+        $clone->visible = array_diff_key($this->visible, $clone->hidden);
 
         return $clone;
     }
@@ -166,17 +115,15 @@ abstract class Model extends ModelBase implements ModelInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public function makeVisible(array|string $keys): static
     {
-        if (is_string($keys)) {
-            $keys = [$keys];
-        }
+        $keys = InternalHelper::normalizeFieldsArray($keys);
 
         $clone = $this->clone();
-        $clone->visible = array_unique([...$this->visible, ...$keys]);
-        $clone->hidden = array_diff($this->hidden, $clone->visible);
+        $clone->visible = array_merge_recursive($this->visible, $keys);
+        $clone->hidden = array_diff_key($this->hidden, $clone->visible);
 
         return $clone;
     }
@@ -184,185 +131,28 @@ abstract class Model extends ModelBase implements ModelInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public function only(array|string $keys): static
     {
-        $fields = is_string($keys) ? [$keys] : $keys;
+        $keys = InternalHelper::normalizeFieldsArray($keys);
+        $visible = [];
         $hidden = [];
 
-        foreach (InternalModelData::getFields(static::class) as $field) {
-            if (in_array($field->name, $keys, true)) {
-                continue;
+        foreach (InternalModelData::getFields(static::class) as $definition) {
+            if (array_key_exists($definition->key, $keys)) {
+                $visible[$definition->key] = $keys[$definition->key];
+            } else {
+                $hidden[$definition->key] = null;
             }
-
-            if (in_array($field->alias, $keys, true)) {
-                $fields[] = $field->name;
-                continue;
-            }
-
-            $hidden[] = $field->name;
         }
 
         $clone = $this->clone();
         $clone->hidden = $hidden;
-        $clone->visible = $fields;
+        $clone->visible = $visible;
 
         return $clone;
     }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function save(): void
-    {
-        while (($saveTask = array_shift($this->__saveTasks)) !== null) {
-            $saveTask();
-        }
-
-        $pairs = [];
-
-        foreach ($this->modified as $field) {
-            $def = InternalModelData::getField(static::class, $field);
-            $value = parent::getValue($def?->key);
-
-            if ($def instanceof ColumnDefinition && $def->cast !== null) {
-                $value = InternalModelData::cast($def->cast, 'encode', $value, $this);
-            }
-
-            $pairs[$def->key] = $value;
-        }
-
-        $primaryKey = static::getPrimaryKey();
-        $primaryKey = is_array($primaryKey) ? $primaryKey : [$primaryKey];
-
-        if ($this->isNew) {
-            if (count($primaryKey) === 1) {
-                $primaryKeyValue = static::query()
-                    ->insertIntoValues(static::table(), $pairs)
-                    ->runReturning($primaryKey[0]);
-
-                // todo(Bas): this is probably not an auto increment field, figure out
-                //  if we should have an AutoIncrement attribute or something.
-                if ($primaryKeyValue === '0') {
-                    $primaryKeyValue = $this->{$primaryKey[0]};
-                }
-
-                $query = static::select()
-                    ->withoutModel();
-
-                self::addPrimaryKeyClauses($query, $primaryKeyValue);
-
-                /** @var array $data */
-                $data = $query->single();
-                $this->castedFields = [];
-                $this->onInitialize($data);
-                $this->__data = $data;
-            } else {
-                // todo(Bas): handle composite primary keys in the future.
-                static::query()
-                    ->insertIntoValues(static::table(), $pairs)
-                    ->run();
-            }
-
-            $this->isNew = false;
-
-            static::cache()->set($this);
-
-            $this->macroCache = [];
-        } elseif (!empty($pairs)) {
-            $primaryKey = array_map($this->getValue(...), $primaryKey);
-
-            static::update($primaryKey, $pairs);
-        }
-
-        $this->modified = [];
-    }
-
-    /**
-     * {@inheritdoc}
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function toArray(): array
-    {
-        $data = [];
-
-        foreach (InternalModelData::getColumns(static::class) as $def) {
-            $key = $def->alias ?? $def->name;
-
-            if ($this->isHidden($def->name)) {
-                continue;
-            }
-
-            if (InternalModelData::isRelation($def)) {
-                if ($this->isVisible($def->name)) {
-                    $data[$key] = InternalModelData::getRelation(static::class, $def)
-                        ->fetch($this);
-                }
-            } elseif ($this->isNew && $def->isPrimary) {
-                $data[$key] = null;
-            } elseif ($this->hasValue($def->key)) {
-                $data[$key] = $this->{$def->key};
-            }
-
-            if ($def->visibleOnly !== null && array_key_exists($def->name, $data)) {
-                if ($data[$key] instanceof self) {
-                    $data[$key] = $data[$key]->only($def->visibleOnly);
-                } elseif (is_array($data[$key])) {
-                    $data[$key] = ArrayUtil::only($data[$key], $def->visibleOnly);
-                }
-            }
-        }
-
-        foreach (InternalModelData::getMacros(static::class) as $def) {
-            if ($this->isHidden($def->name) || !$this->isVisible($def->name)) {
-                continue;
-            }
-
-            $data[$def->alias ?? $def->name] = $this->callMacro($def);
-        }
-
-        $this->onPublish($data);
-
-        return $data;
-    }
-
-    /**
-     * Invoked when the model instance is initialized.
-     *
-     * @param array $data
-     *
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    protected function onInitialize(array &$data): void
-    {
-        foreach (InternalModelData::getColumns(static::class) as $def) {
-            $fieldExists = array_key_exists($def->key, $data);
-
-            if (!$fieldExists && $this->isNew) {
-                continue;
-            }
-
-            if (!$fieldExists && array_key_exists($def->name, $data)) {
-                $data[$def->name] = $def->default;
-            }
-        }
-    }
-
-    /**
-     * Invoked before the model is published to json_encode for example.
-     *
-     * @param array $data
-     *
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    protected function onPublish(array &$data): void {}
 
     /**
      * {@inheritdoc}
@@ -371,33 +161,7 @@ abstract class Model extends ModelBase implements ModelInterface
      */
     public function getValue(string $key): mixed
     {
-        $def = InternalModelData::getField(static::class, $key);
-
-        if (!$this->isMacroCall && $def instanceof MacroDefinition) {
-            return $this->callMacro($def);
-        }
-
-        if (InternalModelData::isRelation($def)) {
-            return InternalModelData::getRelation(static::class, $def)->fetch($this);
-        }
-
-        if ($def instanceof ColumnDefinition && $def->cast !== null && !in_array($def->name, $this->castedFields, true)) {
-            $this->__data[$def->key] = InternalModelData::cast($def->cast, 'decode', $this->__data[$def->key], $this);
-            $this->castedFields[] = $def->name;
-        }
-
-        if ($def instanceof ColumnDefinition && $def->default !== null && !array_key_exists($def->key, $this->__data)) {
-            return $def->default;
-        }
-
-        $value = parent::getValue($def?->key ?? $key);
-
-        // note: enum support.
-        if ($def !== null && $value !== null && is_subclass_of($def->types[0], BackedEnum::class)) {
-            return $def->types[0]::tryFrom($value);
-        }
-
-        return $value;
+        return $this->backbone->getValue($this, $key);
     }
 
     /**
@@ -407,13 +171,27 @@ abstract class Model extends ModelBase implements ModelInterface
      */
     public function hasValue(string $key): bool
     {
-        $def = InternalModelData::getField(static::class, $key);
+        return $this->backbone->hasValue($this, $key);
+    }
 
-        if ($def instanceof ColumnDefinition || $def instanceof MacroDefinition) {
-            return true;
-        }
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function setValue(string $key, mixed $value): void
+    {
+        $this->backbone->setValue($this, $key, $value);
+    }
 
-        return parent::hasValue($key);
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function unsetValue(string $key): void
+    {
+        $this->backbone->unsetValue($this, $key);
     }
 
     /**
@@ -422,152 +200,88 @@ abstract class Model extends ModelBase implements ModelInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function setValue(string $key, mixed $value): void
+    public function jsonSerialize(): array
     {
-        $def = InternalModelData::getField(static::class, $key);
-
-        if ($def instanceof ColumnDefinition) {
-            if (InternalModelData::isRelation($def)) {
-                InternalModelData::setRelationValue($this, $def, InternalModelData::getRelation(static::class, $def), $value);
-            } else {
-                if ($def->isPrimary && !$this->isNew) {
-                    throw new ModelException(sprintf('Field "%s" is (part of) the primary key of model "%s" and is therefore not mutable.', $key, static::class), ModelException::ERR_IMMUTABLE);
-                }
-
-                if ($def->isImmutable && !$this->isNew) {
-                    throw new ModelException(sprintf('Field "%s" in model "%s" is immutable.', $key, static::class), ModelException::ERR_IMMUTABLE);
-                }
-
-                // note: enum support.
-                if (is_subclass_of($def->types[0], BackedEnum::class)) {
-                    $value = $value?->value;
-                }
-
-                // note: assume that the data is valid and does not need casting.
-                if ($def->cast !== null && !in_array($def->name, $this->castedFields, true)) {
-                    $this->castedFields[] = $def->name;
-                }
-
-                $this->modified[] = $def->name;
-
-                parent::setValue($def->key, $value);
-            }
-        } elseif ($def instanceof MacroDefinition) {
-            if (!static::connection()->tableColumnExists(static::table(), $def->alias ?? $def->name)) {
-                throw new ModelException(sprintf('Field "%s" is a non-writable macro on model "%s".', $key, static::class), ModelException::ERR_IMMUTABLE);
-            }
-
-            $this->modified[] = $def->name;
-
-            parent::setValue($def->name, $value);
-        } elseif (str_starts_with($key, '__')) {
-            parent::setValue($key, $value);
-        } else {
-            throw new ModelException(sprintf('Field "%s" is not writable on model "%s".', $key, static::class), ModelException::ERR_IMMUTABLE);
-        }
+        return $this->toArray();
     }
 
     /**
      * {@inheritdoc}
-     * @throws ModelException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
-    public function unsetValue(string $key): void
+    public function toArray(): array
     {
-        $def = InternalModelData::getField(static::class, $key);
+        $result = [];
 
-        if ($def instanceof MacroDefinition) {
-            throw new ModelException(sprintf('Field "%s" is a macro and cannot be unset.', $key), ModelException::ERR_IMMUTABLE);
-        }
+        foreach (InternalModelData::getFields(static::class) as $definition) {
+            $fieldKey = $definition->alias ?? $definition->name;
+            $isVisible = InternalHelper::isVisible(
+                $definition,
+                array_key_exists($definition->key, $this->visible),
+                array_key_exists($definition->key, $this->hidden)
+            );
 
-        parent::unsetValue($def?->name ?? $key);
-    }
+            if (!$isVisible) {
+                continue;
+            }
 
-    /**
-     * Calls the given macro.
-     *
-     * @param MacroDefinition $macro
-     *
-     * @return mixed
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    private function callMacro(MacroDefinition $macro): mixed
-    {
-        if (array_key_exists($macro->name, $this->macroCache)) {
-            return $this->macroCache[$macro->name];
-        }
+            $value = $this->getValue($fieldKey);
+            $only = $this->visible[$definition->key] ?? null;
 
-        $this->isMacroCall = true;
-        $result = $macro($this);
-        $this->isMacroCall = false;
+            if ($definition instanceof ColumnDefinition && $definition->visibleOnly !== null) {
+                $only = array_merge_recursive($definition->visibleOnly, $this->visible[$fieldKey] ?? []);
+            }
 
-        if ($macro->isCacheable) {
-            $this->macroCache[$macro->name] = $result;
+            if ($only !== null) {
+                if ($value instanceof self) {
+                    $value = $value->only($only)->toArray();
+                } elseif ($value instanceof ModelArrayList) {
+                    $value = $value->map(fn(self $v) => $v->only($only)->toArray());
+                }
+            }
+
+            $result[$fieldKey] = $value;
         }
 
         return $result;
     }
 
     /**
-     * Prepares the model for prime time.
-     * - Removes all defined fields from the class that are known to
-     *   be database related fields.
-     *
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
-    private function prepareModel(): void
+    public function __call(string $name, array $arguments): QueryInterface
     {
-        foreach (InternalModelData::getFields(static::class) as $def) {
-            unset($this->{$def->name});
-
-            if ($def->isHidden) {
-                $this->hidden[] = $def->name;
-            }
-
-            if ($def->isVisible) {
-                $this->visible[] = $def->name;
-            }
-        }
+        return $this->queryRelation($name);
     }
 
     /**
-     * Ensures that the given fields are returned as array.
-     *
-     * @param array|string|int $fields
-     *
-     * @return array
+     * {@inheritdoc}
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
-    protected static function ensureArrayFields(array|string|int $fields): array
+    public function __debugInfo(): array
     {
-        if (!is_array($fields)) {
-            $fields = [$fields];
-        }
-
-        if (array_is_list($fields)) {
-            $fields = array_fill_keys($fields, true);
-        }
-
-        return $fields;
+        return $this->toArray();
     }
 
     /**
-     * Extends the given fields with the given extended fields.
-     *
-     * @param array|string|int $fields
-     * @param array $extendedFields
-     *
-     * @return array
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected static function extendFields(array|string|int $fields, array $extendedFields): array
+    public function __toString(): string
     {
-        return array_merge(static::ensureArrayFields($fields), $extendedFields);
+        $primaryKeyValues = $this->getPrimaryKeyValues();
+
+        if (is_array($primaryKeyValues)) {
+            $primaryKeyValues = implode(', ', $primaryKeyValues);
+        }
+
+        return sprintf('%s(%s)', static::class, $primaryKeyValues);
     }
 
     /**
@@ -602,97 +316,131 @@ abstract class Model extends ModelBase implements ModelInterface
         return $query;
     }
 
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function __serialize(): array
-    {
-        $relations = [];
-
-        foreach (InternalModelData::getColumns(static::class) as $field) {
-            $name = $field->name;
-
-            if ($this->isHidden($name) || !$this->isVisible($name)) {
-                continue;
-            }
-
-            if ($this->{$field->key} === null) {
-                continue;
-            }
-
-            $relations[$name] = $this->{$field->key};
-        }
-
-        return [
-            $this->__data,
-            $this->hidden,
-            $this->visible,
-            $this->isNew,
-            $this->castedFields,
-            $relations
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function __unserialize(array $data): void
-    {
-        InternalModelData::initialize(static::class);
-
-        $this->prepareModel();
-
-        [
-            $this->__data,
-            $this->hidden,
-            $this->visible,
-            $this->isNew,
-            $this->castedFields,
-            $relations
-        ] = $data;
-
-        $pk = $this->getPrimaryKeyValues();
-
-        if (static::cache()->has(static::class, $pk)) {
-            $this->__master = static::cache()->get(static::class, $pk);
-            $this->castedFields = &$this->__master->castedFields;
-            $this->__data = &$this->__master->__data;
-            $this->isNew = &$this->__master->isNew;
-        } else {
-            $this->__master = null;
-            static::cache()->set($this);
-        }
-
-        foreach ($relations as $relation) {
-            if ($relation instanceof ModelArrayList) {
-                foreach ($relation as $r) {
-                    $r::cache()->set($r);
-                }
-            } elseif (isset($relation->__data)) {
-                $relation::cache()->set($relation);
-            }
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function __toString(): string
-    {
-        $primaryKeyValues = $this->getPrimaryKeyValues();
-
-        if (is_array($primaryKeyValues)) {
-            return sprintf('%s(%s)', static::class, implode(', ', $primaryKeyValues));
-        }
-
-        return sprintf('%s(%s)', static::class, $primaryKeyValues);
-    }
-
 }
+
+//$data = [];
+//$instance = $this;
+//
+//if ($only !== null) {
+//    $instance = $this->only($only);
+//}
+//
+//foreach (InternalModelData::getColumns(static::class) as $def) {
+//    $key = $def->alias ?? $def->name;
+//
+//    if ($instance->isHidden($def->name)) {
+//        continue;
+//    }
+//
+//    if (InternalModelData::isRelation($def)) {
+//        if ($instance->isVisible($def->name)) {
+//            $data[$key] = InternalModelData::getRelation(static::class, $def)
+//                ->fetch($instance);
+//        }
+//    } elseif ($instance->isNew && $def->isPrimary) {
+//        $data[$key] = null;
+//    } elseif ($instance->hasValue($def->key)) {
+//        $data[$key] = $instance->{$def->key};
+//    }
+//
+//    if ($def->visibleOnly !== null && array_key_exists($def->name, $data)) {
+//        if ($data[$key] instanceof self) {
+//            $data[$key] = $data[$key]->toArray($def->visibleOnly);
+//        } elseif ($data[$key] instanceof ModelArrayList) {
+//            $data[$key] = $data[$key]->map(fn(self $model) => $model->toArray($def->visibleOnly));
+//        } elseif (is_array($data[$key])) {
+//            $data[$key] = ArrayUtil::only($data[$key], $def->visibleOnly);
+//        }
+//    }
+//
+//    if ($only !== null && array_key_exists($key, $only) && $data[$key] instanceof self) {
+//        $data[$key] = $data[$key]->toArray($only[$key]);
+//    }
+//}
+//
+//foreach (InternalModelData::getMacros(static::class) as $def) {
+//    if ($instance->isHidden($def->name) || !$instance->isVisible($def->name)) {
+//        continue;
+//    }
+//
+//    $data[$def->alias ?? $def->name] = $instance->callMacro($def);
+//}
+//
+//$instance->onPublish($data);
+//
+//return $data;
+
+//    /**
+//     * {@inheritdoc}
+//     * @author Bas Milius <bas@mili.us>
+//     * @since 1.0.0
+//     */
+//    public function __serialize(): array
+//    {
+//        $relations = [];
+//
+//        foreach (InternalModelData::getColumns(static::class) as $field) {
+//            $name = $field->name;
+//
+//            if ($this->isHidden($name) || !$this->isVisible($name)) {
+//                continue;
+//            }
+//
+//            if ($this->{$field->key} === null) {
+//                continue;
+//            }
+//
+//            $relations[$name] = $this->{$field->key};
+//        }
+//
+//        return [
+//            $this->__data,
+//            $this->hidden,
+//            $this->visible,
+//            $this->isNew,
+//            $this->castedFields,
+//            $relations
+//        ];
+//    }
+//
+//    /**
+//     * {@inheritdoc}
+//     * @throws DatabaseException
+//     * @author Bas Milius <bas@mili.us>
+//     * @since 1.0.0
+//     */
+//    public function __unserialize(array $data): void
+//    {
+//        InternalModelData::initialize(static::class);
+//
+//        [
+//            $this->__data,
+//            $this->hidden,
+//            $this->visible,
+//            $this->isNew,
+//            $this->castedFields,
+//            $relations
+//        ] = $data;
+//
+//        $pk = $this->getPrimaryKeyValues();
+//
+//        if (static::cache()->has(static::class, $pk)) {
+//            $this->__master = static::cache()->get(static::class, $pk);
+//            $this->castedFields = &$this->__master->castedFields;
+//            $this->__data = &$this->__master->__data;
+//            $this->isNew = &$this->__master->isNew;
+//        } else {
+//            $this->__master = null;
+//            static::cache()->set($this);
+//        }
+//
+//        foreach ($relations as $relation) {
+//            if ($relation instanceof ModelArrayList) {
+//                foreach ($relation as $r) {
+//                    $r::cache()->set($r);
+//                }
+//            } elseif (isset($relation->__data)) {
+//                $relation::cache()->set($relation);
+//            }
+//        }
+//    }

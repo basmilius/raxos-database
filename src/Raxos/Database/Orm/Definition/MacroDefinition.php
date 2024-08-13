@@ -41,7 +41,7 @@ final readonly class MacroDefinition implements Arrayable
         public string|array $callable
     )
     {
-        $this->key = $this->name;
+        $this->key = $this->alias ?? $this->name;
     }
 
     /**

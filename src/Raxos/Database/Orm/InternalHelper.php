@@ -3,14 +3,19 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
+use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Orm\Definition\ColumnDefinition;
+use Raxos\Database\Orm\Definition\MacroDefinition;
 use Raxos\Database\Orm\Relation\RelationInterface;
 use Raxos\Database\Query\Struct\ColumnLiteral;
 use Raxos\Foundation\Collection\ArrayList;
 use WeakMap;
 use function array_shift;
 use function is_array;
+use function is_int;
+use function is_string;
 
 /**
  * Class InternalHelper
@@ -76,6 +81,7 @@ final class InternalHelper
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
+    #[Pure]
     public static function getRelationCacheHelper(Cache $cache): callable
     {
         return static function (Model $reference) use ($cache): Model {
@@ -139,6 +145,64 @@ final class InternalHelper
         }
 
         return $groups;
+    }
+
+    /**
+     * Returns TRUE if the given column of macro definition should
+     * be visible.
+     *
+     * @param ColumnDefinition|MacroDefinition $definition
+     * @param bool $forceVisible
+     * @param bool $forceHidden
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     * @see Model::toArray()
+     */
+    #[Pure]
+    public static function isVisible(ColumnDefinition|MacroDefinition $definition, bool $forceVisible, bool $forceHidden): bool
+    {
+        if (InternalModelData::isRelation($definition)) {
+            return $definition->isVisible && !$forceHidden || $forceVisible;
+        }
+
+        if ($definition instanceof ColumnDefinition) {
+            return !$definition->isHidden && !$forceHidden || $forceVisible;
+        }
+
+        return $definition->isVisible && !$forceHidden || $forceVisible;
+    }
+
+    /**
+     * Returns a normalized array for use in visibility.
+     *
+     * @param array|string $fields
+     *
+     * @return array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    #[Pure]
+    public static function normalizeFieldsArray(array|string $fields): array
+    {
+        if (is_string($fields)) {
+            return [$fields => null];
+        }
+
+        $result = [];
+
+        foreach ($fields as $key => $value) {
+            if (is_int($key)) {
+                $result[$value] = null;
+            } elseif ($value === null) {
+                $result[$key] = null;
+            } else {
+                $result[$key] = self::normalizeFieldsArray($value);
+            }
+        }
+
+        return $result;
     }
 
 }

@@ -343,14 +343,14 @@ interface QueryBaseInterface
     /**
      * Returns a query that returns a value. Useful for insert queries.
      *
-     * @param Literal|string $column
+     * @param Literal|Literal[]|string|string[] $column
      *
-     * @return string|int
+     * @return string[]|int[]|string|int
      * @throws DatabaseException
      * @since 1.0.16
      * @author Bas Milius <bas@mili.us>
      */
-    public function runReturning(Literal|string $column): string|int;
+    public function runReturning(array|Literal|string $column): array|string|int;
 
     /**
      * Executes the query and returns the first row. When no result is found

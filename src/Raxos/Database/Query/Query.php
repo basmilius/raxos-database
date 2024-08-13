@@ -11,17 +11,18 @@ use Stringable;
 use function array_is_list;
 use function array_keys;
 use function array_map;
+use function array_shift;
 use function array_values;
 use function class_exists;
 use function count;
 use function is_array;
+use function is_float;
 use function is_int;
 use function is_numeric;
 use function is_string;
 use function is_subclass_of;
 use function sprintf;
 use function str_contains;
-use function strval;
 use function substr;
 use function trim;
 
@@ -606,6 +607,43 @@ abstract class Query extends QueryBase implements QueryInterface
     public function whereNull(Literal|string $field): static
     {
         return $this->where($field, ComparatorAwareLiteral::isNull());
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    public function wherePrimaryKey(string $modelClass, array|int|string $primaryKey): static
+    {
+        if (!is_array($primaryKey)) {
+            $primaryKey = [$primaryKey];
+        }
+
+        foreach (InternalModelData::getColumns($modelClass) as $definition) {
+            if (!$definition->isPrimary) {
+                continue;
+            }
+
+            if (empty($primaryKey)) {
+                throw new QueryException(sprintf('Too few primary key values for model "%s".', $modelClass), QueryException::ERR_PRIMARY_KEY_MISMATCH);
+            }
+
+            $value = array_shift($primaryKey);
+            $columnName = $definition->key;
+
+            if (is_int($value) || is_float($value)) {
+                $value = literal($value);
+            }
+
+            $this->where($modelClass::col($columnName), $value);
+        }
+
+        if (!empty($primaryKey)) {
+            throw new QueryException(sprintf('Too many primary key values for model "%s".', $modelClass), QueryException::ERR_PRIMARY_KEY_MISMATCH);
+        }
+
+        return $this;
     }
 
     /**

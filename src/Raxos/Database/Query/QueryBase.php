@@ -12,7 +12,7 @@ use Raxos\Database\Connection\Connection;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ComparatorAwareLiteral, Literal, ValueInterface};
+use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ColumnLiteral, ComparatorAwareLiteral, Literal, ValueInterface};
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use Raxos\Foundation\Util\ArrayUtil;
@@ -153,6 +153,10 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
      */
     public function addParam(BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $value): string|int
     {
+        if ($value instanceof Literal) {
+            return (string)$value;
+        }
+
         if ($value instanceof ValueInterface) {
             $value = $value->get($this);
         }
@@ -565,15 +569,30 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    public function runReturning(Literal|string $column): string|int
+    public function runReturning(array|Literal|string $column): array|string|int
     {
         $statement = $this
-            ->raw('returning ' . ($column instanceof Literal ? $column->get($this) : $this->dialect->escapeField($column)))
+            ->addPiece('returning', $column, $this->dialect->fieldSeparator)
             ->statement();
 
         $statement->run();
 
-        return $statement->pdoStatement->fetchColumn();
+        if (!is_array($column)) {
+            return $statement->pdoStatement->fetchColumn();
+        }
+
+        $data = $statement->pdoStatement->fetch(PDO::FETCH_ASSOC);
+        $result = [];
+
+        foreach ($column as $col) {
+            if ($col instanceof ColumnLiteral) {
+                $result[$col->column] = $data[$col->column];
+            } else {
+                $result[$col] = $data[$col];
+            }
+        }
+
+        return $result;
     }
 
     /**

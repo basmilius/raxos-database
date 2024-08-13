@@ -80,12 +80,12 @@ final readonly class HasManyRelation implements RelationInterface
         $cache = $instance::cache();
         $relationCache = InternalHelper::getRelationCache($this);
 
-        $relationCache[$instance->__master] ??= $this
+        $relationCache[$instance->backbone] ??= $this
             ->query($instance)
             ->arrayList()
             ->map(InternalHelper::getRelationCacheHelper($cache));
 
-        return $relationCache[$instance->__master];
+        return $relationCache[$instance->backbone];
     }
 
     /**
@@ -107,7 +107,7 @@ final readonly class HasManyRelation implements RelationInterface
      */
     public function rawQuery(): QueryInterface
     {
-        return $this->referenceModel::query(false)
+        return $this->referenceModel::select(isPrepared: false)
             ->where($this->referenceKey, $this->declaringKey)
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy));
@@ -123,7 +123,7 @@ final readonly class HasManyRelation implements RelationInterface
         $relationCache = InternalHelper::getRelationCache($this);
 
         $values = $instances
-            ->filter(fn(Model $instance) => !isset($relationCache[$instance->__master]))
+            ->filter(fn(Model $instance) => !isset($relationCache[$instance->backbone]))
             ->column($this->declaringKey->column)
             ->unique();
 
@@ -138,7 +138,7 @@ final readonly class HasManyRelation implements RelationInterface
             ->arrayList();
 
         foreach ($instances as $instance) {
-            $relationCache[$instance->__master] = $results->filter(fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column});
+            $relationCache[$instance->backbone] = $results->filter(fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column});
         }
     }
 

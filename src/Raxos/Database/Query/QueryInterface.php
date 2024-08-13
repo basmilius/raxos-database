@@ -6,6 +6,7 @@ namespace Raxos\Database\Query;
 use BackedEnum;
 use Raxos\Database\Error\{DatabaseException, QueryException};
 use Raxos\Database\Query\Struct\{Literal, ValueInterface};
+use Raxos\Database\Orm\Model;
 use Stringable;
 
 /**
@@ -564,6 +565,25 @@ interface QueryInterface extends QueryBaseInterface
      * @since 1.0.0
      */
     public function whereNull(Literal|string $field): static;
+
+    /**
+     * Adds a set of where expressions for the primary key of the given
+     * model class. If multiple primary keys exists for the model, all
+     * of them are added using `and`.
+     *
+     * Example: `where table.pk1 = 1 and table.pk2 = 'test'`
+     *
+     * @template TQueryModel of Model
+     *
+     * @param class-string<TQueryModel> $modelClass
+     * @param array|string|int $primaryKey
+     *
+     * @return QueryInterface<TModel>
+     * @throws DatabaseException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    public function wherePrimaryKey(string $modelClass, array|string|int $primaryKey): static;
 
     /**
      * Queries the given relation based on one condition.

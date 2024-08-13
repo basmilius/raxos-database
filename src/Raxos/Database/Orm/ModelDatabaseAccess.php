@@ -11,15 +11,15 @@ use Raxos\Database\Error\{DatabaseException, ModelException, QueryException};
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\{ColumnLiteral, ComparatorAwareLiteral, Literal, ValueInterface};
 use Stringable;
+use function array_fill_keys;
+use function array_is_list;
 use function array_map;
+use function array_merge;
 use function array_shift;
 use function count;
 use function implode;
 use function is_array;
-use function is_float;
-use function is_int;
 use function is_string;
-use function Raxos\Database\Query\literal;
 use function sprintf;
 
 /**
@@ -189,12 +189,10 @@ trait ModelDatabaseAccess
     {
         static::cache()->removeByKey(static::class, $primaryKey);
 
-        $query = static::query()
-            ->deleteFrom(static::table());
-
-        self::addPrimaryKeyClauses($query, $primaryKey);
-
-        $query->run();
+        static::query()
+            ->deleteFrom(static::table())
+            ->wherePrimaryKey(static::class, $primaryKey)
+            ->run();
     }
 
     /**
@@ -213,12 +211,10 @@ trait ModelDatabaseAccess
             return true;
         }
 
-        $query = static::select()
-            ->withoutModel();
-
-        self::addPrimaryKeyClauses($query, $primaryKey);
-
-        return $query->resultCount() >= 1;
+        return static::select()
+                ->withoutModel()
+                ->wherePrimaryKey(static::class, $primaryKey)
+                ->resultCount() >= 1;
     }
 
     /**
@@ -266,11 +262,9 @@ trait ModelDatabaseAccess
             return static::cache()->get(static::class, $primaryKey);
         }
 
-        $query = static::select();
-
-        self::addPrimaryKeyClauses($query, $primaryKey);
-
-        return $query->single();
+        return static::select()
+            ->wherePrimaryKey(static::class, $primaryKey)
+            ->single();
     }
 
     /**
@@ -516,12 +510,10 @@ trait ModelDatabaseAccess
      */
     public static function update(array|string|int $primaryKey, array $pairs): void
     {
-        $query = static::query()
-            ->update(static::table(), $pairs);
-
-        self::addPrimaryKeyClauses($query, $primaryKey);
-
-        $query->run();
+        static::query()
+            ->update(static::table(), $pairs)
+            ->wherePrimaryKey(static::class, $primaryKey)
+            ->run();
     }
 
     /**
@@ -704,44 +696,42 @@ trait ModelDatabaseAccess
         return InternalModelData::$table[static::class] ?? throw new ModelException(sprintf('Model "%s" does not have a table assigned.', static::class), ModelException::ERR_NO_TABLE_ASSIGNED);
     }
 
+
     /**
-     * Adds primary key where clauses to the given query.
+     * Ensures that the given fields are returned as array.
      *
-     * @param QueryInterface $query
-     * @param array|string|int $primaryKey
+     * @param array|string|int $fields
      *
-     * @throws DatabaseException
+     * @return array
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
-    private static function addPrimaryKeyClauses(QueryInterface $query, array|string|int $primaryKey): void
+    protected static function ensureArrayFields(array|string|int $fields): array
     {
-        if (!is_array($primaryKey)) {
-            $primaryKey = [$primaryKey];
+        if (!is_array($fields)) {
+            $fields = [$fields];
         }
 
-        foreach (InternalModelData::getColumns(static::class) as $field) {
-            if (!$field->isPrimary) {
-                continue;
-            }
-
-            if (empty($primaryKey)) {
-                throw new QueryException('Too few primary key values.', QueryException::ERR_PRIMARY_KEY_MISMATCH);
-            }
-
-            $value = array_shift($primaryKey);
-            $fieldName = $field->name;
-
-            if (is_int($value) || is_float($value)) {
-                $value = literal($value);
-            }
-
-            $query->where(static::col($fieldName), $value);
+        if (array_is_list($fields)) {
+            $fields = array_fill_keys($fields, true);
         }
 
-        if (!empty($primaryKey)) {
-            throw new QueryException('Too many primary key values.', QueryException::ERR_PRIMARY_KEY_MISMATCH);
-        }
+        return $fields;
+    }
+
+    /**
+     * Extends the given fields with the given extended fields.
+     *
+     * @param array|string|int $fields
+     * @param array $extendedFields
+     *
+     * @return array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    protected static function extendFields(array|string|int $fields, array $extendedFields): array
+    {
+        return array_merge(static::ensureArrayFields($fields), $extendedFields);
     }
 
     /**
