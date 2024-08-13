@@ -9,7 +9,7 @@ use PDOStatement;
 use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Error\{DatabaseException, QueryException};
 use Raxos\Database\Logger\QueryEvent;
-use Raxos\Database\Orm\{InternalModelData, Model, ModelArrayList};
+use Raxos\Database\Orm\{InternalStructure, Model, ModelArrayList};
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
@@ -210,7 +210,7 @@ class Statement
             throw new QueryException('Cannot create model instance, the assigned model does not exist.', QueryException::ERR_INVALID_MODEL);
         }
 
-        return InternalModelData::createInstance($this->modelClass, $result);
+        return InternalStructure::createInstance($this->modelClass, $result);
     }
 
     /**
@@ -381,7 +381,7 @@ class Statement
             return;
         }
 
-        InternalModelData::eagerLoadRelations(
+        InternalStructure::eagerLoadRelations(
             $this->modelClass,
             $instances,
             $this->eagerLoad,

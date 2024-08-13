@@ -30,7 +30,7 @@ use function is_subclass_of;
 use function sprintf;
 
 /**
- * Class InternalModelData
+ * Class InternalStructure
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
@@ -38,7 +38,7 @@ use function sprintf;
  * @internal
  * @private
  */
-final class InternalModelData
+final class InternalStructure
 {
 
     /** @var array<class-string<Model>, CastInterface|null> */
@@ -712,7 +712,7 @@ final class InternalModelData
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
-     * @see InternalModelData::eagerLoadRelation()
+     * @see InternalStructure::eagerLoadRelation()
      */
     public static function eagerLoadRelations(string $modelClass, array $instances, array $forced = [], array $disabled = []): void
     {

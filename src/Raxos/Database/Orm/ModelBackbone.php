@@ -57,7 +57,7 @@ final class ModelBackbone implements ModelBackboneInterface
         public bool $isNew = false
     )
     {
-        InternalModelData::initialize($this->model);
+        InternalStructure::initialize($this->model);
     }
 
     /**
@@ -69,7 +69,7 @@ final class ModelBackbone implements ModelBackboneInterface
     {
         $this->instances[] = $instance;
 
-        foreach (InternalModelData::getFields($this->model) as $definition) {
+        foreach (InternalStructure::getFields($this->model) as $definition) {
             unset($instance->{$definition->name});
         }
     }
@@ -151,7 +151,7 @@ final class ModelBackbone implements ModelBackboneInterface
         $values = [];
 
         foreach ($this->modified as $key) {
-            $definition = InternalModelData::getField($this->model, $key);
+            $definition = InternalStructure::getField($this->model, $key);
             $value = $this->getValue($instance, $definition->name);
 
             if ($value instanceof BackedEnum) {
@@ -165,8 +165,8 @@ final class ModelBackbone implements ModelBackboneInterface
         $primaryKey = is_array($primaryKey) ? $primaryKey : [$primaryKey];
 
         if ($this->isNew) {
-            foreach (InternalModelData::getColumns($this->model) as $definition) {
-                if (isset($values[$definition->key]) || InternalModelData::isRelation($definition)) {
+            foreach (InternalStructure::getColumns($this->model) as $definition) {
+                if (isset($values[$definition->key]) || InternalStructure::isRelation($definition)) {
                     continue;
                 }
 
@@ -216,20 +216,20 @@ final class ModelBackbone implements ModelBackboneInterface
      */
     public function getValue(Model $instance, string $key): mixed
     {
-        $definition = InternalModelData::getField($this->model, $key);
+        $definition = InternalStructure::getField($this->model, $key);
 
         if (!$this->isDoingMacro && $definition instanceof MacroDefinition) {
             return $this->computeMacro($instance, $definition);
         }
 
-        if (InternalModelData::isRelation($definition)) {
-            return InternalModelData::getRelation($this->model, $definition)
+        if (InternalStructure::isRelation($definition)) {
+            return InternalStructure::getRelation($this->model, $definition)
                 ->fetch($instance);
         }
 
         if ($definition instanceof ColumnDefinition) {
             if ($definition->cast !== null) {
-                return $this->castCache[$definition->name] ??= InternalModelData::cast($definition->cast, 'decode', $this->data[$definition->key], $instance);
+                return $this->castCache[$definition->name] ??= InternalStructure::cast($definition->cast, 'decode', $this->data[$definition->key], $instance);
             }
 
             if ($definition->default !== null && !array_key_exists($definition->name, $this->data)) {
@@ -259,7 +259,7 @@ final class ModelBackbone implements ModelBackboneInterface
      */
     public function hasValue(Model $instance, string $key): bool
     {
-        $definition = InternalModelData::getField($this->model, $key);
+        $definition = InternalStructure::getField($this->model, $key);
 
         return $definition instanceof ColumnDefinition
             || $definition instanceof MacroDefinition
@@ -273,11 +273,11 @@ final class ModelBackbone implements ModelBackboneInterface
      */
     public function setValue(Model $instance, string $key, mixed $value): void
     {
-        $definition = InternalModelData::getField($this->model, $key);
+        $definition = InternalStructure::getField($this->model, $key);
 
         if ($definition instanceof ColumnDefinition) {
-            if (InternalModelData::isRelation($definition)) {
-                InternalModelData::setRelationValue($instance, $definition, InternalModelData::getRelation($this->model, $definition), $value);
+            if (InternalStructure::isRelation($definition)) {
+                InternalStructure::setRelationValue($instance, $definition, InternalStructure::getRelation($this->model, $definition), $value);
 
                 return;
             }
@@ -292,7 +292,7 @@ final class ModelBackbone implements ModelBackboneInterface
 
             if ($definition->cast !== null) {
                 unset($this->castCache[$definition->name]);
-                $value = InternalModelData::cast($definition->cast, 'encode', $value, $instance);
+                $value = InternalStructure::cast($definition->cast, 'encode', $value, $instance);
             }
 
             if (is_subclass_of($definition->types[0], BackedEnum::class)) {
@@ -330,7 +330,7 @@ final class ModelBackbone implements ModelBackboneInterface
      */
     public function unsetValue(Model $instance, string $key): void
     {
-        $definition = InternalModelData::getField($this->model, $key);
+        $definition = InternalStructure::getField($this->model, $key);
 
         if ($definition instanceof MacroDefinition) {
             throw new ModelException(sprintf('Field "%s" of model "%s" is a macro and cannot be unset.', $key, $this->model), ModelException::ERR_IMMUTABLE);

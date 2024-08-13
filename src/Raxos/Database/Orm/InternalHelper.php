@@ -67,9 +67,9 @@ final class InternalHelper
      */
     public static function getRelationCache(RelationInterface $relation): WeakMap
     {
-        InternalModelData::$relationCache ??= new WeakMap();
+        InternalStructure::$relationCache ??= new WeakMap();
 
-        return InternalModelData::$relationCache[$relation] ??= new WeakMap();
+        return InternalStructure::$relationCache[$relation] ??= new WeakMap();
     }
 
     /**
@@ -163,7 +163,7 @@ final class InternalHelper
     #[Pure]
     public static function isVisible(ColumnDefinition|MacroDefinition $definition, bool $forceVisible, bool $forceHidden): bool
     {
-        if (InternalModelData::isRelation($definition)) {
+        if (InternalStructure::isRelation($definition)) {
             return $definition->isVisible && !$forceHidden || $forceVisible;
         }
 

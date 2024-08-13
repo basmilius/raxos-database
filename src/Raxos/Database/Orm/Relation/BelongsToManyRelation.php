@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Orm\{InternalHelper, InternalModelData, Model, ModelArrayList};
+use Raxos\Database\Orm\{InternalHelper, InternalStructure, Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsToMany;
 use Raxos\Database\Orm\Definition\ColumnDefinition;
 use Raxos\Database\Query\QueryInterface;
@@ -56,7 +56,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
     )
     {
         $this->referenceModel = $this->attribute->referenceModel;
-        InternalModelData::initialize($this->referenceModel);
+        InternalStructure::initialize($this->referenceModel);
 
         $linkingTable = $this->attribute->linkingTable ?? (function () {
             $tables = [

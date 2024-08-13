@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Orm\{InternalHelper, InternalModelData, Model, ModelArrayList};
+use Raxos\Database\Orm\{InternalHelper, InternalStructure, Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasManyThrough;
 use Raxos\Database\Orm\Definition\ColumnDefinition;
 use Raxos\Database\Query\QueryInterface;
@@ -59,8 +59,8 @@ final readonly class HasManyThroughRelation implements RelationInterface
     {
         $this->referenceModel = $this->attribute->referenceModel;
         $this->linkingModel = $this->attribute->linkingModel;
-        InternalModelData::initialize($this->referenceModel);
-        InternalModelData::initialize($this->linkingModel);
+        InternalStructure::initialize($this->referenceModel);
+        InternalStructure::initialize($this->linkingModel);
 
         $dialect = $this->referenceModel::dialect();
         $declaringPrimaryKey = InternalHelper::getRelationPrimaryKey($this->declaringModel);

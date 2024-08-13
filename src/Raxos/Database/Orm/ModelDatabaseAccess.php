@@ -74,13 +74,13 @@ trait ModelDatabaseAccess
      */
     public function queryRelation(string $field): QueryInterface
     {
-        $def = InternalModelData::getField(static::class, $field);
+        $def = InternalStructure::getField(static::class, $field);
 
-        if ($def === null || !InternalModelData::isRelation($def)) {
+        if ($def === null || !InternalStructure::isRelation($def)) {
             throw new ModelException(sprintf('Field %s is not a relation.', $field), ModelException::ERR_RELATION_NOT_FOUND);
         }
 
-        return InternalModelData::getRelation(static::class, $def)
+        return InternalStructure::getRelation(static::class, $def)
             ->query($this);
     }
 
@@ -171,9 +171,9 @@ trait ModelDatabaseAccess
      */
     public static function connection(): ConnectionInterface
     {
-        InternalModelData::initialize(static::class);
+        InternalStructure::initialize(static::class);
 
-        return Db::getOrFail(InternalModelData::$connectionId[static::class] ?? 'default');
+        return Db::getOrFail(InternalStructure::$connectionId[static::class] ?? 'default');
     }
 
     /**
@@ -657,7 +657,7 @@ trait ModelDatabaseAccess
         return $knownPrimaryKey[static::class] ??= (static function (): array|string|null {
             $columns = [];
 
-            foreach (InternalModelData::getColumns(static::class) as $def) {
+            foreach (InternalStructure::getColumns(static::class) as $def) {
                 if ($def->isPrimary) {
                     $columns[] = $def->key;
                 }
@@ -687,13 +687,13 @@ trait ModelDatabaseAccess
      */
     public static function table(): string
     {
-        if (isset(InternalModelData::$table[static::class])) {
-            return InternalModelData::$table[static::class];
+        if (isset(InternalStructure::$table[static::class])) {
+            return InternalStructure::$table[static::class];
         }
 
-        InternalModelData::initialize(static::class);
+        InternalStructure::initialize(static::class);
 
-        return InternalModelData::$table[static::class] ?? throw new ModelException(sprintf('Model "%s" does not have a table assigned.', static::class), ModelException::ERR_NO_TABLE_ASSIGNED);
+        return InternalStructure::$table[static::class] ?? throw new ModelException(sprintf('Model "%s" does not have a table assigned.', static::class), ModelException::ERR_NO_TABLE_ASSIGNED);
     }
 
 

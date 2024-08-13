@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Orm\{InternalHelper, InternalModelData, Model};
+use Raxos\Database\Orm\{InternalHelper, InternalStructure, Model};
 use Raxos\Database\Orm\Attribute\BelongsTo;
 use Raxos\Database\Orm\Definition\ColumnDefinition;
 use Raxos\Database\Query\QueryInterface;
@@ -51,7 +51,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     )
     {
         $this->referenceModel = $this->column->types[0] ?? 0;
-        InternalModelData::initialize($this->referenceModel);
+        InternalStructure::initialize($this->referenceModel);
 
         $dialect = $this->referenceModel::dialect();
         $referencePrimaryKey = InternalHelper::getRelationPrimaryKey($this->referenceModel);

@@ -5,7 +5,7 @@ namespace Raxos\Database\Query;
 
 use BackedEnum;
 use Raxos\Database\Error\{DatabaseException, QueryException};
-use Raxos\Database\Orm\{InternalModelData, Model};
+use Raxos\Database\Orm\{InternalStructure, Model};
 use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, Literal, SubQueryLiteral, ValueInterface};
 use Stringable;
 use function array_is_list;
@@ -620,7 +620,7 @@ abstract class Query extends QueryBase implements QueryInterface
             $primaryKey = [$primaryKey];
         }
 
-        foreach (InternalModelData::getColumns($modelClass) as $definition) {
+        foreach (InternalStructure::getColumns($modelClass) as $definition) {
             if (!$definition->isPrimary) {
                 continue;
             }
@@ -1023,8 +1023,8 @@ abstract class Query extends QueryBase implements QueryInterface
             throw new QueryException('The query needs a model to use the whereHas function.', QueryException::ERR_INVALID_MODEL);
         }
 
-        $field = InternalModelData::getField($this->modelClass, $relation) ?? throw new QueryException(sprintf('Could not find relationship %s in model %s.', $relation, $this->modelClass), QueryException::ERR_FIELD_NOT_FOUND);
-        $query = InternalModelData::getRelation($this->modelClass, $field)
+        $field = InternalStructure::getField($this->modelClass, $relation) ?? throw new QueryException(sprintf('Could not find relationship %s in model %s.', $relation, $this->modelClass), QueryException::ERR_FIELD_NOT_FOUND);
+        $query = InternalStructure::getRelation($this->modelClass, $field)
             ->rawQuery();
 
         if ($fn !== null) {

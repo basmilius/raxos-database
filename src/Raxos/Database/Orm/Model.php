@@ -139,7 +139,7 @@ abstract class Model implements ModelInterface
         $visible = [];
         $hidden = [];
 
-        foreach (InternalModelData::getFields(static::class) as $definition) {
+        foreach (InternalStructure::getFields(static::class) as $definition) {
             if (array_key_exists($definition->key, $keys)) {
                 $visible[$definition->key] = $keys[$definition->key];
             } else {
@@ -214,7 +214,7 @@ abstract class Model implements ModelInterface
     {
         $result = [];
 
-        foreach (InternalModelData::getFields(static::class) as $definition) {
+        foreach (InternalStructure::getFields(static::class) as $definition) {
             $fieldKey = $definition->alias ?? $definition->name;
             $isVisible = InternalHelper::isVisible(
                 $definition,
@@ -318,58 +318,6 @@ abstract class Model implements ModelInterface
 
 }
 
-//$data = [];
-//$instance = $this;
-//
-//if ($only !== null) {
-//    $instance = $this->only($only);
-//}
-//
-//foreach (InternalModelData::getColumns(static::class) as $def) {
-//    $key = $def->alias ?? $def->name;
-//
-//    if ($instance->isHidden($def->name)) {
-//        continue;
-//    }
-//
-//    if (InternalModelData::isRelation($def)) {
-//        if ($instance->isVisible($def->name)) {
-//            $data[$key] = InternalModelData::getRelation(static::class, $def)
-//                ->fetch($instance);
-//        }
-//    } elseif ($instance->isNew && $def->isPrimary) {
-//        $data[$key] = null;
-//    } elseif ($instance->hasValue($def->key)) {
-//        $data[$key] = $instance->{$def->key};
-//    }
-//
-//    if ($def->visibleOnly !== null && array_key_exists($def->name, $data)) {
-//        if ($data[$key] instanceof self) {
-//            $data[$key] = $data[$key]->toArray($def->visibleOnly);
-//        } elseif ($data[$key] instanceof ModelArrayList) {
-//            $data[$key] = $data[$key]->map(fn(self $model) => $model->toArray($def->visibleOnly));
-//        } elseif (is_array($data[$key])) {
-//            $data[$key] = ArrayUtil::only($data[$key], $def->visibleOnly);
-//        }
-//    }
-//
-//    if ($only !== null && array_key_exists($key, $only) && $data[$key] instanceof self) {
-//        $data[$key] = $data[$key]->toArray($only[$key]);
-//    }
-//}
-//
-//foreach (InternalModelData::getMacros(static::class) as $def) {
-//    if ($instance->isHidden($def->name) || !$instance->isVisible($def->name)) {
-//        continue;
-//    }
-//
-//    $data[$def->alias ?? $def->name] = $instance->callMacro($def);
-//}
-//
-//$instance->onPublish($data);
-//
-//return $data;
-
 //    /**
 //     * {@inheritdoc}
 //     * @author Bas Milius <bas@mili.us>
@@ -379,7 +327,7 @@ abstract class Model implements ModelInterface
 //    {
 //        $relations = [];
 //
-//        foreach (InternalModelData::getColumns(static::class) as $field) {
+//        foreach (InternalStructure::getColumns(static::class) as $field) {
 //            $name = $field->name;
 //
 //            if ($this->isHidden($name) || !$this->isVisible($name)) {
@@ -411,7 +359,7 @@ abstract class Model implements ModelInterface
 //     */
 //    public function __unserialize(array $data): void
 //    {
-//        InternalModelData::initialize(static::class);
+//        InternalStructure::initialize(static::class);
 //
 //        [
 //            $this->__data,
