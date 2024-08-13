@@ -9,6 +9,23 @@ use JetBrains\PhpStorm\Pure;
 /**
  * Class HasOne
  *
+ * Defines a has one relation between two models. For example, a single
+ * user can have a single address. The address belongs to the user.
+ *
+ * User 1...1 Address
+ *
+ * <code>
+ *     class User extends Model {
+ *         #[HasOne]
+ *         public Address $address;
+ *     }
+ *
+ *     class Address extends Model {
+ *         #[BelongsTo]
+ *         public User $user;
+ *     }
+ * </code>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.16

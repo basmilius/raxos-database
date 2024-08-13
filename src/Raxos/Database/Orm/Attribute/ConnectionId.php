@@ -9,6 +9,13 @@ use JetBrains\PhpStorm\Pure;
 /**
  * Class ConnectionId
  *
+ * Defines the default connection id the model should use.
+ *
+ * <code>
+ *     #[ConnectionId('crm')]
+ *     class Person extends Model {}
+ * </code>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.16

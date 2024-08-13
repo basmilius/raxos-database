@@ -10,6 +10,17 @@ use Raxos\Database\Orm\Relation\RelationInterface;
 /**
  * Interface CustomRelationInterface
  *
+ * <code>
+ *     #[Attribute(Attribute::TARGET_PROPERTY)]
+ *     class Friends implement CustomRelationInterface
+ *     {
+ *         public function createRelationInstance(CustomRelationInterface $attribute, ColumnDefinition $column, string $declaringModel): RelationInterface
+ *         {
+ *             return new FriendsRelation($attribute, $column, $declaringModel);
+ *         }
+ *     }
+ * </code>
+ *
  * @template TDeclaringModel of Model
  * @template TReferenceModel of Model
  * @extends RelationInterface<TDeclaringModel, TReferenceModel>

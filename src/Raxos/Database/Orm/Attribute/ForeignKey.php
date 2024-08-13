@@ -8,9 +8,18 @@ use Attribute;
 /**
  * Class ForeignKey
  *
+ * Defines a foreign key database column.
+ *
+ * <code>
+ *     class Post extends Model {
+ *         #[ForeignKey]
+ *         public string $creatorId;
+ *     }
+ * </code>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.0
+ * @since 1.0.16
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class ForeignKey extends Column {}

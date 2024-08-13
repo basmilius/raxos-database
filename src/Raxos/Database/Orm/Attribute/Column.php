@@ -9,6 +9,15 @@ use JetBrains\PhpStorm\Pure;
 /**
  * Class Column
  *
+ * Defines a database column.
+ *
+ * <code>
+ *     class User extends Model {
+ *         #[Column]
+ *         public string $name;
+ *     }
+ * </code>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.0

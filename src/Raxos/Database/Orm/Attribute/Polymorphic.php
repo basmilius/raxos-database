@@ -10,6 +10,26 @@ use Raxos\Database\Orm\Model;
 /**
  * Class Polymorphic
  *
+ * Defines a polymorphic structure. This is used when multiple model types
+ * share a single database table. By default, the `type` column is used to
+ * determine which class should be used for the database record.
+ *
+ * <code>
+ *     #[Polymorphic(map: [])]
+ *     #[Table('shop_element')]
+ *     abstract class ShopElement extends Model {
+ *         // common fields
+ *     }
+ *
+ *     class ShopElementButton extends ShopElement {
+ *         // fields only for a button shop element
+ *     }
+ *
+ *     class ShopElementProduct extends ShopElement {
+ *         // fields only for a product shop element
+ *     }
+ * </code>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.0

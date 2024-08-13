@@ -10,6 +10,24 @@ use Raxos\Database\Orm\Model;
 /**
  * Class HasMany
  *
+ * Defines a has many relation between two models. For example, a single
+ * user can have multiple addresses. The address on the other hand belongs
+ * to a single user.
+ *
+ * User 1...∞ Address
+ *
+ * <code>
+ *     class User extends Model {
+ *         #[HasMany(Address:class)]
+ *         public ModelArrayList $addresses;
+ *     }
+ *
+ *     class Address extends Model {
+ *         #[BelongsTo]
+ *         public User $user;
+ *     }
+ * </code>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.16

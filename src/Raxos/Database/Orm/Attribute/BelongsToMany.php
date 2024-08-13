@@ -10,6 +10,23 @@ use Raxos\Database\Orm\Model;
 /**
  * Class BelongsToMany
  *
+ * Defines a belongs to many relation between models. For example, multiple users
+ * can have multiple roles. This relation needs a linking table.
+ *
+ * User ∞...1 RoleUser 1...∞ Role
+ *
+ * <code>
+ *     class Role extends Model {
+ *         #[BelongsToMany(User::class)]
+ *         public ModelArrayList $users;
+ *     }
+ *
+ *     class User extends Model {
+ *         #[BelongsToMany(Role::class)]
+ *         public ModelArrayList $roles;
+ *     }
+ * </code>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.16

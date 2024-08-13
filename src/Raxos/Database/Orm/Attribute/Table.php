@@ -9,6 +9,13 @@ use JetBrains\PhpStorm\Pure;
 /**
  * Class Table
  *
+ * Defines the database table of the model.
+ *
+ * <code>
+ *     #[Table('posts')]
+ *     class Post extends Model {}
+ * </code>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.0

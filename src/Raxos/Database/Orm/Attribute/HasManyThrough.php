@@ -10,6 +10,35 @@ use Raxos\Database\Orm\Model;
 /**
  * Class HasManyThrough
  *
+ * Defines a has many relation between two models that goes through another
+ * model. For example, a user can have multiple garages which contain multiple
+ * cars. If we want a relation between user and car, we can use this relation.
+ *
+ * User 1...∞ Garage 1...∞ Car
+ *
+ * <code>
+ *     class User extends Model {
+ *         #[HasManyThrough(Car::class, Garage::class)]
+ *         public ModelArrayList $cars;
+ *
+ *         #[HasMany(Garage::class)]
+ *         public ModelArrayList $garages;
+ *     }
+ *
+ *     class Garage extends Model {
+ *         #[HasMany(Car::class)]
+ *         public ModelArrayList $cars;
+ *
+ *         #[BelongsTo]
+ *         public User $user;
+ *     }
+ *
+ *     class Car extends Model {
+ *         #[BelongsTo]
+ *         public Garage $garage;
+ *     }
+ * </code>
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
  * @since 1.0.16
