@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Cast;
+namespace Raxos\Database\Orm\Caster;
 
+use Raxos\Database\Orm\Model;
 use function array_filter;
 use function explode;
 use function implode;
@@ -10,21 +11,21 @@ use function is_array;
 use function is_string;
 
 /**
- * Class StringSetCast
+ * Class StringSetCaster
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm\Cast
- * @since 1.0.0
+ * @package Raxos\Database\Orm\Caster
+ * @since 15-08-2024
  */
-class StringSetCast implements CastInterface
+final readonly class StringSetCaster implements CasterInterface
 {
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 15-08-2024
      */
-    public function decode(string|float|int|null $value): array
+    public function decode(float|int|string|null $value, Model $instance): array
     {
         if (!is_string($value)) {
             return [];
@@ -36,9 +37,9 @@ class StringSetCast implements CastInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 15-08-2024
      */
-    public function encode(mixed $value): string|float|int|null
+    public function encode(mixed $value, Model $instance): string|float|int|null
     {
         if (!is_array($value)) {
             return null;

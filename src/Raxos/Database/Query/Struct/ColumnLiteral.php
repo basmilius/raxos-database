@@ -5,8 +5,7 @@ namespace Raxos\Database\Query\Struct;
 
 use JetBrains\PhpStorm\ArrayShape;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Error\ModelException;
-use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\{Model, Structure\Structure};
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 use function array_filter;
 use function implode;
@@ -51,19 +50,18 @@ final readonly class ColumnLiteral extends Literal implements DebugInfoInterface
     /**
      * Returns the foreign key form of the column.
      *
-     * @param class-string<Model> $modelClass
+     * @param Structure<Model> $structure
      *
      * @return self
-     * @throws ModelException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    public function asForeignKeyFor(string $modelClass): self
+    public function asForeignKeyFor(Structure $structure): self
     {
         return new self(
             $this->dialect,
             "{$this->table}_{$this->column}",
-            $modelClass::table(),
+            $structure->table,
             $this->database
         );
     }

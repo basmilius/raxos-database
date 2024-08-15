@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use JetBrains\PhpStorm\Pure;
 
 /**
  * Class Visible
@@ -22,7 +21,7 @@ use JetBrains\PhpStorm\Pure;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.0
+ * @since 13-08-2024
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class Visible implements AttributeInterface
@@ -34,9 +33,8 @@ final readonly class Visible implements AttributeInterface
      * @param string[]|string|null $only
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
-    #[Pure]
     public function __construct(
         public array|string|null $only = null
     ) {}

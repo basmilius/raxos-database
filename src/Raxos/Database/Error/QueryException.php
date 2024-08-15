@@ -22,5 +22,6 @@ final class QueryException extends DatabaseException
     public const int ERR_PRIMARY_KEY_MISMATCH = 64;
     public const int ERR_CLAUSE_NOT_DEFINED = 128;
     public const int ERR_FIELD_NOT_FOUND = 256;
+    public const int ERR_NOT_CONNECTED = 512;
 
 }

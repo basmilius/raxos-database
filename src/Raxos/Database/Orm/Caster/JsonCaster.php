@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Cast;
+namespace Raxos\Database\Orm\Caster;
 
 use JsonException;
-use function is_array;
+use Raxos\Database\Orm\Model;
 use function is_string;
 use function json_decode;
 use function json_encode;
@@ -16,22 +16,22 @@ use const JSON_HEX_TAG;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * Class JsonCast
+ * Class JsonCaster
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm\Cast
- * @since 1.0.2
+ * @package Raxos\Database\Orm\Caster
+ * @since 15-08-2024
  */
-final class JsonCast implements CastInterface
+final readonly class JsonCaster implements CasterInterface
 {
 
     /**
      * {@inheritdoc}
      * @throws JsonException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.2
+     * @since 15-08-2024
      */
-    public function decode(string|float|int|null $value): mixed
+    public function decode(float|int|string|null $value, Model $instance): ?array
     {
         if (!is_string($value) || !json_validate($value)) {
             return null;
@@ -44,11 +44,11 @@ final class JsonCast implements CastInterface
      * {@inheritdoc}
      * @throws JsonException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.2
+     * @since 15-08-2024
      */
-    public function encode(mixed $value): string|float|int|null
+    public function encode(mixed $value, Model $instance): string|float|int|null
     {
-        if (!is_array($value)) {
+        if ($value === null) {
             return null;
         }
 

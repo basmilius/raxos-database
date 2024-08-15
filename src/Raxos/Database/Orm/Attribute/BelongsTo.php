@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use JetBrains\PhpStorm\Pure;
 
 /**
  * Class BelongsTo
@@ -29,7 +28,7 @@ use JetBrains\PhpStorm\Pure;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.16
+ * @since 15-08-2024
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class BelongsTo implements AttributeInterface, RelationAttributeInterface
@@ -45,9 +44,8 @@ final readonly class BelongsTo implements AttributeInterface, RelationAttributeI
      * @param bool $eagerLoad
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 15-08-2024
      */
-    #[Pure]
     public function __construct(
         public ?string $referenceKey = null,
         public ?string $referenceKeyTable = null,
@@ -55,21 +53,5 @@ final readonly class BelongsTo implements AttributeInterface, RelationAttributeI
         public ?string $declaringKeyTable = null,
         public bool $eagerLoad = false
     ) {}
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
-     */
-    public static function __set_state(array $state): self
-    {
-        return new self(
-            $state['referenceKey'],
-            $state['referenceKeyTable'],
-            $state['declaringKey'],
-            $state['declaringKeyTable'],
-            $state['eagerLoad']
-        );
-    }
 
 }

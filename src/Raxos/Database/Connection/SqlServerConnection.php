@@ -61,9 +61,9 @@ class SqlServerConnection extends Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function query(bool $isPrepared = true): QueryInterface
+    public function query(bool $prepared = true): QueryInterface
     {
-        return new SqlServerQuery($this, $isPrepared);
+        return new SqlServerQuery($this, $prepared);
     }
 
     /**

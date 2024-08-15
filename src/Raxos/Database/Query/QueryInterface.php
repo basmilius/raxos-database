@@ -4,9 +4,11 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use BackedEnum;
-use Raxos\Database\Error\{DatabaseException, QueryException};
-use Raxos\Database\Query\Struct\{Literal, ValueInterface};
+use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
+use Raxos\Database\Orm\Error\RelationException;
+use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Model;
+use Raxos\Database\Query\Struct\{Literal, Select, ValueInterface};
 use Stringable;
 
 /**
@@ -51,7 +53,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param string|null $alias
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -77,7 +79,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -93,7 +95,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param QueryInterface $query
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -106,7 +108,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $options
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -118,7 +120,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param QueryInterface $query
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -130,7 +132,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -143,7 +145,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $options
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -155,7 +157,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -221,7 +223,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -237,7 +239,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param QueryInterface $query
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -250,7 +252,10 @@ interface QueryInterface extends QueryBaseInterface
      * @param callable|null $fn
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -263,7 +268,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $options
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -275,7 +280,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param QueryInterface $query
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -288,7 +293,10 @@ interface QueryInterface extends QueryBaseInterface
      * @param callable $fn
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -301,7 +309,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $options
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -313,7 +321,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -325,7 +333,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -340,7 +348,10 @@ interface QueryInterface extends QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -392,7 +403,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $value
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -430,7 +441,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param array|null $pairs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -456,7 +467,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -472,7 +483,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param QueryInterface $query
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -485,7 +496,10 @@ interface QueryInterface extends QueryBaseInterface
      * @param callable|null $fn
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -498,7 +512,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $options
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -510,7 +524,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param QueryInterface $query
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -523,7 +537,10 @@ interface QueryInterface extends QueryBaseInterface
      * @param callable $fn
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -536,7 +553,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $options
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -548,7 +565,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -560,7 +577,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param Literal|string $field
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -575,15 +592,36 @@ interface QueryInterface extends QueryBaseInterface
      *
      * @template TQueryModel of Model
      *
-     * @param class-string<TQueryModel> $modelClass
+     * @param class-string<TQueryModel>|class-string<Model> $modelClass
      * @param array|string|int $primaryKey
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
     public function wherePrimaryKey(string $modelClass, array|string|int $primaryKey): static;
+
+    /**
+     * Adds a set of where expressions for the primary key of the given
+     * model class. The difference between this method and {@see self::wherePrimaryKey()}
+     * is that this method can look up multiple values.
+     *
+     * Example: `where (table.pk1 = 1 and table.pk2 = 'test') or (table.pk1 = 2 and table.pk2 = 'hello')`
+     *
+     * @template TQueryModel of Model
+     *
+     * @param class-string<TQueryModel>|class-string<Model> $modelClass
+     * @param array $primaryKeys
+     *
+     * @return $this
+     * @throws QueryException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 14-08-2024
+     */
+    public function wherePrimaryKeyIn(string $modelClass, array $primaryKeys): static;
 
     /**
      * Queries the given relation based on one condition.
@@ -594,7 +632,10 @@ interface QueryInterface extends QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -692,51 +733,55 @@ interface QueryInterface extends QueryBaseInterface
     /**
      * Adds a `select $fields` expression.
      *
-     * @param array<static|string|int|bool>|string|int $fields
+     * @param Select|array<static|string|int|bool>|string|int $fields
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function select(array|string|int $fields = []): static;
+    public function select(Select|array|string|int $fields = []): static;
 
     /**
      * Adds a `select distinct $fields` expression.
      *
-     * @param string[]|string|int $fields
+     * @param Select|string[]|string|int $fields
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function selectDistinct(array|string|int $fields = []): static;
+    public function selectDistinct(Select|array|string|int $fields = []): static;
 
     /**
      * Adds a `select sql_calc_found_rows $fields` expression.
      *
-     * @param string[]|string|int $fields
+     * @param Select|string[]|string|int $fields
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function selectFoundRows(array|string|int $fields = []): static;
+    public function selectFoundRows(Select|array|string|int $fields = []): static;
 
     /**
      * Adds a `select $suffix $fields` expression.
      *
      * @param string $suffix
-     * @param string[]|string|int $fields
+     * @param Select|string[]|string|int $fields
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function selectSuffix(string $suffix, array|string|int $fields = []): static;
+    public function selectSuffix(string $suffix, Select|array|string|int $fields = []): static;
 
     /**
      * Adds a `full join $table $fn()` expression.

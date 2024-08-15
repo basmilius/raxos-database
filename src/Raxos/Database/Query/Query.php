@@ -4,23 +4,27 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use BackedEnum;
-use Raxos\Database\Error\{DatabaseException, QueryException};
-use Raxos\Database\Orm\{InternalStructure, Model};
-use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, Literal, SubQueryLiteral, ValueInterface};
+use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
+use Raxos\Database\Orm\Definition\PropertyDefinition;
+use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Error\RelationException;
+use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, Literal, Select, SubQueryLiteral, ValueInterface};
 use Stringable;
 use function array_is_list;
 use function array_keys;
 use function array_map;
 use function array_shift;
 use function array_values;
-use function class_exists;
+use function assert;
 use function count;
 use function is_array;
 use function is_float;
 use function is_int;
 use function is_numeric;
 use function is_string;
-use function is_subclass_of;
 use function sprintf;
 use function str_contains;
 use function substr;
@@ -84,10 +88,6 @@ abstract class Query extends QueryBase implements QueryInterface
         }
 
         if (is_string($tables)) {
-            if (class_exists($tables) && is_subclass_of($tables, Model::class)) {
-                $tables = $tables::table();
-            }
-
             $tables = [$tables];
         }
 
@@ -620,27 +620,57 @@ abstract class Query extends QueryBase implements QueryInterface
             $primaryKey = [$primaryKey];
         }
 
-        foreach (InternalStructure::getColumns($modelClass) as $definition) {
-            if (!$definition->isPrimary) {
-                continue;
-            }
+        $structure = Structure::of($modelClass);
 
+        foreach ($structure->getPrimaryKey() as $property) {
             if (empty($primaryKey)) {
                 throw new QueryException(sprintf('Too few primary key values for model "%s".', $modelClass), QueryException::ERR_PRIMARY_KEY_MISMATCH);
             }
 
             $value = array_shift($primaryKey);
-            $columnName = $definition->key;
 
             if (is_int($value) || is_float($value)) {
                 $value = literal($value);
             }
 
-            $this->where($modelClass::col($columnName), $value);
+            $this->where($structure->getColumn($property->name), $value);
         }
 
         if (!empty($primaryKey)) {
             throw new QueryException(sprintf('Too many primary key values for model "%s".', $modelClass), QueryException::ERR_PRIMARY_KEY_MISMATCH);
+        }
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    public function wherePrimaryKeyIn(string $modelClass, array $primaryKeys): static
+    {
+        $structure = Structure::of($modelClass);
+        $properties = $structure->getPrimaryKey();
+
+        if (count($properties) === 1) {
+            return $this->where($structure->getColumn($properties[0]->key), in($primaryKeys));
+        }
+
+        $columns = array_map(fn(PropertyDefinition $property) => $structure->getColumn($property->name), $properties);
+
+        $this->where('1 = 1');
+
+        foreach ($primaryKeys as $index => $primaryKey) {
+            $this->parenthesis(function () use ($index, $primaryKey, $columns): void {
+                foreach ($primaryKey as $columnIndex => $value) {
+                    if ($columnIndex === 0 && $index > 0) {
+                        $this->orWhere($columns[$columnIndex], $value);
+                    } else {
+                        $this->where($columns[$columnIndex], $value);
+                    }
+                }
+            });
         }
 
         return $this;
@@ -762,7 +792,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function select(array|string|int $fields = []): static
+    public function select(Select|array|string|int $fields = []): static
     {
         return $this->baseSelect('select', $fields);
     }
@@ -772,7 +802,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function selectDistinct(array|string|int $fields = []): static
+    public function selectDistinct(Select|array|string|int $fields = []): static
     {
         return $this->selectSuffix('distinct', $fields);
     }
@@ -782,7 +812,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function selectFoundRows(array|string|int $fields = []): static
+    public function selectFoundRows(Select|array|string|int $fields = []): static
     {
         return $this->selectSuffix('sql_calc_found_rows', $fields);
     }
@@ -792,7 +822,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function selectSuffix(string $suffix, array|string|int $fields = []): static
+    public function selectSuffix(string $suffix, Select|array|string|int $fields = []): static
     {
         return $this->baseSelect("select {$suffix}", $fields);
     }
@@ -936,18 +966,19 @@ abstract class Query extends QueryBase implements QueryInterface
      * Base function to create `select` expressions.
      *
      * @param string $clause
-     * @param array|string|int $fields
+     * @param Select|array|string|int $fields
      *
      * @return static<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseSelect(string $clause, array|string|int $fields): static
+    protected function baseSelect(string $clause, Select|array|string|int $fields): static
     {
-        if (empty($fields)) {
+        if (empty($fields) || ($fields instanceof Select && $fields->isEmpty)) {
             if ($this->modelClass !== null) {
-                return $this->addPiece($clause, $this->modelClass::column('*'));
+                return $this->addPiece($clause, $this->modelClass::col('*'));
             }
 
             return $this->addPiece($clause, '*');
@@ -963,7 +994,32 @@ abstract class Query extends QueryBase implements QueryInterface
 
         $result = [];
 
-        if (!array_is_list($fields)) {
+        if ($fields instanceof Select) {
+            foreach ($fields->entries as $entry) {
+                $alias = $entry->alias !== null ? $this->dialect->escapeFields($entry->alias) : null;
+                $value = $entry->value;
+
+                if ($value instanceof QueryBaseInterface) {
+                    assert($alias !== null);
+
+                    $result[] = "({$value}) as {$alias}";
+                } elseif ($value instanceof AfterExpressionInterface) {
+                    assert($alias !== null);
+
+                    $query = new static($this->connection);
+                    $value->after($query);
+
+                    $result[] = "({$value}) as {$alias}";
+                } elseif ($value instanceof ValueInterface) {
+                    $value = $value->get($this);
+
+                    $result[] = $alias !== null ? "{$value} as {$alias}" : $value;
+                } else {
+                    $value = $this->dialect->escapeFields($value);
+                    $result[] = $alias !== null ? "{$value} as {$alias}" : $value;
+                }
+            }
+        } elseif (!array_is_list($fields)) {
             foreach ($fields as $alias => $field) {
                 $alias = $this->dialect->escapeFields($alias);
 
@@ -1013,7 +1069,10 @@ abstract class Query extends QueryBase implements QueryInterface
      * @param bool $negate
      *
      * @return static<TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1023,9 +1082,15 @@ abstract class Query extends QueryBase implements QueryInterface
             throw new QueryException('The query needs a model to use the whereHas function.', QueryException::ERR_INVALID_MODEL);
         }
 
-        $field = InternalStructure::getField($this->modelClass, $relation) ?? throw new QueryException(sprintf('Could not find relationship %s in model %s.', $relation, $this->modelClass), QueryException::ERR_FIELD_NOT_FOUND);
-        $query = InternalStructure::getRelation($this->modelClass, $field)
-            ->rawQuery();
+        $structure = Structure::of($this->modelClass);
+        $property = $structure->getProperty($relation);
+
+        if (!($property instanceof RelationDefinition)) {
+            throw new StructureException(sprintf('Property "%s" of model "%s" is not a relation.', $property->name, $structure->class), StructureException::ERR_INVALID_RELATION);
+        }
+
+        $relation = $structure->getRelation($property);
+        $query = $relation->rawQuery();
 
         if ($fn !== null) {
             $fn($query);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use JetBrains\PhpStorm\Pure;
 
 /**
  * Class ConnectionId
@@ -18,7 +17,7 @@ use JetBrains\PhpStorm\Pure;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.16
+ * @since 13-08-2024
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class ConnectionId implements AttributeInterface
@@ -30,9 +29,8 @@ final readonly class ConnectionId implements AttributeInterface
      * @param string $connectionId
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 13-08-2024
      */
-    #[Pure]
     public function __construct(
         public string $connectionId = 'default'
     ) {}

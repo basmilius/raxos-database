@@ -10,16 +10,16 @@ use Attribute;
  *
  * Defines the primary key of a model.
  *
- *  <code>
- *      class Post extends Model {
- *          #[PrimaryKey]
- *          public string $id;
- *      }
- *  </code>
+ * <code>
+ *     class Post extends Model {
+ *         #[PrimaryKey]
+ *         public string $id;
+ *     }
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.16
+ * @since 13-08-2024
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class PrimaryKey extends Column {}

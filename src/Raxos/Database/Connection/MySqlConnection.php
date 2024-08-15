@@ -62,9 +62,9 @@ class MySqlConnection extends Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function query(bool $isPrepared = true): MySqlQuery
+    public function query(bool $prepared = true): MySqlQuery
     {
-        return new MySqlQuery($this, $isPrepared);
+        return new MySqlQuery($this, $prepared);
     }
 
     /**

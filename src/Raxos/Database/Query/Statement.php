@@ -7,9 +7,11 @@ use Generator;
 use PDO;
 use PDOStatement;
 use Raxos\Database\Connection\ConnectionInterface;
-use Raxos\Database\Error\{DatabaseException, QueryException};
+use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Logger\QueryEvent;
-use Raxos\Database\Orm\{InternalStructure, Model, ModelArrayList};
+use Raxos\Database\Orm\{Error\RelationException, Model, ModelArrayList};
+use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
@@ -53,7 +55,7 @@ class Statement
     public function __construct(
         public readonly ConnectionInterface $connection,
         public readonly QueryInterface|string $query,
-        private readonly array $options = []
+        public readonly array $options = []
     )
     {
         $this->sql = $query instanceof QueryInterface ? $query->toSql() : $query;
@@ -72,24 +74,16 @@ class Statement
     }
 
     /**
-     * Gets the options for the query.
-     *
-     * @return array
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public final function getOptions(): array
-    {
-        return $this->options;
-    }
-
-    /**
      * Executes the statement and returns an array containing all results.
      *
      * @param int $fetchMode
      *
      * @return array
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -106,7 +100,11 @@ class Statement
      * @param int $fetchMode
      *
      * @return ArrayList|ModelArrayList
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -128,7 +126,11 @@ class Statement
      * @param int $fetchMode
      *
      * @return Generator
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -144,7 +146,8 @@ class Statement
     /**
      * Executes the statement.
      *
-     * @throws DatabaseException
+     * @throws ExecutionException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -159,7 +162,11 @@ class Statement
      * @param int $fetchMode
      *
      * @return Model|stdClass|array|null
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -196,7 +203,8 @@ class Statement
      * @param mixed $result
      *
      * @return Model
-     * @throws DatabaseException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -206,11 +214,16 @@ class Statement
             throw new QueryException('Cannot create model instance, no model was assigned to the query.', QueryException::ERR_INVALID_MODEL);
         }
 
+        if (!is_array($result)) {
+            throw new QueryException('Cannot create model instance, the record set must be an array.', QueryException::ERR_INVALID_MODEL);
+        }
+
         if (!class_exists($this->modelClass)) {
             throw new QueryException('Cannot create model instance, the assigned model does not exist.', QueryException::ERR_INVALID_MODEL);
         }
 
-        return InternalStructure::createInstance($this->modelClass, $result);
+        return Structure::of($this->modelClass)
+            ->createInstance($result);
     }
 
     /**
@@ -245,7 +258,11 @@ class Statement
      * @param int $fetchMode
      *
      * @return Model|stdClass|array|null
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -274,7 +291,11 @@ class Statement
      * @param int $fetchMode
      *
      * @return array
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -283,7 +304,7 @@ class Statement
         $results = $this->pdoStatement->fetchAll($fetchMode);
 
         if ($this->modelClass !== null) {
-            $models = array_map($this->createModel(...), $results);
+            $models = array_map(fn(mixed $result) => $this->createModel($result), $results);
 
             $this->loadRelationships($models);
 
@@ -291,6 +312,24 @@ class Statement
         }
 
         return $results;
+    }
+
+    /**
+     * Fetches a single column of a single row.
+     *
+     * @param int $index
+     *
+     * @return mixed
+     * @throws ExecutionException
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    public final function fetchColumn(int $index = 0): mixed
+    {
+        $this->execute();
+
+        return $this->pdoStatement->fetchColumn($index);
     }
 
     /**
@@ -338,7 +377,8 @@ class Statement
     /**
      * Executes the pdo statement.
      *
-     * @throws DatabaseException
+     * @throws ExecutionException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -358,7 +398,9 @@ class Statement
         }
 
         if ($result === false) {
-            throw $this->throwFromError();
+            [, $code, $message] = $this->pdoStatement->errorInfo();
+
+            throw ExecutionException::of($code, $message);
         }
     }
 
@@ -367,7 +409,11 @@ class Statement
      *
      * @param Model|array $instances
      *
-     * @throws DatabaseException
+     * @throws ExecutionException
+     * @throws ConnectionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -381,26 +427,8 @@ class Statement
             return;
         }
 
-        InternalStructure::eagerLoadRelations(
-            $this->modelClass,
-            $instances,
-            $this->eagerLoad,
-            $this->eagerLoadDisable
-        );
-    }
-
-    /**
-     * Throws a database exception based on the last error.
-     *
-     * @return DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    private function throwFromError(): DatabaseException
-    {
-        [, $code, $message] = $this->pdoStatement->errorInfo();
-
-        return DatabaseException::throw($code, $message);
+        $structure = Structure::of($this->modelClass);
+        $structure->eagerLoadRelations($instances, $this->eagerLoad, $this->eagerLoadDisable);
     }
 
 }

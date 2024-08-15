@@ -3,62 +3,61 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
-use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Orm\Definition\ColumnDefinition;
+use JsonSerializable;
+use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
+use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
+use Raxos\Database\Orm\Structure\StructureHelper;
 use Raxos\Database\Query\QueryInterface;
+use Raxos\Database\Query\Struct\Select;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
+use Raxos\Foundation\Collection\Arrayable;
+use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
+use Stringable;
 use function array_diff_key;
 use function array_key_exists;
 use function array_merge_recursive;
 use function implode;
-use function is_array;
 use function sprintf;
 
 /**
  * Class Model
  *
- * @implements ModelInterface<static>
- *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 1.0.0
+ * @since 13-08-2024
  */
-abstract class Model implements ModelInterface
+abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, JsonSerializable, QueryableInterface, Stringable, VisibilityInterface
 {
 
     use ArrayAccessible;
     use ObjectAccessible;
-    use ModelDatabaseAccess;
+    use Queryable;
 
-    /**
-     * @var ModelBackbone<static>
-     * @internal
-     * @private
-     */
-    public readonly ModelBackbone $backbone;
+    public readonly Backbone $backbone;
 
     private array $hidden = [];
     private array $visible = [];
 
     /**
-     * ModelBase constructor.
+     * Model constructor.
      *
-     * @param ModelBackbone|null $backbone
+     * @param Backbone|null $backbone
      *
-     * @throws DatabaseException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
     public function __construct(
-        ?ModelBackbone $backbone = null
+        ?Backbone $backbone = null
     )
     {
-        $this->backbone = $backbone ?? new ModelBackbone(static::class, [], true);
+        $this->backbone = $backbone ?? new Backbone(static::class, [], true);
         $this->backbone->addInstance($this);
     }
 
     /**
-     * ModelBase destructor.
+     * Model destructor.
      */
     public function __destruct()
     {
@@ -66,46 +65,46 @@ abstract class Model implements ModelInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Deletes the model record from the database.
+     *
+     * @return void
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws InstanceException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
-     */
-    public function clone(): static
-    {
-        return $this->backbone->createInstance();
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 15-08-2024
      */
     public function destroy(): void
     {
-        static::delete($this->getPrimaryKeyValues());
-        static::cache()->remove($this);
+        $primaryKey = $this->backbone->getPrimaryKeyValues();
+
+        $cache = $this->backbone->structure->connection->cache;
+        $cache->unset(static::class, $primaryKey);
+
+        self::delete($primaryKey);
     }
 
     /**
-     * {@inheritdoc}
+     * Saves the model.
+     *
+     * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 14-08-2024
      */
-    public function save(): void
-    {
-        $this->backbone->save($this);
-    }
+    public function save(): void {}
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 13-08-2024
      */
     public function makeHidden(array|string $keys): static
     {
-        $keys = InternalHelper::normalizeFieldsArray($keys);
+        $keys = StructureHelper::normalizeKeys($keys);
 
-        $clone = $this->clone();
+        $clone = $this->backbone->createInstance();
         $clone->hidden = array_merge_recursive($this->hidden, $keys);
         $clone->visible = array_diff_key($this->visible, $clone->hidden);
 
@@ -115,13 +114,13 @@ abstract class Model implements ModelInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 13-08-2024
      */
     public function makeVisible(array|string $keys): static
     {
-        $keys = InternalHelper::normalizeFieldsArray($keys);
+        $keys = StructureHelper::normalizeKeys($keys);
 
-        $clone = $this->clone();
+        $clone = $this->backbone->createInstance();
         $clone->visible = array_merge_recursive($this->visible, $keys);
         $clone->hidden = array_diff_key($this->hidden, $clone->visible);
 
@@ -131,23 +130,23 @@ abstract class Model implements ModelInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 13-08-2024
      */
     public function only(array|string $keys): static
     {
-        $keys = InternalHelper::normalizeFieldsArray($keys);
-        $visible = [];
+        $keys = StructureHelper::normalizeKeys($keys);
         $hidden = [];
+        $visible = [];
 
-        foreach (InternalStructure::getFields(static::class) as $definition) {
-            if (array_key_exists($definition->key, $keys)) {
-                $visible[$definition->key] = $keys[$definition->key];
+        foreach ($this->backbone->structure->properties as $property) {
+            if (array_key_exists($property->name, $keys)) {
+                $visible[$property->name] = $keys[$property->name];
             } else {
-                $hidden[$definition->key] = null;
+                $hidden[$property->name] = null;
             }
         }
 
-        $clone = $this->clone();
+        $clone = $this->backbone->createInstance();
         $clone->hidden = $hidden;
         $clone->visible = $visible;
 
@@ -157,48 +156,55 @@ abstract class Model implements ModelInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
     public function getValue(string $key): mixed
     {
-        return $this->backbone->getValue($this, $key);
+        $this->backbone->currentInstance = $this;
+
+        return $this->backbone->getValue($key);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
     public function hasValue(string $key): bool
     {
-        return $this->backbone->hasValue($this, $key);
+        $this->backbone->currentInstance = $this;
+
+        return $this->backbone->hasValue($key);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
     public function setValue(string $key, mixed $value): void
     {
-        $this->backbone->setValue($this, $key, $value);
+        $this->backbone->currentInstance = $this;
+        $this->backbone->setValue($key, $value);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
     public function unsetValue(string $key): void
     {
-        $this->backbone->unsetValue($this, $key);
+        $this->backbone->currentInstance = $this;
+        $this->backbone->unsetValue($key);
     }
 
     /**
      * {@inheritdoc}
-     * @throws DatabaseException
+     * @throws InstanceException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 15-08-2024
      */
     public function jsonSerialize(): array
     {
@@ -207,188 +213,123 @@ abstract class Model implements ModelInterface
 
     /**
      * {@inheritdoc}
+     * @throws InstanceException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 13-08-2024
      */
     public function toArray(): array
     {
         $result = [];
 
-        foreach (InternalStructure::getFields(static::class) as $definition) {
-            $fieldKey = $definition->alias ?? $definition->name;
-            $isVisible = InternalHelper::isVisible(
-                $definition,
-                array_key_exists($definition->key, $this->visible),
-                array_key_exists($definition->key, $this->hidden)
+        foreach ($this->backbone->structure->properties as $property) {
+            $key = $property->alias ?? $property->name;
+            $visible = StructureHelper::isVisible(
+                $property,
+                array_key_exists($property->name, $this->visible),
+                array_key_exists($property->name, $this->hidden)
             );
 
-            if (!$isVisible) {
+            if (!$visible) {
                 continue;
             }
 
-            $value = $this->getValue($fieldKey);
-            $only = $this->visible[$definition->key] ?? null;
+            $only = $this->visible[$property->name] ?? null;
+            $value = $this->getValue($property->name);
 
-            if ($definition instanceof ColumnDefinition && $definition->visibleOnly !== null) {
-                $only = array_merge_recursive($definition->visibleOnly, $this->visible[$fieldKey] ?? []);
+            if ($property instanceof RelationDefinition && $property->visibleOnly !== null) {
+                $only = array_merge_recursive($property->visibleOnly, $only ?? []);
             }
 
             if ($only !== null) {
                 if ($value instanceof self) {
                     $value = $value->only($only)->toArray();
-                } elseif ($value instanceof ModelArrayList) {
-                    $value = $value->map(fn(self $v) => $v->only($only)->toArray());
+                } else {
+                    if ($value instanceof ModelArrayList) {
+                        $value = $value->map(static fn(self $model) => $model->only($only)->toArray());
+                    }
                 }
             }
 
-            $result[$fieldKey] = $value;
+            $result[$key] = $value;
         }
 
         return $result;
     }
 
     /**
-     * {@inheritdoc}
+     * Queries a relation.
+     *
+     * @param string $name
+     * @param array $arguments
+     *
+     * @return QueryInterface
+     * @throws ConnectionException
+     * @throws InstanceException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 15-08-2024
      */
     public function __call(string $name, array $arguments): QueryInterface
     {
-        return $this->queryRelation($name);
+        $property = $this->backbone->structure->getProperty($name);
+
+        if ($property instanceof RelationDefinition) {
+            $relation = $this->backbone->structure->getRelation($property);
+
+            return $relation->query($this);
+        }
+
+        throw new InstanceException(sprintf('Cannot invoke "%s" on model "%s".', $property->name, static::class), InstanceException::ERR_NOT_A_FUNCTION);
     }
 
     /**
      * {@inheritdoc}
-     * @throws DatabaseException
+     * @throws InstanceException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 13-08-2024
      */
-    public function __debugInfo(): array
+    public function __debugInfo(): ?array
     {
         return $this->toArray();
     }
 
     /**
      * {@inheritdoc}
+     * @throws InstanceException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
     public function __toString(): string
     {
-        $primaryKeyValues = $this->getPrimaryKeyValues();
+        $values = $this->backbone->getPrimaryKeyValues();
+        $values = implode(', ', $values);
 
-        if (is_array($primaryKeyValues)) {
-            $primaryKeyValues = implode(', ', $primaryKeyValues);
-        }
-
-        return sprintf('%s(%s)', static::class, $primaryKeyValues);
+        return sprintf('%s(%s)', $this->backbone->class, $values);
     }
 
     /**
-     * Gets the fields that should be selected by default.
-     *
-     * @param array|string|int $fields
-     *
-     * @return array|string|int
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @noinspection PhpDocRedundantThrowsInspection
+     * @since 14-08-2024
      */
-    protected static function getDefaultFields(array|string|int $fields): array|string|int
+    public static function getQueryableColumns(Select $select): Select
     {
-        return $fields;
+        return $select;
     }
 
     /**
-     * Gets the joins that should be added to every select query.
-     *
-     * @param QueryInterface $query
-     *
-     * @return QueryInterface
-     * @throws DatabaseException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     * @noinspection PhpDocRedundantThrowsInspection
+     * @since 14-08-2024
      */
-    protected static function getDefaultJoins(QueryInterface $query): QueryInterface
+    public static function getQueryableJoins(QueryInterface $query): QueryInterface
     {
         return $query;
     }
 
 }
-
-//    /**
-//     * {@inheritdoc}
-//     * @author Bas Milius <bas@mili.us>
-//     * @since 1.0.0
-//     */
-//    public function __serialize(): array
-//    {
-//        $relations = [];
-//
-//        foreach (InternalStructure::getColumns(static::class) as $field) {
-//            $name = $field->name;
-//
-//            if ($this->isHidden($name) || !$this->isVisible($name)) {
-//                continue;
-//            }
-//
-//            if ($this->{$field->key} === null) {
-//                continue;
-//            }
-//
-//            $relations[$name] = $this->{$field->key};
-//        }
-//
-//        return [
-//            $this->__data,
-//            $this->hidden,
-//            $this->visible,
-//            $this->isNew,
-//            $this->castedFields,
-//            $relations
-//        ];
-//    }
-//
-//    /**
-//     * {@inheritdoc}
-//     * @throws DatabaseException
-//     * @author Bas Milius <bas@mili.us>
-//     * @since 1.0.0
-//     */
-//    public function __unserialize(array $data): void
-//    {
-//        InternalStructure::initialize(static::class);
-//
-//        [
-//            $this->__data,
-//            $this->hidden,
-//            $this->visible,
-//            $this->isNew,
-//            $this->castedFields,
-//            $relations
-//        ] = $data;
-//
-//        $pk = $this->getPrimaryKeyValues();
-//
-//        if (static::cache()->has(static::class, $pk)) {
-//            $this->__master = static::cache()->get(static::class, $pk);
-//            $this->castedFields = &$this->__master->castedFields;
-//            $this->__data = &$this->__master->__data;
-//            $this->isNew = &$this->__master->isNew;
-//        } else {
-//            $this->__master = null;
-//            static::cache()->set($this);
-//        }
-//
-//        foreach ($relations as $relation) {
-//            if ($relation instanceof ModelArrayList) {
-//                foreach ($relation as $r) {
-//                    $r::cache()->set($r);
-//                }
-//            } elseif (isset($relation->__data)) {
-//                $relation::cache()->set($relation);
-//            }
-//        }
-//    }

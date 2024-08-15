@@ -22,9 +22,9 @@ class MariaDbConnection extends MySqlConnection
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function query(bool $isPrepared = true): MariaDbQuery
+    public function query(bool $prepared = true): MariaDbQuery
     {
-        return new MariaDbQuery($this, $isPrepared);
+        return new MariaDbQuery($this, $prepared);
     }
 
     /**

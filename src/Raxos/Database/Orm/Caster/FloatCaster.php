@@ -1,24 +1,26 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Cast;
+namespace Raxos\Database\Orm\Caster;
+
+use Raxos\Database\Orm\Model;
 
 /**
- * Class FloatCast
+ * Class FloatCaster
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm\Cast
- * @since 1.0.0
+ * @package Raxos\Database\Orm\Caster
+ * @since 15-08-2024
  */
-class FloatCast implements CastInterface
+final readonly class FloatCaster implements CasterInterface
 {
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 15-08-2024
      */
-    public function decode(string|float|int|null $value): ?float
+    public function decode(float|int|string|null $value, Model $instance): ?float
     {
         if ($value === null) {
             return null;
@@ -30,9 +32,9 @@ class FloatCast implements CastInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 15-08-2024
      */
-    public function encode(mixed $value): string|float|int|null
+    public function encode(mixed $value, Model $instance): string|float|int|null
     {
         if ($value === null) {
             return null;

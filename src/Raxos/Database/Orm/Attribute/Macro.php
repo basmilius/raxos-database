@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use JetBrains\PhpStorm\Pure;
 
 /**
  * Class Macro
@@ -37,7 +36,7 @@ use JetBrains\PhpStorm\Pure;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.0
+ * @since 13-08-2024
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class Macro implements AttributeInterface
@@ -46,16 +45,15 @@ final readonly class Macro implements AttributeInterface
     /**
      * Macro constructor.
      *
-     * @param (callable&string)|(callable&array) $implementation
-     * @param bool $cached
+     * @param (callable&string)|(callable&array) $callback
+     * @param bool $isCached
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
-    #[Pure]
     public function __construct(
-        public string|array $implementation,
-        public bool $cached = true
+        public string|array $callback,
+        public bool $isCached = true
     ) {}
 
 }

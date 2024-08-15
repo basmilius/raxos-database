@@ -9,7 +9,7 @@ use PDO;
 use PDOStatement;
 use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Error\{DatabaseException, QueryException};
+use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
 use Raxos\Database\Query\{QueryInterface, Statement};
@@ -17,9 +17,10 @@ use Raxos\Database\Query\{QueryInterface, Statement};
 /**
  * Interface ConnectionInterface
  *
- * @property Cache $cache
- * @property Dialect $dialect
- * @property Logger $logger
+ * @property-read Cache $cache
+ * @property-read Dialect $dialect
+ * @property-read string $id
+ * @property-read Logger $logger
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Connection
@@ -32,7 +33,7 @@ interface ConnectionInterface
      * Connect to the database.
      *
      * @return void
-     * @throws DatabaseException
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -42,7 +43,7 @@ interface ConnectionInterface
      * Disconnect from the database.
      *
      * @return void
-     * @throws DatabaseException
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -145,13 +146,14 @@ interface ConnectionInterface
     /**
      * Compose a new query.
      *
-     * @param bool $isPrepared
+     * @param bool $prepared
      *
      * @return QueryInterface
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    public function query(bool $isPrepared = true): QueryInterface;
+    public function query(bool $prepared = true): QueryInterface;
 
     /**
      * Quotes the given value.
@@ -160,7 +162,7 @@ interface ConnectionInterface
      * @param int $type
      *
      * @return string
-     * @throws DatabaseException
+     * @throws ConnectionException
      * @since 1.0.16
      * @author Bas Milius <bas@mili.us>
      * @see PDO::quote()

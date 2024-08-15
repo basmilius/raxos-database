@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Error\QueryException;
 use Raxos\Database\Query\QueryBaseInterface;
 
 /**
@@ -21,7 +21,7 @@ interface AfterExpressionInterface
      *
      * @param QueryBaseInterface $query
      *
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

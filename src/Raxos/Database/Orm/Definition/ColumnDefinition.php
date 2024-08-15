@@ -3,131 +3,70 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Definition;
 
-use JetBrains\PhpStorm\ArrayShape;
-use Raxos\Database\Orm\Attribute\RelationAttributeInterface;
-use Raxos\Foundation\Collection\Arrayable;
+use JetBrains\PhpStorm\Pure;
+use Raxos\Database\Orm\Caster\CasterInterface;
+use Raxos\Foundation\Util\ArrayUtil;
 
 /**
  * Class ColumnDefinition
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Definition
- * @since 1.0.0
+ * @since 13-08-2024
  */
-final readonly class ColumnDefinition implements Arrayable
+final readonly class ColumnDefinition extends PropertyDefinition
 {
 
     /**
      * ColumnDefinition constructor.
      *
-     * @param string|null $alias
-     * @param string|null $cast
-     * @param mixed $default
-     * @param bool $isImmutable
-     * @param bool $isPrimary
-     * @param bool $isForeign
+     * @template TCaster of CasterInterface
+     *
+     * @param class-string<TCaster>|null $caster
+     * @param mixed $defaultValue
+     * @param bool $isForeignKey
+     * @param bool $isPrimaryKey
      * @param bool $isComputed
-     * @param bool $isHidden
-     * @param bool $isVisible
+     * @param bool $isImmutable
+     * @param string[] $types
+     * @param array|null $visibleOnly
      * @param string $key
      * @param string $name
-     * @param RelationAttributeInterface|null $relation
-     * @param array $types
-     * @param string[]|null $hiddenOnly
-     * @param string[]|null $visibleOnly
+     * @param string|null $alias
+     * @param bool $isHidden
+     * @param bool $isVisible
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
     public function __construct(
-        public ?string $alias,
-        public ?string $cast,
-        public mixed $default,
-        public bool $isImmutable,
-        public bool $isPrimary,
-        public bool $isForeign,
+        public ?string $caster,
+        public mixed $defaultValue,
+        public bool $isForeignKey,
+        public bool $isPrimaryKey,
         public bool $isComputed,
-        public bool $isHidden,
-        public bool $isVisible,
-        public string $name,
+        public bool $isImmutable,
         public string $key,
-        public ?RelationAttributeInterface $relation,
         public array $types,
-        public ?array $hiddenOnly,
-        public ?array $visibleOnly
-    ) {}
+        public ?array $visibleOnly,
+        string $name,
+        ?string $alias,
+        bool $isHidden = false,
+        bool $isVisible = false
+    )
+    {
+        parent::__construct($name, $alias, $isHidden, $isVisible);
+    }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 15-08-2024
      */
-    #[ArrayShape([
-        'alias' => 'string|null',
-        'cast' => 'string|null',
-        'default' => 'mixed',
-        'is_immutable' => 'bool',
-        'is_primary' => 'bool',
-        'is_foreign' => 'bool',
-        'is_computed' => 'bool',
-        'is_hidden' => 'bool',
-        'is_visible' => 'bool',
-        'name' => 'string',
-        'key' => 'string',
-        'relation' => '\Raxos\Database\Orm\Attribute\RelationAttribute|null',
-        'types' => 'array',
-        'hidden_only' => 'string[]|null',
-        'visible_only' => 'string[]|null'
-    ])]
-    public function toArray(): array
+    #[Pure]
+    public function isIn(array $keys): bool
     {
-        return [
-            'alias' => $this->alias,
-            'cast' => $this->cast,
-            'default' => $this->default,
-            'is_immutable' => $this->isImmutable,
-            'is_primary' => $this->isPrimary,
-            'is_foreign' => $this->isForeign,
-            'is_computed' => $this->isComputed,
-            'is_hidden' => $this->isHidden,
-            'is_visible' => $this->isVisible,
-            'name' => $this->name,
-            'key' => $this->key,
-            'relation' => $this->relation,
-            'types' => $this->types,
-            'hidden_only' => $this->hiddenOnly,
-            'visible_only' => $this->visibleOnly
-        ];
-    }
-
-    /**
-     * Restores the state of the class from exported data.
-     *
-     * @param array $state
-     *
-     * @return self
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public static function __set_state(array $state): self
-    {
-        return new self(
-            $state['alias'],
-            $state['cast'],
-            $state['default'],
-            $state['isImmutable'],
-            $state['isPrimary'],
-            $state['isForeign'],
-            $state['isComputed'],
-            $state['isHidden'],
-            $state['isVisible'],
-            $state['name'],
-            $state['key'],
-            $state['relation'],
-            $state['types'],
-            $state['hidden_only'],
-            $state['visible_only']
-        );
+        return ArrayUtil::in($keys, [$this->name, $this->alias, $this->key]);
     }
 
 }

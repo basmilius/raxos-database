@@ -3,16 +3,16 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Orm\{InternalHelper, InternalStructure, Model};
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasOne;
-use Raxos\Database\Orm\Definition\ColumnDefinition;
+use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Error\{RelationException, StructureException};
+use Raxos\Database\Orm\Structure\{Structure, StructureHelper};
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\ColumnLiteral;
-use Raxos\Foundation\Collection\ArrayList;
 use function assert;
 use function is_numeric;
-use function Raxos\Database\Query\in;
+use function sprintf;
 
 /**
  * Class HasOneRelation
@@ -23,49 +23,48 @@ use function Raxos\Database\Query\in;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 1.0.16
+ * @since 14-08-2024
  */
 final readonly class HasOneRelation implements RelationInterface, WritableRelationInterface
 {
 
-    /** @var class-string<TReferenceModel>|class-string<Model> */
-    public string $referenceModel;
-
-    public ColumnLiteral $referenceKey;
     public ColumnLiteral $declaringKey;
+    public ColumnLiteral $referenceKey;
+
+    public Structure $referenceStructure;
 
     /**
      * HasOneRelation constructor.
      *
      * @param HasOne $attribute
-     * @param ColumnDefinition $column
-     * @param class-string<TDeclaringModel>|class-string<Model> $declaringModel
+     * @param RelationDefinition $property
+     * @param Structure<TDeclaringModel|Model> $declaringStructure
      *
-     * @throws DatabaseException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 14-08-2024
      */
     public function __construct(
         public HasOne $attribute,
-        public ColumnDefinition $column,
-        public string $declaringModel
+        public RelationDefinition $property,
+        public Structure $declaringStructure
     )
     {
-        $this->referenceModel = $this->column->types[0] ?? 0;
-        InternalStructure::initialize($this->referenceModel);
+        $referenceModel = $this->property->types[0] ?? throw new RelationException(sprintf('Could not find reference model of relation "%s" of model "%s".', $this->property->name, $this->declaringStructure->class), RelationException::ERR_REFERENCE_MODEL_MISSING);
+        $this->referenceStructure = Structure::of($referenceModel);
 
-        $dialect = $this->referenceModel::dialect();
-        $declaringPrimaryKey = InternalHelper::getRelationPrimaryKey($this->declaringModel);
+        $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
 
-        $this->referenceKey = InternalHelper::composeRelationKey(
-            $dialect,
+        $this->referenceKey = StructureHelper::composeRelationKey(
+            $this->referenceStructure->connection->dialect,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
-            $declaringPrimaryKey->asForeignKeyFor($this->referenceModel)
+            $declaringPrimaryKey->asForeignKeyFor($this->referenceStructure),
         );
 
-        $this->declaringKey = InternalHelper::composeRelationKey(
-            $dialect,
+        $this->declaringKey = StructureHelper::composeRelationKey(
+            $this->declaringStructure->connection->dialect,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
@@ -75,19 +74,19 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 14-08-2024
      */
-    public function fetch(Model $instance): ?Model
+    public function fetch(Model $instance): Model|ModelArrayList|null
     {
-        $primaryKey = $instance->{$this->declaringKey->column};
+        $foreignKey = $instance->{$this->declaringKey->column};
 
-        if ($primaryKey === null || (is_numeric($primaryKey) && (int)$primaryKey === 0)) {
+        if ($foreignKey === null || (is_numeric($foreignKey) && (int)$foreignKey === 0)) {
             return null;
         }
 
-        $cache = $instance::cache();
+        $cache = $this->referenceStructure->connection->cache;
 
-        if (($cached = $cache->find($this->referenceModel, fn(Model $model) => $model->{$this->referenceKey->column} === $instance->{$this->declaringKey->column})) !== null) {
+        if (($cached = $cache->find($this->referenceStructure->class, fn(Model $model) => $model->{$this->referenceKey->column} === $foreignKey)) !== null) {
             return $cached;
         }
 
@@ -99,68 +98,68 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 14-08-2024
      */
     public function query(Model $instance): QueryInterface
     {
-        return $this->referenceModel::where($this->referenceKey, $instance->{$this->declaringKey->column});
+        return $this->referenceStructure->class::where($this->referenceKey, $instance->{$this->declaringKey->column});
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 14-08-2024
      */
     public function rawQuery(): QueryInterface
     {
-        return $this->referenceModel::select(isPrepared: false)
+        return $this->referenceStructure->class::select(prepared: false)
             ->where($this->referenceKey, $this->declaringKey);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 14-08-2024
      */
-    public function eagerLoad(ArrayList $instances): void
+    public function eagerLoad(ModelArrayList $instances): void
     {
-        $cache = $this->referenceModel::cache();
+        $cache = $this->referenceStructure->connection->cache;
 
         $values = $instances
             ->column($this->declaringKey->column)
             ->unique()
-            ->filter(fn(string|int $key) => !$cache->has($this->referenceModel, $key));
+            ->filter(fn(string|int $key) => !$cache->has($this->referenceStructure->class, $key));
 
         if ($values->isEmpty()) {
             return;
         }
 
-        $this->referenceModel::select()
-            ->where($this->referenceKey, in($values->toArray()))
-            ->arrayList();
+        $this->referenceStructure->class::select()
+            ->whereIn($this->referenceKey, $values->toArray())
+            ->array();
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 14-08-2024
      */
-    public function write(Model $instance, ColumnDefinition $column, mixed $newValue): void
+    public function write(Model $instance, RelationDefinition $property, Model|ModelArrayList|null $newValue): void
     {
-        assert($newValue === null || $newValue instanceof $this->referenceModel);
+        assert($newValue === null || $newValue instanceof $this->referenceStructure->class);
 
         // note(Bas): remove the relation between the previous value and the instance.
-        $oldValue = $instance->{$this->column->name};
+        $oldValue = $instance->{$this->property->name};
 
         if ($oldValue instanceof Model) {
             $oldValue->{$this->referenceKey->column} = null;
-            $instance->__saveTasks[] = static fn() => $oldValue->save();
+            $instance->backbone->addSaveTask(static fn() => $oldValue->save());
         }
 
         // note(Bas): create a relation between the new value and the instance.
         if ($newValue instanceof Model) {
             $newValue->{$this->referenceKey->column} = $instance->{$this->declaringKey->column};
-            $instance->__saveTasks[] = static fn() => $newValue->save();
+            $instance->backbone->addSaveTask(static fn() => $newValue->save());
         }
     }
 

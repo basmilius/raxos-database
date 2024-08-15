@@ -10,7 +10,7 @@ use JsonSerializable;
 use PDO;
 use Raxos\Database\Connection\Connection;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Error\QueryException;
+use Raxos\Database\Error\{ConnectionException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ColumnLiteral, ComparatorAwareLiteral, Literal, ValueInterface};
 use Raxos\Foundation\Collection\ArrayList;
@@ -60,14 +60,14 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
      * QueryBase constructor.
      *
      * @param Connection $connection
-     * @param bool $isPrepared
+     * @param bool $prepared
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function __construct(
         public readonly Connection $connection,
-        public readonly bool $isPrepared = true
+        public readonly bool $prepared = true
     )
     {
         $this->dialect = $connection->dialect;
@@ -161,12 +161,16 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
             $value = $value->get($this);
         }
 
-        if (!$this->isPrepared) {
+        if (!$this->prepared) {
             if (is_int($value)) {
                 return $value;
             }
 
-            return $this->connection->quote((string)$value);
+            try {
+                return $this->connection->quote((string)$value);
+            } catch (ConnectionException $err) {
+                throw new QueryException('Could not quote value, no connection found.', QueryException::ERR_NOT_CONNECTED, $err);
+            }
         }
 
         if (is_bool($value)) {
@@ -188,8 +192,12 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function addPiece(string $clause, array|string|int|null $data = null, ?string $separator = null): static
+    public function addPiece(string $clause, ColumnLiteral|array|string|int|null $data = null, ?string $separator = null): static
     {
+        if ($data instanceof ColumnLiteral) {
+            $data = (string)$data;
+        }
+
         $this->pieces[] = [$clause, $data, $separator];
 
         if (isset($clause[2])) {
@@ -478,9 +486,9 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
 
         $query->params = $this->params;
 
-        $result = $query->single();
-
-        return (int)$result['count(*)'];
+        return (int)$query
+            ->statement()
+            ->fetchColumn();
     }
 
     /**
@@ -494,7 +502,7 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
 
         if (!$original->isClauseDefined('having')) {
             $original->replaceClause('select', static function (array $piece): array {
-                $piece[1] = 1;
+                $piece[1] = '*';
 
                 return $piece;
             });
@@ -511,9 +519,9 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
 
         $query->params = $original->params;
 
-        $result = $query->single();
-
-        return (int)$result['count(*)'];
+        return (int)$query
+            ->statement()
+            ->fetchColumn();
     }
 
     /**
@@ -687,7 +695,7 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
     {
         return [
             'sql' => $this->toSql(),
-            'type' => $this->isPrepared ? 'PREPARED' : 'RAW',
+            'type' => $this->prepared ? 'PREPARED' : 'RAW',
             'params' => $this->params
         ];
     }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Orm\Model;
 
 /**
@@ -30,7 +29,7 @@ use Raxos\Database\Orm\Model;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.16
+ * @since 15-08-2024
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class HasMany implements AttributeInterface, RelationAttributeInterface
@@ -48,9 +47,8 @@ final readonly class HasMany implements AttributeInterface, RelationAttributeInt
      * @param string|null $orderBy
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 15-08-2024
      */
-    #[Pure]
     public function __construct(
         public string $referenceModel,
         public ?string $referenceKey = null,
@@ -60,23 +58,5 @@ final readonly class HasMany implements AttributeInterface, RelationAttributeInt
         public bool $eagerLoad = false,
         public ?string $orderBy = null
     ) {}
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
-     */
-    public static function __set_state(array $state): self
-    {
-        return new self(
-            $state['referenceModel'],
-            $state['referenceKey'],
-            $state['referenceKeyTable'],
-            $state['declaringKey'],
-            $state['declaringKeyTable'],
-            $state['eagerLoad'],
-            $state['orderBy']
-        );
-    }
 
 }

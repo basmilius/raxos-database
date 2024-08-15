@@ -91,7 +91,7 @@ class Db
      * @param string|null $id
      *
      * @return ConnectionInterface|null
-     * @throws DatabaseException
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -119,7 +119,7 @@ class Db
      * @param string|null $id
      *
      * @return ConnectionInterface
-     * @throws DatabaseException
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -282,18 +282,19 @@ class Db
     /**
      * Starts a new query.
      *
-     * @param bool $isPrepared
+     * @param bool $prepared
      * @param string|null $id
      *
      * @return QueryInterface
-     * @throws DatabaseException
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::query()
      */
-    public static function query(bool $isPrepared = true, ?string $id = null): QueryInterface
+    public static function query(bool $prepared = true, ?string $id = null): QueryInterface
     {
-        return static::getOrFail($id)->query($isPrepared);
+        return static::getOrFail($id)
+            ->query($prepared);
     }
 
     /**

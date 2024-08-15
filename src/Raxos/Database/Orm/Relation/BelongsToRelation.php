@@ -3,16 +3,17 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Error\DatabaseException;
-use Raxos\Database\Orm\{InternalHelper, InternalStructure, Model};
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsTo;
-use Raxos\Database\Orm\Definition\ColumnDefinition;
+use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Error\{RelationException, StructureException};
+use Raxos\Database\Orm\Structure\{Structure, StructureHelper};
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\ColumnLiteral;
-use Raxos\Foundation\Collection\ArrayList;
 use function assert;
 use function is_numeric;
 use function Raxos\Database\Query\in;
+use function sprintf;
 
 /**
  * Class BelongsToRelation
@@ -23,71 +24,71 @@ use function Raxos\Database\Query\in;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 1.0.16
+ * @since 15-08-2024
  */
 final readonly class BelongsToRelation implements RelationInterface, WritableRelationInterface
 {
 
-    /** @var class-string<TReferenceModel>|class-string<Model> */
-    public string $referenceModel;
-    public ColumnLiteral $referenceKey;
     public ColumnLiteral $declaringKey;
+    public ColumnLiteral $referenceKey;
+
+    public Structure $referenceStructure;
 
     /**
      * BelongsToRelation constructor.
      *
      * @param BelongsTo $attribute
-     * @param ColumnDefinition $column
-     * @param class-string<TDeclaringModel>|class-string<Model> $declaringModel
+     * @param RelationDefinition $property
+     * @param Structure<TDeclaringModel|Model> $declaringStructure
      *
-     * @throws DatabaseException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 15-08-2024
      */
     public function __construct(
         public BelongsTo $attribute,
-        public ColumnDefinition $column,
-        public string $declaringModel
+        public RelationDefinition $property,
+        public Structure $declaringStructure
     )
     {
-        $this->referenceModel = $this->column->types[0] ?? 0;
-        InternalStructure::initialize($this->referenceModel);
+        $referenceModel = $this->property->types[0] ?? throw new RelationException(sprintf('Could not find reference model of relation "%s" of model "%s".', $this->property->name, $this->declaringStructure->class), RelationException::ERR_REFERENCE_MODEL_MISSING);
+        $this->referenceStructure = Structure::of($referenceModel);
 
-        $dialect = $this->referenceModel::dialect();
-        $referencePrimaryKey = InternalHelper::getRelationPrimaryKey($this->referenceModel);
+        $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
 
-        $this->referenceKey = InternalHelper::composeRelationKey(
-            $dialect,
-            $this->attribute->referenceKey,
-            $this->attribute->referenceKeyTable,
-            $referencePrimaryKey->asForeignKeyFor($this->declaringModel)
-        );
-
-        $this->declaringKey = InternalHelper::composeRelationKey(
-            $dialect,
+        $this->declaringKey = StructureHelper::composeRelationKey(
+            $this->declaringStructure->connection->dialect,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $referencePrimaryKey
+        );
+
+        $this->referenceKey = StructureHelper::composeRelationKey(
+            $this->referenceStructure->connection->dialect,
+            $this->attribute->referenceKey,
+            $this->attribute->referenceKeyTable,
+            $referencePrimaryKey->asForeignKeyFor($this->declaringStructure)
         );
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 15-08-2024
      */
-    public function fetch(Model $instance): ?Model
+    public function fetch(Model $instance): Model|ModelArrayList|null
     {
-        $primaryKey = $instance->{$this->referenceKey->column};
+        $foreignKey = $instance->{$this->referenceKey->column};
 
-        if ($primaryKey === null || (is_numeric($primaryKey) && (int)$primaryKey === 0)) {
+        if ($foreignKey === null || (is_numeric($foreignKey) && (int)$foreignKey === 0)) {
             return null;
         }
 
-        $cache = $instance::cache();
+        $cache = $this->referenceStructure->connection->cache;
 
-        if ($cache->has($this->referenceModel, $primaryKey)) {
-            return $cache->get($this->referenceModel, $primaryKey);
+        if (($cached = $cache->find($this->referenceStructure->class, fn(Model $model) => $model->{$this->declaringKey->column} === $foreignKey)) !== null) {
+            return $cached;
         }
 
         return $this
@@ -98,57 +99,57 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 15-08-2024
      */
     public function query(Model $instance): QueryInterface
     {
-        return $this->referenceModel::where($this->declaringKey, $instance->{$this->referenceKey->column});
+        return $this->referenceStructure->class::where($this->declaringKey, $instance->{$this->referenceKey->column});
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 15-08-2024
      */
     public function rawQuery(): QueryInterface
     {
-        return $this->referenceModel::select(isPrepared: false)
+        return $this->referenceStructure->class::select(prepared: false)
             ->where($this->declaringKey, $this->referenceKey);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 15-08-2024
      */
-    public function eagerLoad(ArrayList $instances): void
+    public function eagerLoad(ModelArrayList $instances): void
     {
-        $cache = $this->referenceModel::cache();
+        $cache = $this->referenceStructure->connection->cache;
 
         $values = $instances
             ->column($this->referenceKey->column)
             ->unique()
-            ->filter(fn(string|int|null $key) => $key !== null && !$cache->has($this->referenceModel, $key));
+            ->filter(fn(string|int|null $key) => $key !== null && !$cache->has($this->referenceStructure->class, $key));
 
         if ($values->isEmpty()) {
             return;
         }
 
-        $this->referenceModel::select()
+        $this->referenceStructure->class::select()
             ->where($this->declaringKey, in($values->toArray()))
-            ->arrayList();
+            ->array();
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 15-08-2024
      */
-    public function write(Model $instance, ColumnDefinition $column, mixed $newValue): void
+    public function write(Model $instance, RelationDefinition $property, Model|ModelArrayList|null $newValue): void
     {
-        assert($newValue === null || $newValue instanceof $this->referenceModel);
+        assert($newValue === null || $newValue instanceof $this->referenceStructure->class);
 
-        $instance->{$this->referenceKey->column} = $newValue?->id;
+        $instance->{$this->declaringKey->column} = $newValue?->{$this->referenceKey->column};
     }
 
 }

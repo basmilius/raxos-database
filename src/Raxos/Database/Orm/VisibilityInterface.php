@@ -4,13 +4,13 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 /**
- * Interface MarkVisibilityInterface
+ * Interface VisibilityInterface
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 1.0.16
+ * @since 13-08-2024
  */
-interface MarkVisibilityInterface
+interface VisibilityInterface
 {
 
     /**
@@ -18,9 +18,9 @@ interface MarkVisibilityInterface
      *
      * @param string[]|string $keys
      *
-     * @return $this
+     * @return static
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 13-08-2024
      */
     public function makeHidden(array|string $keys): static;
 
@@ -29,10 +29,22 @@ interface MarkVisibilityInterface
      *
      * @param string[]|string $keys
      *
-     * @return $this
+     * @return static
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 13-08-2024
      */
     public function makeVisible(array|string $keys): static;
+
+    /**
+     * Makes all properties hidden by default and marks only the given
+     * properties as visible.
+     *
+     * @param string[]|string $keys
+     *
+     * @return static
+     * @author Bas Milius <bas@mili.us>
+     * @since 13-08-2024
+     */
+    public function only(array|string $keys): static;
 
 }

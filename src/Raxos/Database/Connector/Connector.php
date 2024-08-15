@@ -7,7 +7,7 @@ use JetBrains\PhpStorm\Pure;
 use JsonSerializable;
 use PDO;
 use PDOException;
-use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Error\ConnectionException;
 use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
 
 /**
@@ -54,7 +54,7 @@ abstract readonly class Connector implements DebugInfoInterface, JsonSerializabl
      * Creates a new PDO instance.
      *
      * @return PDO
-     * @throws DatabaseException
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see PDO
@@ -69,7 +69,7 @@ abstract readonly class Connector implements DebugInfoInterface, JsonSerializabl
                 $this->options
             );
         } catch (PDOException $err) {
-            throw DatabaseException::throw($err->getCode(), $err->getMessage(), $err);
+            throw ConnectionException::of($err->getCode(), $err->getMessage(), $err);
         }
     }
 

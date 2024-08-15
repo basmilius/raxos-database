@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Orm\Model;
 
 /**
@@ -41,7 +40,7 @@ use Raxos\Database\Orm\Model;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.16
+ * @since 15-08-2024
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class HasManyThrough implements AttributeInterface, RelationAttributeInterface
@@ -64,9 +63,8 @@ final readonly class HasManyThrough implements AttributeInterface, RelationAttri
      * @param string|null $orderBy
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 15-08-2024
      */
-    #[Pure]
     public function __construct(
         public string $referenceModel,
         public string $linkingModel,
@@ -81,28 +79,5 @@ final readonly class HasManyThrough implements AttributeInterface, RelationAttri
         public bool $eagerLoad = false,
         public ?string $orderBy = null
     ) {}
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
-     */
-    public static function __set_state(array $state): self
-    {
-        return new self(
-            $state['referenceModel'],
-            $state['linkingModel'],
-            $state['referenceKey'],
-            $state['referenceKeyTable'],
-            $state['referenceLinkingKey'],
-            $state['referenceLinkingKeyTable'],
-            $state['declaringLinkingKey'],
-            $state['declaringLinkingKeyTable'],
-            $state['declaringKey'],
-            $state['declaringKeyTable'],
-            $state['eagerLoad'],
-            $state['orderBy']
-        );
-    }
 
 }

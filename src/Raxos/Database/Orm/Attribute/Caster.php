@@ -4,8 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use JetBrains\PhpStorm\Pure;
-use Raxos\Database\Orm\Cast\CastInterface;
+use Raxos\Database\Orm\Caster\CasterInterface;
 
 /**
  * Class Caster
@@ -23,7 +22,7 @@ use Raxos\Database\Orm\Cast\CastInterface;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.0
+ * @since 13-08-2024
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class Caster implements AttributeInterface
@@ -32,16 +31,15 @@ final readonly class Caster implements AttributeInterface
     /**
      * Caster constructor.
      *
-     * @template C of CastInterface
+     * @template TCaster of CasterInterface
      *
-     * @param class-string<C> $caster
+     * @param class-string<TCaster> $casterClass
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 13-08-2024
      */
-    #[Pure]
     public function __construct(
-        public string $caster
+        public string $casterClass
     ) {}
 
 }

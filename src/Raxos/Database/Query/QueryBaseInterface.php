@@ -6,9 +6,9 @@ namespace Raxos\Database\Query;
 use BackedEnum;
 use Generator;
 use PDO;
-use Raxos\Database\Error\{DatabaseException, QueryException};
-use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Query\Struct\{Literal, ValueInterface};
+use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
+use Raxos\Database\Orm\{Error\RelationException, Error\StructureException, Model, ModelArrayList};
+use Raxos\Database\Query\Struct\{ColumnLiteral, Literal, ValueInterface};
 use Raxos\Foundation\Collection\ArrayList;
 use stdClass;
 use Stringable;
@@ -34,7 +34,7 @@ interface QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return $this
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -52,7 +52,7 @@ interface QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $value
      *
      * @return string|int
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -62,14 +62,14 @@ interface QueryBaseInterface
      * Adds a query piece.
      *
      * @param string $clause
-     * @param array|string|int|null $data
+     * @param ColumnLiteral|array|string|int|null $data
      * @param string|null $separator
      *
      * @return $this
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function addPiece(string $clause, array|string|int|null $data = null, ?string $separator = null): static;
+    public function addPiece(string $clause, ColumnLiteral|array|string|int|null $data = null, ?string $separator = null): static;
 
     /**
      * Executes the given function if the given bool is true.
@@ -90,7 +90,7 @@ interface QueryBaseInterface
      * @param callable $fn
      *
      * @return $this
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -145,7 +145,7 @@ interface QueryBaseInterface
      * @param bool $patch
      *
      * @return $this
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -168,7 +168,7 @@ interface QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return $this
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -268,7 +268,10 @@ interface QueryBaseInterface
      * select part of the query is removed.
      *
      * @return int
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -280,7 +283,10 @@ interface QueryBaseInterface
      * queries used for pagination and such.
      *
      * @return int
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -293,7 +299,11 @@ interface QueryBaseInterface
      * @param array $options
      *
      * @return array<array-key, TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see Statement::array()
@@ -307,7 +317,11 @@ interface QueryBaseInterface
      * @param array $options
      *
      * @return ModelArrayList<int, TModel>|iterable<int, TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see Statement::arrayList()
@@ -321,7 +335,11 @@ interface QueryBaseInterface
      * @param array $options
      *
      * @return Generator<TModel>
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see Statement::cursor()
@@ -333,7 +351,8 @@ interface QueryBaseInterface
      *
      * @param array $options
      *
-     * @throws DatabaseException
+     * @throws ExecutionException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see Statement::run()
@@ -346,7 +365,8 @@ interface QueryBaseInterface
      * @param Literal|Literal[]|string|string[] $column
      *
      * @return string[]|int[]|string|int
-     * @throws DatabaseException
+     * @throws ExecutionException
+     * @throws QueryException
      * @since 1.0.16
      * @author Bas Milius <bas@mili.us>
      */
@@ -360,7 +380,11 @@ interface QueryBaseInterface
      * @param array $options
      *
      * @return TModel|stdClass|array|null
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -374,7 +398,11 @@ interface QueryBaseInterface
      * @param array $options
      *
      * @return TModel|stdClass|array
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
