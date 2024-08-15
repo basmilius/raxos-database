@@ -31,7 +31,7 @@ interface RelationInterface
      *
      * @param TDeclaringModel&Model $instance
      *
-     * @return TReferenceModel&Model|ModelArrayList<TReferenceModel&Model>|null
+     * @return TReferenceModel&Model|ModelArrayList<int, TReferenceModel&Model>|null
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException
@@ -73,7 +73,7 @@ interface RelationInterface
     /**
      * Eager loads the relation for the given instances.
      *
-     * @param ModelArrayList<TDeclaringModel&Model> $instances
+     * @param ModelArrayList<int, TDeclaringModel&Model> $instances
      *
      * @return void
      * @throws ConnectionException

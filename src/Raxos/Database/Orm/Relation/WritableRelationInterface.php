@@ -26,7 +26,7 @@ interface WritableRelationInterface
      *
      * @param TDeclaringModel&Model $instance
      * @param RelationDefinition $property
-     * @param TReferenceModel&Model|ModelArrayList<TReferenceModel&Model>|null $newValue
+     * @param TReferenceModel&Model|ModelArrayList<int, TReferenceModel&Model>|null $newValue
      *
      * @return void
      * @throws QueryException

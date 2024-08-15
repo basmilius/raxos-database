@@ -85,7 +85,7 @@ trait Queryable
      * @param int $offset
      * @param int $limit
      *
-     * @return ModelArrayList<static>
+     * @return ModelArrayList<int, static>
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException
@@ -158,7 +158,7 @@ trait Queryable
      *
      * @param array $primaryKeys
      *
-     * @return ModelArrayList<static>
+     * @return ModelArrayList<int, static>
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException

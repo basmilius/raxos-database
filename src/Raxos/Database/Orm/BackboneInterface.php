@@ -115,7 +115,7 @@ interface BackboneInterface
      *
      * @param RelationDefinition $property
      *
-     * @return TModel&Model|ModelArrayList<TModel&Model>|null
+     * @return TModel&Model|ModelArrayList<int, TModel&Model>|null
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException

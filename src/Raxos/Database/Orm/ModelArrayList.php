@@ -10,10 +10,11 @@ use Raxos\Foundation\Collection\ArrayList;
 /**
  * Class ModelArrayList
  *
+ * @template TKey of array-key
  * @template TModel of Model
- * @extends ArrayList<int, TModel>
- * @implements ArrayAccess<int, TModel>
- * @implements IteratorAggregate<int, TModel>
+ * @extends ArrayList<TKey, TModel>
+ * @implements ArrayAccess<TKey, TModel>
+ * @implements IteratorAggregate<TKey, TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
