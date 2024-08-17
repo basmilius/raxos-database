@@ -24,7 +24,7 @@ use function sprintf;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 1.0.1708-2024
+ * @since 1.0.0
  */
 abstract class Model implements AccessInterface, ArrayableInterface, DebuggableInterface, JsonSerializable, QueryableInterface, Stringable, VisibilityInterface
 {

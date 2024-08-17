@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connector;
 
-use JetBrains\PhpStorm\Pure;
 use JsonSerializable;
 use PDO;
 use PDOException;
@@ -39,7 +38,6 @@ abstract readonly class Connector implements DebuggableInterface, JsonSerializab
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public function __construct(
         public string $dsn,
         public ?string $username = null,
@@ -78,7 +76,6 @@ abstract readonly class Connector implements DebuggableInterface, JsonSerializab
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public function __debugInfo(): ?array
     {
         return null;
@@ -89,7 +86,6 @@ abstract readonly class Connector implements DebuggableInterface, JsonSerializab
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    #[Pure]
     public final function jsonSerialize(): null
     {
         return null;

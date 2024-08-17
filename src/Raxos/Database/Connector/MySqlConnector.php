@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connector;
 
-use JetBrains\PhpStorm\Pure;
 use PDO;
-use Raxos\Database\Error\{ConnectionException};
+use Raxos\Database\Error\ConnectionException;
 
 /**
  * Class MySqlConnector
@@ -30,7 +29,6 @@ readonly class MySqlConnector extends Connector
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public function __construct(
         string $host,
         public string $database,

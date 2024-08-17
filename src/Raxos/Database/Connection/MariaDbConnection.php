@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use Raxos\Database\Connector\Connector;
-use Raxos\Database\Dialect\{MariaDbDialect};
+use Raxos\Database\Dialect\MariaDbDialect;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
 use Raxos\Database\Query\MariaDbQuery;

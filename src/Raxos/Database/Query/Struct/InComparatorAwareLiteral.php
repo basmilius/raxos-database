@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Query\QueryBaseInterface;
 use function array_map;
 use function implode;
@@ -27,7 +26,6 @@ readonly class InComparatorAwareLiteral extends ComparatorAwareLiteral
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public function __construct(
         private array $options
     )

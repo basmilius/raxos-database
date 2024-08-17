@@ -5,14 +5,10 @@ namespace Raxos\Database\Connection;
 
 use Raxos\Database\Connector\{Connector, SqlServerConnector};
 use Raxos\Database\Dialect\SqlServerDialect;
-use Raxos\Database\Error\ConnectionException;
-use Raxos\Database\Error\ExecutionException;
-use Raxos\Database\Error\QueryException;
-use Raxos\Database\Error\SchemaException;
+use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
-use Raxos\Database\Orm\Error\RelationException;
-use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Query\{QueryInterface, SqlServerQuery};
 
 /**

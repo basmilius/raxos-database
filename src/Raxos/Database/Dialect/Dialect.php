@@ -15,12 +15,24 @@ use function str_contains;
  * @package Raxos\Database\Dialect
  * @since 1.0.0
  */
-abstract class Dialect
+abstract readonly class Dialect
 {
 
-    public string $fieldSeparator = ', ';
-    public string $tableSeparator = ', ';
-    public array $fieldEscapeCharacters = ['', ''];
+    /**
+     * Dialect constructor.
+     *
+     * @param array $fieldEscapers
+     * @param string $fieldSeparator
+     * @param string $tableSeparator
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    public function __construct(
+        public array $fieldEscapers = ['', ''],
+        public string $fieldSeparator = ', ',
+        public string $tableSeparator = ', '
+    ) {}
 
     /**
      * Escapes the given field.
@@ -33,11 +45,11 @@ abstract class Dialect
      */
     public function escapeField(string $field): string
     {
-        if ($field === '*' || str_contains($field, $this->fieldEscapeCharacters[0])) {
+        if ($field === '*' || str_contains($field, $this->fieldEscapers[0])) {
             return $field;
         }
 
-        return $this->fieldEscapeCharacters[0] . $field . $this->fieldEscapeCharacters[1];
+        return $this->fieldEscapers[0] . $field . $this->fieldEscapers[1];
     }
 
     /**
@@ -51,7 +63,7 @@ abstract class Dialect
      */
     public function escapeFields(string $fields): string
     {
-        if (str_contains($fields, $this->fieldEscapeCharacters[0]) || str_contains($fields, '(') || str_contains($fields, ' ') || str_contains($fields, ':=')) {
+        if (str_contains($fields, $this->fieldEscapers[0]) || str_contains($fields, '(') || str_contains($fields, ' ') || str_contains($fields, ':=')) {
             return $fields;
         }
 

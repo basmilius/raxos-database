@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Query\QueryBaseInterface;
 use Stringable;
 use function is_string;
@@ -27,7 +26,6 @@ readonly class BetweenComparatorAwareLiteral extends ComparatorAwareLiteral
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public function __construct(
         private Stringable|Literal|string|float|int $lower,
         private Stringable|Literal|string|float|int $upper

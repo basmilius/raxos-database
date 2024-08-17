@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Query\Struct\{BetweenComparatorAwareLiteral, ComparatorAwareLiteral, InComparatorAwareLiteral, Literal, NotInComparatorAwareLiteral};
 use Stringable;
 
@@ -17,7 +16,6 @@ use Stringable;
  * @author Bas Milius <bas@mili.us>
  * @since 1.0.16
  */
-#[Pure]
 function coalesce(
     Literal|QueryInterface|string $a,
     Literal|QueryInterface|string $b
@@ -45,7 +43,6 @@ function coalesce(
  * @see Literal
  * @see Literal::with()
  */
-#[Pure]
 function literal(Stringable|string|int|float|bool $value): Literal
 {
     return new Literal($value);
@@ -62,7 +59,6 @@ function literal(Stringable|string|int|float|bool $value): Literal
  * @see Literal
  * @see Literal::string()
  */
-#[Pure]
 function stringLiteral(Stringable|string $value): Literal
 {
     return Literal::string((string)$value);
@@ -79,7 +75,6 @@ function stringLiteral(Stringable|string $value): Literal
  * @since 1.0.0
  * @see BetweenComparatorAwareLiteral
  */
-#[Pure]
 function between(
     Stringable|Literal|string|float|int $lower,
     Stringable|Literal|string|float|int $upper
@@ -98,7 +93,6 @@ function between(
  * @since 1.0.0
  * @see InComparatorAwareLiteral
  */
-#[Pure]
 function in(array $options): Literal
 {
     return new InComparatorAwareLiteral($options);
@@ -114,7 +108,6 @@ function in(array $options): Literal
  * @since 1.0.0
  * @see NotInComparatorAwareLiteral
  */
-#[Pure]
 function notIn(array $options): Literal
 {
     return new NotInComparatorAwareLiteral($options);
@@ -128,7 +121,6 @@ function notIn(array $options): Literal
  * @since 1.0.0
  * @see ComparatorAwareLiteral::isNotNull()
  */
-#[Pure]
 function isNotNull(): Literal
 {
     return ComparatorAwareLiteral::isNotNull();
@@ -142,7 +134,6 @@ function isNotNull(): Literal
  * @since 1.0.0
  * @see ComparatorAwareLiteral::isNull()
  */
-#[Pure]
 function isNull(): Literal
 {
     return ComparatorAwareLiteral::isNull();

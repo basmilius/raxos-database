@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Query\QueryBaseInterface;
 use Stringable;
 use function addslashes;
@@ -73,12 +72,11 @@ readonly class Literal implements ValueInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public static function string(string $str): self
     {
         $str = addslashes($str);
 
-        return new Literal("'{$str}'");
+        return new self("'{$str}'");
     }
 
     /**
@@ -90,10 +88,9 @@ readonly class Literal implements ValueInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public static function with(Stringable|string|int|float|bool $value): self
     {
-        return new Literal($value);
+        return new self($value);
     }
 
 }

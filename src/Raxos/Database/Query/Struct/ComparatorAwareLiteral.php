@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use JetBrains\PhpStorm\Pure;
 use Stringable;
 
 /**
@@ -26,7 +25,6 @@ readonly class ComparatorAwareLiteral extends Literal
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public static function between(
         Stringable|Literal|string|float|int $lower,
         Stringable|Literal|string|float|int $upper
@@ -44,7 +42,6 @@ readonly class ComparatorAwareLiteral extends Literal
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public static function in(array $options): self
     {
         return new InComparatorAwareLiteral($options);
@@ -59,7 +56,6 @@ readonly class ComparatorAwareLiteral extends Literal
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public static function notIn(array $options): self
     {
         return new NotInComparatorAwareLiteral($options);
@@ -72,7 +68,6 @@ readonly class ComparatorAwareLiteral extends Literal
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public static function isNotNull(): self
     {
         return new self('is not null');
@@ -85,7 +80,6 @@ readonly class ComparatorAwareLiteral extends Literal
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    #[Pure]
     public static function isNull(): self
     {
         return new self('is null');

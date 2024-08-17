@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
-use Raxos\Database\Orm\{Error\RelationException, Model, ModelArrayList};
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\RelationAttributeInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
-use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Query\QueryInterface;
 
 /**

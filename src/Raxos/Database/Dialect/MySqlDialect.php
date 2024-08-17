@@ -10,9 +10,20 @@ namespace Raxos\Database\Dialect;
  * @package Raxos\Database\Dialect
  * @since 1.0.0
  */
-class MySqlDialect extends Dialect
+readonly class MySqlDialect extends Dialect
 {
 
-    public array $fieldEscapeCharacters = ['`', '`'];
+    /**
+     * MySqlDialect constructor.
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    public function __construct()
+    {
+        parent::__construct(
+            fieldEscapers: ['`', '`']
+        );
+    }
 
 }

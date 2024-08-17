@@ -10,4 +10,4 @@ namespace Raxos\Database\Dialect;
  * @package Raxos\Database\Dialect
  * @since 1.0.0
  */
-class MariaDbDialect extends MySqlDialect {}
+readonly class MariaDbDialect extends MySqlDialect {}
