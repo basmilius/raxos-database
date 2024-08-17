@@ -9,8 +9,8 @@ use Raxos\Database\Orm\Model;
  * Class MySqlQuery
  *
  * @template TModel of Model
- * @template-extends Query<TModel>
- * @template-implements QueryInterface<TModel>
+ * @extends Query<TModel>
+ * @implements QueryInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query

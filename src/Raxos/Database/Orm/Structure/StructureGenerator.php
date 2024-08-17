@@ -5,7 +5,7 @@ namespace Raxos\Database\Orm\Structure;
 
 use Generator;
 use Raxos\Database\Db;
-use Raxos\Database\Error\DatabaseException;
+use Raxos\Database\Error\ConnectionException;
 use Raxos\Database\Orm\Attribute\{Alias, AttributeInterface, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttributeInterface, Table, Visible};
 use Raxos\Database\Orm\Caster\{BooleanCaster, CasterInterface};
 use Raxos\Database\Orm\Definition\{ClassStructureDefinition, ColumnDefinition, MacroDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
@@ -21,14 +21,13 @@ use function is_a;
 use function is_callable;
 use function is_subclass_of;
 use function iterator_to_array;
-use function sprintf;
 
 /**
  * Class StructureGenerator
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Structure
- * @since 14-08-2024
+ * @since 1.0.17
  * @internal
  * @private
  */
@@ -47,7 +46,7 @@ final class StructureGenerator
      * @return Structure<TModel>
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public static function for(string $class, ?Structure $parent = null): Structure
     {
@@ -56,7 +55,7 @@ final class StructureGenerator
         }
 
         if (!is_subclass_of($class, Model::class)) {
-            throw new StructureException(sprintf('Cannot create a structure for class "%s", the class is not a model.', $class), StructureException::ERR_NOT_A_MODEL);
+            throw StructureException::notAModel($class);
         }
 
         try {
@@ -89,10 +88,10 @@ final class StructureGenerator
             }
 
             return $structure;
-        } catch (DatabaseException $err) {
-            throw new StructureException(sprintf('Could not get the database connection for model "%s".', $class), StructureException::ERR_CONNECTION_FAILED, $err);
+        } catch (ConnectionException $err) {
+            throw StructureException::connectionFailed($class, $err);
         } catch (ReflectionException $err) {
-            throw new StructureException(sprintf('Cannot create a structure for model "%s" due to a reflection error.', $class), StructureException::ERR_REFLECTION_ERROR, $err);
+            throw StructureException::reflectionError($class, $err);
         }
     }
 
@@ -105,7 +104,7 @@ final class StructureGenerator
      * @return ClassStructureDefinition
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     private static function class(ReflectionClass $class, ?Structure $parent = null): ClassStructureDefinition
     {
@@ -134,7 +133,7 @@ final class StructureGenerator
         }
 
         if ($table === null) {
-            throw new StructureException(sprintf('Model "%s" is missing a table.', $class->name), StructureException::ERR_TABLE_MISSING);
+            throw StructureException::missingTable($class->name);
         }
 
         return new ClassStructureDefinition(
@@ -152,7 +151,7 @@ final class StructureGenerator
      * @return Generator<PropertyDefinition>
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     private static function properties(ReflectionClass $class): Generator
     {
@@ -181,7 +180,7 @@ final class StructureGenerator
      * @return PropertyDefinition|null
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     private static function property(ReflectionProperty $property): ?PropertyDefinition
     {
@@ -207,7 +206,7 @@ final class StructureGenerator
      * @return ColumnDefinition
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     private static function propertyColumn(ReflectionProperty $property, array $attributes): ColumnDefinition
     {
@@ -236,7 +235,7 @@ final class StructureGenerator
 
                 case $attr instanceof Caster:
                     if (!is_subclass_of($attr->casterClass, CasterInterface::class)) {
-                        throw new StructureException(sprintf('Property "%s" in model "%s" has an invalid caster.', $property->name, $property->class), StructureException::ERR_INVALID_CASTER);
+                        throw StructureException::invalidCaster($property->class, $property->name);
                     }
 
                     $caster = $attr->casterClass;
@@ -305,7 +304,7 @@ final class StructureGenerator
      * @return MacroDefinition
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     private static function propertyMacro(ReflectionProperty $property, array $attributes): MacroDefinition
     {
@@ -339,7 +338,7 @@ final class StructureGenerator
         }
 
         if (!is_callable($callback)) {
-            throw new StructureException(sprintf('Property "%s" in model "%s" is missing its macro callback or the macro callback is not accessible.', $property->name, $property->class), StructureException::ERR_INVALID_MACRO);
+            throw StructureException::invalidMacro($property->class, $property->name);
         }
 
         return new MacroDefinition(
@@ -361,7 +360,7 @@ final class StructureGenerator
      * @return RelationDefinition
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     private static function propertyRelation(ReflectionProperty $property, array $attributes): RelationDefinition
     {
@@ -399,7 +398,7 @@ final class StructureGenerator
         }
 
         if ($relation === null) {
-            throw new StructureException(sprintf('Property "%s" of model "%s" has an invalid relation.', $property->name, $property->class), StructureException::ERR_INVALID_RELATION);
+            throw StructureException::invalidRelation($property->class, $property->name);
         }
 
         return new RelationDefinition(

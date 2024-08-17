@@ -13,7 +13,7 @@ use Raxos\Database\Query\Struct\Select;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 14-08-2024
+ * @since 1.0.17
  */
 interface QueryableInterface
 {
@@ -28,7 +28,7 @@ interface QueryableInterface
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public static function getQueryableColumns(Select $select): Select;
 
@@ -42,7 +42,7 @@ interface QueryableInterface
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public static function getQueryableJoins(QueryInterface $query): QueryInterface;
 

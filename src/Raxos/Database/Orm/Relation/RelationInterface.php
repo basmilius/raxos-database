@@ -21,7 +21,7 @@ use Raxos\Database\Query\QueryInterface;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 13-08-2024
+ * @since 1.0.17
  */
 interface RelationInterface
 {
@@ -38,7 +38,7 @@ interface RelationInterface
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function fetch(Model $instance): Model|ModelArrayList|null;
 
@@ -53,7 +53,7 @@ interface RelationInterface
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function query(Model $instance): QueryInterface;
 
@@ -66,7 +66,7 @@ interface RelationInterface
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function rawQuery(): QueryInterface;
 
@@ -82,7 +82,7 @@ interface RelationInterface
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function eagerLoad(ModelArrayList $instances): void;
 

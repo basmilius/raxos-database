@@ -8,9 +8,8 @@ use PDO;
 use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Connector\Connector;
 use Raxos\Database\Error\{ConnectionException, DatabaseException};
-use Raxos\Database\Query\{QueryInterface, Statement};
+use Raxos\Database\Query\{QueryInterface, StatementInterface};
 use function is_subclass_of;
-use function sprintf;
 
 /**
  * Class Db
@@ -53,7 +52,7 @@ class Db
     /**
      * Creates and registers a new connection instance.
      *
-     * @param string $connectionClass
+     * @param class-string<ConnectionInterface> $connectionClass
      * @param Connector $connector
      * @param string $id
      * @param bool $connectImmediately
@@ -66,7 +65,7 @@ class Db
     public static function create(string $connectionClass, Connector $connector, string $id = 'default', bool $connectImmediately = true): ConnectionInterface
     {
         if (!is_subclass_of($connectionClass, ConnectionInterface::class)) {
-            throw new ConnectionException(sprintf('Connection classes should implement "%s".', ConnectionInterface::class), ConnectionException::ERR_INVALID_CONNECTION);
+            throw ConnectionException::invalidImplementation();
         }
 
         /** @var ConnectionInterface $connection */
@@ -127,7 +126,7 @@ class Db
     {
         $id ??= static::$connectionId;
 
-        return static::get($id) ?? throw new ConnectionException(sprintf('Connection with ID "%s" not found or registered.', $id), ConnectionException::ERR_UNDEFINED_CONNECTION);
+        return static::get($id) ?? throw ConnectionException::invalidConnection($id);
     }
 
     /**
@@ -144,7 +143,7 @@ class Db
     }
 
     /**
-     * Unregisters
+     * Unregisters the given connection or connection with the given ID.
      *
      * @param ConnectionInterface|string $idOrConnection
      *
@@ -268,13 +267,13 @@ class Db
      * @param array $options
      * @param string|null $id
      *
-     * @return Statement
+     * @return StatementInterface
      * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::prepare()
      */
-    public static function prepare(QueryInterface|string $query, array $options = [], ?string $id = null): Statement
+    public static function prepare(QueryInterface|string $query, array $options = [], ?string $id = null): StatementInterface
     {
         return static::getOrFail($id)->prepare($query, $options);
     }

@@ -11,15 +11,13 @@ use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\{ColumnLiteral, Select, ValueInterface};
 use Stringable;
-use function json_encode;
-use function sprintf;
 
 /**
  * Trait Queryable
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 14-08-2024
+ * @since 1.0.17
  */
 trait Queryable
 {
@@ -32,7 +30,7 @@ trait Queryable
      * @return ColumnLiteral
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see Structure::getColumn()
      */
     public static function col(string $key): ColumnLiteral
@@ -55,7 +53,7 @@ trait Queryable
      * @throws ConnectionException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see ConnectionInterface::query()
      */
     public static function query(bool $prepared = true): QueryInterface
@@ -71,7 +69,7 @@ trait Queryable
      * @return string
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see Structure::$table
      */
     public static function table(): string
@@ -92,7 +90,7 @@ trait Queryable
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public static function all(int $offset = 0, int $limit = 20): ModelArrayList
     {
@@ -112,7 +110,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::deleteFrom()
      */
     public static function delete(array|string|int $primaryKey): void
@@ -137,7 +135,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public static function exists(array|string|int $primaryKey): bool
     {
@@ -165,7 +163,7 @@ trait Queryable
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::wherePrimaryKeyIn()
      */
     public static function find(array $primaryKeys): ModelArrayList
@@ -210,7 +208,7 @@ trait Queryable
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::wherePrimaryKey()
      */
     public static function single(array|string|int $primaryKey): ?static
@@ -240,12 +238,12 @@ trait Queryable
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see self::single()
      */
     public static function singleOrFail(array|string|int $primaryKey): static
     {
-        return self::single($primaryKey) ?? throw new InstanceException(sprintf('A record of model "%s" with primary key "%s" was not found.', static::class, json_encode($primaryKey)), InstanceException::ERR_NOT_FOUND);
+        return self::single($primaryKey) ?? throw InstanceException::notFound(static::class, $primaryKey);
     }
 
     /**
@@ -260,7 +258,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::update()
      */
     public static function update(array|string|int $primaryKey, array $values): void
@@ -283,7 +281,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::having()
      */
     public static function having(
@@ -306,7 +304,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::havingExists()
      */
     public static function havingExists(QueryInterface $query): QueryInterface
@@ -326,7 +324,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::havingIn()
      */
     public static function havingIn(ColumnLiteral $column, array $options): QueryInterface
@@ -345,7 +343,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::havingNotExists()
      */
     public static function havingNotExists(QueryInterface $query): QueryInterface
@@ -365,7 +363,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::havingNotIn()
      */
     public static function havingNotIn(ColumnLiteral $column, array $options): QueryInterface
@@ -384,7 +382,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::havingNotNull()
      */
     public static function havingNotNull(ColumnLiteral $column): QueryInterface
@@ -403,7 +401,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::havingNull()
      */
     public static function havingNull(ColumnLiteral $column): QueryInterface
@@ -423,7 +421,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::select()
      */
     public static function select(Select|array|string|int $keys = [], bool $prepared = true): QueryInterface
@@ -442,7 +440,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::selectDistinct()
      */
     public static function selectDistinct(Select|array|string|int $keys = [], bool $prepared = true): QueryInterface
@@ -461,7 +459,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::selectFoundRows()
      */
     public static function selectFoundRows(Select|array|string|int $keys = [], bool $prepared = true): QueryInterface
@@ -481,7 +479,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::selectSuffix()
      */
     public static function selectSuffix(string $suffix, Select|array|string|int $keys = [], bool $prepared = true): QueryInterface
@@ -501,7 +499,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::where()
      */
     public static function where(
@@ -524,7 +522,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::whereExists()
      */
     public static function whereExists(QueryInterface $query): QueryInterface
@@ -544,7 +542,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::whereIn()
      */
     public static function whereIn(ColumnLiteral $column, array $options): QueryInterface
@@ -563,7 +561,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::whereNotExists()
      */
     public static function whereNotExists(QueryInterface $query): QueryInterface
@@ -583,7 +581,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::whereNotIn()
      */
     public static function whereNotIn(ColumnLiteral $column, array $options): QueryInterface
@@ -602,7 +600,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::whereNotNull()
      */
     public static function whereNotNull(ColumnLiteral $column): QueryInterface
@@ -621,7 +619,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      * @see QueryInterface::whereNull()
      */
     public static function whereNull(ColumnLiteral $column): QueryInterface
@@ -640,7 +638,7 @@ trait Queryable
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     private static function baseSelect(callable $compose, array|string|int $keys): QueryInterface
     {

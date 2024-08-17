@@ -18,7 +18,6 @@ use function array_search;
 use function array_shift;
 use function in_array;
 use function is_subclass_of;
-use function sprintf;
 
 /**
  * Class Backbone
@@ -27,7 +26,7 @@ use function sprintf;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 13-08-2024
+ * @since 1.0.17
  */
 final class Backbone implements AccessInterface, BackboneInterface
 {
@@ -56,7 +55,7 @@ final class Backbone implements AccessInterface, BackboneInterface
      *
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public readonly string $class,
@@ -75,7 +74,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function addInstance(Model $instance): void
     {
@@ -89,7 +88,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function createInstance(): Model
     {
@@ -99,7 +98,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function removeInstance(Model $instance): void
     {
@@ -113,7 +112,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function addSaveTask(callable $fn): void
     {
@@ -123,7 +122,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function runSaveTasks(): void
     {
@@ -135,19 +134,17 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getCastedValue(string $caster, #[ExpectedValues(['decode', 'encode'])] string $mode, mixed $value): mixed
     {
-        $caster = Singleton::get($caster);
-
-        return $caster->{$mode}($value, $this->currentInstance);
+        return Singleton::get($caster)->{$mode}($value, $this->currentInstance);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getColumnValue(ColumnDefinition $property): mixed
     {
@@ -176,7 +173,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getMacroValue(MacroDefinition $property): mixed
     {
@@ -197,7 +194,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function getRelationValue(RelationDefinition $property): Model|ModelArrayList|null
     {
@@ -209,16 +206,16 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function setColumnValue(ColumnDefinition $property, mixed $value): void
     {
         if ($property->isPrimaryKey && !$this->isNew) {
-            throw new InstanceException(sprintf('Cannot write to property "%s" of model "%s" because it is (part of) the primary key.', $property->name, $this->class), InstanceException::ERR_IMMUTABLE);
+            throw InstanceException::immutablePrimaryKey($this->class, $property->name);
         }
 
         if ($property->isImmutable && !$this->isNew) {
-            throw new InstanceException(sprintf('Cannot write to property "%s" of model "%s" because it is immutable.', $property->name, $this->class), InstanceException::ERR_IMMUTABLE);
+            throw InstanceException::immutable($this->class, $property->name);
         }
 
         if ($property->caster !== null) {
@@ -237,14 +234,14 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function setRelationValue(RelationDefinition $property, mixed $value): void
     {
         $relation = $this->structure->getRelation($property);
 
         if (!($relation instanceof WritableRelationInterface)) {
-            throw new InstanceException(sprintf('Property "%s" on model "%s" is a non-witable relation.', $property->name, $this->class), InstanceException::ERR_IMMUTABLE);
+            throw InstanceException::immutableRelation($this->class, $property->name);
         }
 
         $relation->write($this->currentInstance, $property, $value);
@@ -253,7 +250,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getPrimaryKeyValues(): array|null
     {
@@ -269,7 +266,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function isModified(?string $key = null): bool
     {
@@ -287,14 +284,14 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function queryRelation(Model $instance, string $key): QueryInterface
     {
         $property = $this->structure->getProperty($key);
 
         if (!($property instanceof RelationDefinition)) {
-            throw new StructureException(sprintf('Property "%s" of model "%s" is not a relation.', $key, $this->class), StructureException::ERR_INVALID_RELATION);
+            throw StructureException::invalidRelation($this->class, $property->name);
         }
 
         return $this->structure
@@ -305,7 +302,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getValue(string $key): mixed
     {
@@ -318,14 +315,14 @@ final class Backbone implements AccessInterface, BackboneInterface
                 $property instanceof RelationDefinition => $this->getRelationValue($property)
             };
         } catch (ConnectionException|ExecutionException|QueryException|RelationException $err) {
-            throw new InstanceException(sprintf('Cannot get property "%s" of model "%s".', $property->name, $this->class), InstanceException::ERR_FAILED_TO_GET, $err);
+            throw InstanceException::readFailed($this->class, $property->name, $err);
         }
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function hasValue(string $key): bool
     {
@@ -339,7 +336,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function setValue(string $key, mixed $value): void
     {
@@ -354,25 +351,29 @@ final class Backbone implements AccessInterface, BackboneInterface
         try {
             match (true) {
                 $property instanceof ColumnDefinition => $this->setColumnValue($property, $value),
-                $property instanceof MacroDefinition => throw new InstanceException(sprintf('Cannot write to property "%s" of model "%s" because it is a macro.', $property->name, $this->class), InstanceException::ERR_IMMUTABLE),
+                $property instanceof MacroDefinition => throw InstanceException::immutableMacro($this->class, $property->name),
                 $property instanceof RelationDefinition => $this->setRelationValue($property, $value)
             };
         } catch (QueryException|RelationException $err) {
-            throw new InstanceException(sprintf('Cannot set property "%s" of model "%s".', $property->name, $this->class), InstanceException::ERR_FAILED_TO_SET, $err);
+            throw InstanceException::writeFailed($this->class, $property->name, $err);
         }
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function unsetValue(string $key): void
     {
         $property = $this->structure->getProperty($key);
 
-        if ($property instanceof MacroDefinition || $property instanceof RelationDefinition) {
-            throw new InstanceException(sprintf('Cannot unset property "%s" of model "%s" because it is immutable. The property is either a macro or relation.', $property->name, $this->class), InstanceException::ERR_IMMUTABLE);
+        if ($property instanceof MacroDefinition) {
+            throw InstanceException::immutableMacro($this->class, $property->name);
+        }
+
+        if ($property instanceof RelationDefinition) {
+            throw InstanceException::immutableRelation($this->class, $property->name);
         }
 
         $this->data->unsetValue($key);

@@ -20,17 +20,15 @@ final readonly class EagerLoadEvent extends Event
      * EagerLoadEvent constructor.
      *
      * @param RelationInterface $relation
-     * @param Stopwatch $stopwatch
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
     public function __construct(
-        public RelationInterface $relation,
-        Stopwatch $stopwatch
+        public RelationInterface $relation
     )
     {
-        parent::__construct($stopwatch);
+        parent::__construct(new Stopwatch());
     }
 
     /**

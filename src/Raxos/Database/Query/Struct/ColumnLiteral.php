@@ -5,8 +5,9 @@ namespace Raxos\Database\Query\Struct;
 
 use JetBrains\PhpStorm\ArrayShape;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Orm\{Model, Structure\Structure};
-use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
+use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Foundation\Contract\DebuggableInterface;
 use function array_filter;
 use function implode;
 
@@ -17,7 +18,7 @@ use function implode;
  * @package Raxos\Database\Query\Struct
  * @since 1.0.16
  */
-final readonly class ColumnLiteral extends Literal implements DebugInfoInterface
+final readonly class ColumnLiteral extends Literal implements DebuggableInterface
 {
 
     /**

@@ -4,18 +4,17 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use BackedEnum;
-use JetBrains\PhpStorm\{ExpectedValues, Pure};
+use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
 use Raxos\Database\Connector\Connector;
 use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
+use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
-use Raxos\Database\Query\{QueryInterface, Statement};
+use Raxos\Database\Query\{QueryInterface, Statement, StatementInterface};
 use function array_key_exists;
 use function in_array;
-use function sprintf;
 
 /**
  * Class Connection
@@ -27,10 +26,6 @@ use function sprintf;
 abstract class Connection implements ConnectionInterface
 {
 
-    public readonly Cache $cache;
-    public readonly Dialect $dialect;
-    public readonly Logger $logger;
-
     protected ?array $columnsPerTable = null;
     protected ?PDO $pdo = null;
 
@@ -38,20 +33,21 @@ abstract class Connection implements ConnectionInterface
      * Connection constructor.
      *
      * @param string $id
+     * @param Cache $cache
      * @param Connector $connector
+     * @param Dialect $dialect
+     * @param Logger $logger
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function __construct(
         public readonly string $id,
-        public readonly Connector $connector
-    )
-    {
-        $this->cache = new Cache();
-        $this->dialect = $this->initializeDialect();
-        $this->logger = new Logger();
-    }
+        public readonly Connector $connector,
+        public readonly Dialect $dialect,
+        public readonly Cache $cache,
+        public readonly Logger $logger
+    ) {}
 
     /**
      * {@inheritdoc}
@@ -110,7 +106,12 @@ abstract class Connection implements ConnectionInterface
         $result = $smt->fetchColumn();
         $smt->closeCursor();
 
-        return $result;
+        if ($result !== false) {
+            return $result;
+        }
+
+        [, $code, $message] = $this->pdo->errorInfo();
+        throw ExecutionException::of($code, $message);
     }
 
     /**
@@ -130,7 +131,8 @@ abstract class Connection implements ConnectionInterface
             return $result;
         }
 
-        throw $this->throwFromError();
+        [, $code, $message] = $this->pdo->errorInfo();
+        throw ExecutionException::of($code, $message);
     }
 
     /**
@@ -158,7 +160,7 @@ abstract class Connection implements ConnectionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function prepare(QueryInterface|string $query, array $options = []): Statement
+    public function prepare(QueryInterface|string $query, array $options = []): StatementInterface
     {
         return new Statement($this, $query, $options);
     }
@@ -197,7 +199,7 @@ abstract class Connection implements ConnectionInterface
     public function tableColumns(string $table): array
     {
         if (!$this->tableExists($table)) {
-            throw new ConnectionException(sprintf('Table "%s" does not exists in the current database.', $table), ConnectionException::ERR_SCHEMA_ERROR);
+            throw SchemaException::invalidTable($table);
         }
 
         return $this->columnsPerTable[$table] ?? [];
@@ -223,7 +225,7 @@ abstract class Connection implements ConnectionInterface
     public function commit(): bool
     {
         if (!$this->pdo->inTransaction()) {
-            throw new QueryException('There is no running transaction.', QueryException::ERR_NO_TRANSACTION);
+            throw QueryException::notInTransaction();
         }
 
         return $this->pdo->commit();
@@ -247,7 +249,7 @@ abstract class Connection implements ConnectionInterface
     public function rollBack(): bool
     {
         if (!$this->pdo->inTransaction()) {
-            throw new QueryException('There is no running transaction.', QueryException::ERR_NO_TRANSACTION);
+            throw QueryException::notInTransaction();
         }
 
         return $this->pdo->rollBack();
@@ -277,16 +279,6 @@ abstract class Connection implements ConnectionInterface
     }
 
     /**
-     * Initializes the used dialect.
-     *
-     * @return Dialect
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    protected abstract function initializeDialect(): Dialect;
-
-    /**
      * Ensures that there is an active connection.
      *
      * @throws ConnectionException
@@ -299,21 +291,7 @@ abstract class Connection implements ConnectionInterface
             return;
         }
 
-        throw new ConnectionException('Not connected to a database.', ConnectionException::ERR_DISCONNECTED);
-    }
-
-    /**
-     * Throws from the last pdo error.
-     *
-     * @return DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    private function throwFromError(): DatabaseException
-    {
-        [, $code, $message] = $this->pdo->errorInfo();
-
-        return DatabaseException::throw($code, $message);
+        throw ConnectionException::notConnected();
     }
 
 }

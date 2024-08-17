@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Definition;
 
+use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 use Raxos\Database\Orm\Model;
 
@@ -11,7 +12,7 @@ use Raxos\Database\Orm\Model;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Definition
- * @since 13-08-2024
+ * @since 1.0.17
  */
 final readonly class PolymorphicDefinition implements JsonSerializable
 {
@@ -23,7 +24,7 @@ final readonly class PolymorphicDefinition implements JsonSerializable
      * @param array<string, class-string<Model>> $map
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public string $column,
@@ -33,8 +34,12 @@ final readonly class PolymorphicDefinition implements JsonSerializable
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
+    #[ArrayShape([
+        'column' => 'string',
+        'map' => 'array<string, class-string<Model>>'
+    ])]
     public function jsonSerialize(): array
     {
         return [

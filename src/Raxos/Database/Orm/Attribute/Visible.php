@@ -21,7 +21,7 @@ use Attribute;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 13-08-2024
+ * @since 1.0.17
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class Visible implements AttributeInterface
@@ -33,7 +33,7 @@ final readonly class Visible implements AttributeInterface
      * @param string[]|string|null $only
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public array|string|null $only = null

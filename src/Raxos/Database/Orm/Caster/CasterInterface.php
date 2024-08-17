@@ -11,7 +11,7 @@ use Raxos\Database\Orm\Model;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Caster
- * @since 13-08-2024
+ * @since 1.0.17
  */
 interface CasterInterface
 {
@@ -25,7 +25,7 @@ interface CasterInterface
      * @return mixed
      * @throws CasterException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function decode(string|float|int|null $value, Model $instance): mixed;
 
@@ -38,7 +38,7 @@ interface CasterInterface
      * @return string|float|int|null
      * @throws CasterException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function encode(mixed $value, Model $instance): string|float|int|null;
 

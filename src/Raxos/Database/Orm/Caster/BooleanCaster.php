@@ -10,7 +10,7 @@ use Raxos\Database\Orm\Model;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Caster
- * @since 13-08-2024
+ * @since 1.0.17
  */
 final readonly class BooleanCaster implements CasterInterface
 {
@@ -18,7 +18,7 @@ final readonly class BooleanCaster implements CasterInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function decode(float|int|string|null $value, Model $instance): bool
     {
@@ -28,7 +28,7 @@ final readonly class BooleanCaster implements CasterInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function encode(mixed $value, Model $instance): string|float|int|null
     {

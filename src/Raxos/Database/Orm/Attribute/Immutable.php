@@ -21,7 +21,7 @@ use Attribute;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 13-08-2024
+ * @since 1.0.17
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class Immutable implements AttributeInterface {}

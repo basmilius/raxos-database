@@ -5,8 +5,7 @@ namespace Raxos\Database\Query;
 
 use BackedEnum;
 use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
-use Raxos\Database\Orm\Error\RelationException;
-use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Struct\{Literal, Select, ValueInterface};
 use Stringable;
@@ -14,8 +13,8 @@ use Stringable;
 /**
  * Interface QueryInterface
  *
- * @template TModel
- * @template-extends QueryBaseInterface<TModel>
+ * @template TModel of Model
+ * @extends QueryBaseInterface<TModel>
  *
  * @author Bas Milius <bas@glybe.nl>
  * @package Raxos\Database\Query
@@ -619,7 +618,7 @@ interface QueryInterface extends QueryBaseInterface
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function wherePrimaryKeyIn(string $modelClass, array $primaryKeys): static;
 

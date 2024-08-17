@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use JetBrains\PhpStorm\Pure;
-use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
+use Raxos\Foundation\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use function array_map;
 use function http_build_query;
@@ -15,9 +15,9 @@ use function is_array;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 14-08-2024
+ * @since 1.0.17
  */
-final class Cache implements CacheInterface, DebugInfoInterface
+final class Cache implements CacheInterface, DebuggableInterface
 {
 
     private array $instances = [];
@@ -25,7 +25,7 @@ final class Cache implements CacheInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     #[Pure]
     public function find(string $modelClass, callable $predicate): ?Model
@@ -38,7 +38,7 @@ final class Cache implements CacheInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function flush(string $modelClass): void
     {
@@ -48,7 +48,7 @@ final class Cache implements CacheInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function flushAll(): void
     {
@@ -58,7 +58,7 @@ final class Cache implements CacheInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     #[Pure]
     public function get(string $modelClass, array|string|int $primaryKey): ?Model
@@ -71,7 +71,7 @@ final class Cache implements CacheInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     #[Pure]
     public function has(string $modelClass, array|string|int $primaryKey): bool
@@ -84,7 +84,7 @@ final class Cache implements CacheInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function set(string $modelClass, array|string|int $primaryKey, Model $instance): void
     {
@@ -95,7 +95,7 @@ final class Cache implements CacheInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function unset(string $modelClass, array|string|int $primaryKey): void
     {
@@ -110,7 +110,7 @@ final class Cache implements CacheInterface, DebugInfoInterface
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     private function key(array|string|int $primaryKey): string
     {
@@ -124,7 +124,7 @@ final class Cache implements CacheInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function __debugInfo(): array
     {

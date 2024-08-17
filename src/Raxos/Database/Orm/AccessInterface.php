@@ -10,7 +10,7 @@ use Raxos\Database\Orm\Error\{InstanceException, StructureException};
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 13-08-2024
+ * @since 1.0.17
  */
 interface AccessInterface
 {
@@ -24,7 +24,7 @@ interface AccessInterface
      * @throws InstanceException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getValue(string $key): mixed;
 
@@ -37,7 +37,7 @@ interface AccessInterface
      * @throws InstanceException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function hasValue(string $key): bool;
 
@@ -51,7 +51,7 @@ interface AccessInterface
      * @throws InstanceException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function setValue(string $key, mixed $value): void;
 
@@ -64,7 +64,7 @@ interface AccessInterface
      * @throws InstanceException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function unsetValue(string $key): void;
 

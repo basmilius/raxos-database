@@ -22,7 +22,7 @@ use Raxos\Database\Orm\Caster\CasterInterface;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 13-08-2024
+ * @since 1.0.17
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class Caster implements AttributeInterface
@@ -36,7 +36,7 @@ final readonly class Caster implements AttributeInterface
      * @param class-string<TCaster> $casterClass
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public string $casterClass

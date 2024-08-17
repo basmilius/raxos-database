@@ -3,58 +3,41 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connection;
 
-use JetBrains\PhpStorm\Pure;
-use Raxos\Database\Connector\MySqlConnector;
-use Raxos\Database\Dialect\{Dialect, MySqlDialect};
+use Raxos\Database\Connector\Connector;
+use Raxos\Database\Dialect\MySqlDialect;
+use Raxos\Database\Logger\Logger;
+use Raxos\Database\Orm\Cache;
 use Raxos\Database\Query\MySqlQuery;
 
 /**
  * Class MySqlConnection
  *
- * @property MySqlConnector $connector
- *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Connection
  * @since 1.0.0
  */
-class MySqlConnection extends Connection
+final class MySqlConnection extends AbstractMySqlLikeConnection
 {
 
     /**
-     * {@inheritdoc}
+     * MySqlConnection constructor.
+     *
+     * @param string $id
+     * @param Connector $connector
+     * @param Cache $cache
+     * @param Logger $logger
+     *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
-    public function foundRows(): int
+    public function __construct(
+        string $id,
+        Connector $connector,
+        Cache $cache = new Cache(),
+        Logger $logger = new Logger()
+    )
     {
-        return $this->column(
-            $this->query(false)
-                ->select('found_rows()')
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function loadDatabaseSchema(): array
-    {
-        $results = $this
-            ->query(false)
-            ->select(['TABLE_NAME', 'COLUMN_NAME'])
-            ->from('information_schema.COLUMNS')
-            ->where('TABLE_SCHEMA', $this->connector->database)
-            ->array();
-
-        $data = [];
-
-        foreach ($results as ['TABLE_NAME' => $table, 'COLUMN_NAME' => $column]) {
-            $data[$table] ??= [];
-            $data[$table][] = $column;
-        }
-
-        return $data;
+        parent::__construct($id, $connector, new MySqlDialect(), $cache, $logger);
     }
 
     /**
@@ -65,17 +48,6 @@ class MySqlConnection extends Connection
     public function query(bool $prepared = true): MySqlQuery
     {
         return new MySqlQuery($this, $prepared);
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    #[Pure]
-    protected function initializeDialect(): Dialect
-    {
-        return new MySqlDialect();
     }
 
 }

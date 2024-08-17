@@ -9,10 +9,11 @@ use PDO;
 use PDOStatement;
 use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
-use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
+use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
-use Raxos\Database\Query\{QueryInterface, Statement};
+use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Query\{QueryInterface, StatementInterface};
 
 /**
  * Interface ConnectionInterface
@@ -64,7 +65,7 @@ interface ConnectionInterface
      * @param int $attribute
      *
      * @return mixed
-     * @throws DatabaseException
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      * @see PDO::getAttribute()
@@ -77,6 +78,7 @@ interface ConnectionInterface
      * @param QueryInterface|string $query
      *
      * @return string|int|false
+     * @throws ExecutionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      * @see PDO::query()
@@ -90,7 +92,7 @@ interface ConnectionInterface
      * @param QueryInterface|string $query
      *
      * @return int
-     * @throws DatabaseException
+     * @throws ExecutionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      * @see PDO::exec()
@@ -101,7 +103,10 @@ interface ConnectionInterface
      * Returns the amount of rows that were found in the last query.
      *
      * @return int
-     * @throws DatabaseException
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -137,11 +142,11 @@ interface ConnectionInterface
      * @param QueryInterface|string $query
      * @param array $options
      *
-     * @return Statement
+     * @return StatementInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    public function prepare(QueryInterface|string $query, array $options = []): Statement;
+    public function prepare(QueryInterface|string $query, array $options = []): StatementInterface;
 
     /**
      * Compose a new query.
@@ -218,7 +223,7 @@ interface ConnectionInterface
      * Loads the database schema.
      *
      * @return array<string, string[]>
-     * @throws DatabaseException
+     * @throws SchemaException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -231,7 +236,7 @@ interface ConnectionInterface
      * @param string $column
      *
      * @return bool
-     * @throws DatabaseException
+     * @throws SchemaException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -243,7 +248,7 @@ interface ConnectionInterface
      * @param string $table
      *
      * @return string[]
-     * @throws DatabaseException
+     * @throws SchemaException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -255,7 +260,7 @@ interface ConnectionInterface
      * @param string $table
      *
      * @return bool
-     * @throws DatabaseException
+     * @throws SchemaException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */

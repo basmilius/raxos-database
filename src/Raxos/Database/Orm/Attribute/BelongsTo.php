@@ -28,7 +28,7 @@ use Attribute;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 15-08-2024
+ * @since 1.0.17
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class BelongsTo implements AttributeInterface, RelationAttributeInterface
@@ -44,7 +44,7 @@ final readonly class BelongsTo implements AttributeInterface, RelationAttributeI
      * @param bool $eagerLoad
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public ?string $referenceKey = null,

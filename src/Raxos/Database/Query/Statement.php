@@ -9,8 +9,8 @@ use PDOStatement;
 use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Logger\QueryEvent;
-use Raxos\Database\Orm\{Error\RelationException, Model, ModelArrayList};
-use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\Util\Stopwatch;
@@ -28,7 +28,7 @@ use function is_int;
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-class Statement
+class Statement implements StatementInterface
 {
 
     public readonly PDOStatement $pdoStatement;
@@ -74,18 +74,9 @@ class Statement
     }
 
     /**
-     * Executes the statement and returns an array containing all results.
-     *
-     * @param int $fetchMode
-     *
-     * @return array
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function array(int $fetchMode = PDO::FETCH_ASSOC): array
     {
@@ -95,18 +86,9 @@ class Statement
     }
 
     /**
-     * Executes the statement and returns an ArrayList containing all results.
-     *
-     * @param int $fetchMode
-     *
-     * @return ArrayList|ModelArrayList
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function arrayList(int $fetchMode = PDO::FETCH_ASSOC): ArrayList|ModelArrayList
     {
@@ -121,18 +103,9 @@ class Statement
     }
 
     /**
-     * Executes the statement and returns a generator containing all results.
-     *
-     * @param int $fetchMode
-     *
-     * @return Generator
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function cursor(int $fetchMode = PDO::FETCH_ASSOC): Generator
     {
@@ -144,12 +117,9 @@ class Statement
     }
 
     /**
-     * Executes the statement.
-     *
-     * @throws ExecutionException
-     * @throws QueryException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function run(): void
     {
@@ -157,18 +127,9 @@ class Statement
     }
 
     /**
-     * Executes the statement and returns the first result.
-     *
-     * @param int $fetchMode
-     *
-     * @return Model|stdClass|array|null
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function single(int $fetchMode = PDO::FETCH_ASSOC): Model|stdClass|array|null
     {
@@ -178,15 +139,9 @@ class Statement
     }
 
     /**
-     * Binds the given value.
-     *
-     * @param string $name
-     * @param string|int|float|null $value
-     * @param int|null $type
-     *
-     * @return $this
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function bind(string $name, string|int|float|null $value, ?int $type = null): static
     {
@@ -198,28 +153,22 @@ class Statement
     }
 
     /**
-     * Creates a new model instance.
-     *
-     * @param mixed $result
-     *
-     * @return Model
-     * @throws QueryException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function createModel(mixed $result): Model
     {
         if ($this->modelClass === null) {
-            throw new QueryException('Cannot create model instance, no model was assigned to the query.', QueryException::ERR_INVALID_MODEL);
+            throw QueryException::invalidModel('Cannot create model instance, no model was assigned to the query.');
         }
 
         if (!is_array($result)) {
-            throw new QueryException('Cannot create model instance, the record set must be an array.', QueryException::ERR_INVALID_MODEL);
+            throw QueryException::invalidModel('Cannot create model instance, the record set must be an array.');
         }
 
         if (!class_exists($this->modelClass)) {
-            throw new QueryException('Cannot create model instance, the assigned model does not exist.', QueryException::ERR_INVALID_MODEL);
+            throw QueryException::invalidModel('Cannot create model instance, the assigned model class does not exist.');
         }
 
         return Structure::of($this->modelClass)
@@ -227,12 +176,9 @@ class Statement
     }
 
     /**
-     * Enable eager loading for the given relationships.
-     *
-     * @param string[] $relationships
-     *
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function eagerLoad(array $relationships): void
     {
@@ -240,12 +186,9 @@ class Statement
     }
 
     /**
-     * Disable eager loading for the given relationships.
-     *
-     * @param string[] $relationships
-     *
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function eagerLoadDisable(array $relationships): void
     {
@@ -253,18 +196,9 @@ class Statement
     }
 
     /**
-     * Fetches a single row.
-     *
-     * @param int $fetchMode
-     *
-     * @return Model|stdClass|array|null
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function fetch(int $fetchMode = PDO::FETCH_ASSOC): Model|stdClass|array|null
     {
@@ -286,18 +220,9 @@ class Statement
     }
 
     /**
-     * Fetches all rows.
-     *
-     * @param int $fetchMode
-     *
-     * @return array
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function fetchAll(int $fetchMode = PDO::FETCH_ASSOC): array
     {
@@ -315,13 +240,7 @@ class Statement
     }
 
     /**
-     * Fetches a single column of a single row.
-     *
-     * @param int $index
-     *
-     * @return mixed
-     * @throws ExecutionException
-     * @throws QueryException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -333,11 +252,9 @@ class Statement
     }
 
     /**
-     * Returns the amount of rows in the result.
-     *
-     * @return int
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function rowCount(): int
     {
@@ -345,13 +262,9 @@ class Statement
     }
 
     /**
-     * Associates a model.
-     *
-     * @param string $class
-     *
-     * @return $this
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function withModel(string $class): static
     {
@@ -361,11 +274,9 @@ class Statement
     }
 
     /**
-     * Removes the associated model.
-     *
-     * @return $this
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.0.17
      */
     public final function withoutModel(): static
     {
@@ -385,7 +296,7 @@ class Statement
     private function execute(): void
     {
         if ($this->modelClass === null && !empty($this->eagerLoad)) {
-            throw new QueryException('Eager loading is only available for models.', QueryException::ERR_EAGER_NOT_AVAILABLE);
+            throw QueryException::missingModel();
         }
 
         if ($this->connection->logger->isEnabled()) {

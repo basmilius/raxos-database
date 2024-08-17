@@ -8,7 +8,7 @@ namespace Raxos\Database\Orm;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 14-08-2024
+ * @since 1.0.17
  */
 interface CacheInterface
 {
@@ -21,7 +21,7 @@ interface CacheInterface
      *
      * @return Model|null
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function find(string $modelClass, callable $predicate): ?Model;
 
@@ -32,7 +32,7 @@ interface CacheInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function flush(string $modelClass): void;
 
@@ -41,7 +41,7 @@ interface CacheInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function flushAll(): void;
 
@@ -53,7 +53,7 @@ interface CacheInterface
      *
      * @return Model|null
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function get(string $modelClass, array|string|int $primaryKey): ?Model;
 
@@ -65,7 +65,7 @@ interface CacheInterface
      *
      * @return bool
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function has(string $modelClass, array|string|int $primaryKey): bool;
 
@@ -78,7 +78,7 @@ interface CacheInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function set(string $modelClass, array|string|int $primaryKey, Model $instance): void;
 
@@ -90,7 +90,7 @@ interface CacheInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function unset(string $modelClass, array|string|int $primaryKey): void;
 

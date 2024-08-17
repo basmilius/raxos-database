@@ -16,7 +16,7 @@ use Raxos\Database\Orm\Error\{RelationException, StructureException};
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 13-08-2024
+ * @since 1.0.17
  */
 interface WritableRelationInterface
 {
@@ -33,7 +33,7 @@ interface WritableRelationInterface
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function write(Model $instance, RelationDefinition $property, Model|ModelArrayList|null $newValue): void;
 

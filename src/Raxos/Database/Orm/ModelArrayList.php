@@ -18,7 +18,7 @@ use Raxos\Foundation\Collection\ArrayList;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 13-08-2024
+ * @since 1.0.17
  */
 class ModelArrayList extends ArrayList implements VisibilityInterface
 {
@@ -26,7 +26,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function makeHidden(array|string $keys): static
     {
@@ -36,7 +36,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function makeVisible(array|string $keys): static
     {
@@ -46,7 +46,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function only(array|string $keys): static
     {

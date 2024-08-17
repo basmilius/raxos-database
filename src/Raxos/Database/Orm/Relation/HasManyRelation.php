@@ -21,7 +21,7 @@ use function Raxos\Database\Query\in;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 15-08-2024
+ * @since 1.0.17
  */
 final readonly class HasManyRelation implements RelationInterface
 {
@@ -40,7 +40,7 @@ final readonly class HasManyRelation implements RelationInterface
      *
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public HasMany $attribute,
@@ -70,7 +70,7 @@ final readonly class HasManyRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
@@ -92,7 +92,7 @@ final readonly class HasManyRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function query(Model $instance): QueryInterface
     {
@@ -104,7 +104,7 @@ final readonly class HasManyRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function rawQuery(): QueryInterface
     {
@@ -117,7 +117,7 @@ final readonly class HasManyRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function eagerLoad(ModelArrayList $instances): void
     {

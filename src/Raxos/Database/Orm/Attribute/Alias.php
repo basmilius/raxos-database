@@ -4,12 +4,13 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Foundation\Contract\ArrayableInterface;
 
 /**
  * Class Alias
  *
  * Defines an alias for the column. Used within exports such as
- * {@see Arrayable::toArray()} and {@see JsonSerializable::jsonSerialize()}.
+ * {@see ArrayableInterface::toArray()} and {@see JsonSerializable::jsonSerialize()}.
  * If alias is used without a value, the key of the property is used.
  *
  * <code>
@@ -22,7 +23,7 @@ use Attribute;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 13-08-2024
+ * @since 1.0.17
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class Alias implements AttributeInterface
@@ -34,7 +35,7 @@ final readonly class Alias implements AttributeInterface
      * @param string|null $alias
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public ?string $alias = null

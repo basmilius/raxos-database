@@ -8,7 +8,7 @@ use JsonSerializable;
 use PDO;
 use PDOException;
 use Raxos\Database\Error\ConnectionException;
-use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
+use Raxos\Foundation\Contract\DebuggableInterface;
 
 /**
  * Class Connector
@@ -17,7 +17,7 @@ use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
  * @package Raxos\Database\Connector
  * @since 1.0.0
  */
-abstract readonly class Connector implements DebugInfoInterface, JsonSerializable
+abstract readonly class Connector implements DebuggableInterface, JsonSerializable
 {
 
     private const array DEFAULT_OPTIONS = [
@@ -90,9 +90,9 @@ abstract readonly class Connector implements DebugInfoInterface, JsonSerializabl
      * @since 2.0.0
      */
     #[Pure]
-    public final function jsonSerialize(): string
+    public final function jsonSerialize(): null
     {
-        return '-- hidden --';
+        return null;
     }
 
 }

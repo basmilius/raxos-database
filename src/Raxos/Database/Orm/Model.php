@@ -11,8 +11,7 @@ use Raxos\Database\Orm\Structure\StructureHelper;
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\Select;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
-use Raxos\Foundation\Collection\Arrayable;
-use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
+use Raxos\Foundation\Contract\{ArrayableInterface, DebuggableInterface};
 use Stringable;
 use function array_diff_key;
 use function array_key_exists;
@@ -25,9 +24,9 @@ use function sprintf;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 13-08-2024
+ * @since 1.0.1708-2024
  */
-abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, JsonSerializable, QueryableInterface, Stringable, VisibilityInterface
+abstract class Model implements AccessInterface, ArrayableInterface, DebuggableInterface, JsonSerializable, QueryableInterface, Stringable, VisibilityInterface
 {
 
     use ArrayAccessible;
@@ -46,7 +45,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
      *
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         ?Backbone $backbone = null
@@ -74,7 +73,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function destroy(): void
     {
@@ -91,14 +90,14 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function save(): void {}
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function makeHidden(array|string $keys): static
     {
@@ -114,7 +113,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function makeVisible(array|string $keys): static
     {
@@ -130,7 +129,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function only(array|string $keys): static
     {
@@ -156,7 +155,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getValue(string $key): mixed
     {
@@ -168,7 +167,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function hasValue(string $key): bool
     {
@@ -180,7 +179,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function setValue(string $key, mixed $value): void
     {
@@ -191,7 +190,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function unsetValue(string $key): void
     {
@@ -204,7 +203,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
      * @throws InstanceException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function jsonSerialize(): array
     {
@@ -216,7 +215,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
      * @throws InstanceException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function toArray(): array
     {
@@ -270,7 +269,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function __call(string $name, array $arguments): QueryInterface
     {
@@ -282,7 +281,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
             return $relation->query($this);
         }
 
-        throw new InstanceException(sprintf('Cannot invoke "%s" on model "%s".', $property->name, static::class), InstanceException::ERR_NOT_A_FUNCTION);
+        throw InstanceException::missingFunction(static::class, $name);
     }
 
     /**
@@ -290,7 +289,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
      * @throws InstanceException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __debugInfo(): ?array
     {
@@ -302,7 +301,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
      * @throws InstanceException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __toString(): string
     {
@@ -315,7 +314,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public static function getQueryableColumns(Select $select): Select
     {
@@ -325,7 +324,7 @@ abstract class Model implements AccessInterface, Arrayable, DebugInfoInterface, 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public static function getQueryableJoins(QueryInterface $query): QueryInterface
     {

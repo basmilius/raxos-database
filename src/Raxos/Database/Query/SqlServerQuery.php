@@ -10,8 +10,8 @@ use Raxos\Database\Orm\Model;
  * Class SqlServerQuery
  *
  * @template TModel of Model
- * @template-extends Query<TModel>
- * @template-implements QueryInterface<TModel>
+ * @extends Query<TModel>
+ * @implements QueryInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
@@ -37,7 +37,7 @@ class SqlServerQuery extends Query
         }
 
         if (!$this->isClauseDefined('select')) {
-            throw new QueryException('A select clause is required to limit results.', QueryException::ERR_CLAUSE_NOT_DEFINED);
+            throw QueryException::invalid('A select clause is required to limit results.');
         }
 
         return $this->replaceClause('select', function (array $piece) use ($limit): array {
@@ -56,7 +56,7 @@ class SqlServerQuery extends Query
     public function offset(int $offset): static
     {
         if (!$this->isClauseDefined('order by')) {
-            throw new QueryException('A order by clause is required to offset results.', QueryException::ERR_CLAUSE_NOT_DEFINED);
+            throw QueryException::invalid('A order by clause is required to offset results.');
         }
 
         return $this->addPiece('offset', "{$offset} rows");

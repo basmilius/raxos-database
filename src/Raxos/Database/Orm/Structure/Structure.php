@@ -13,12 +13,10 @@ use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, Prop
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, RelationInterface};
 use Raxos\Database\Query\Struct\ColumnLiteral;
-use Raxos\Foundation\Util\Stopwatch;
 use function array_key_exists;
 use function array_map;
 use function in_array;
 use function is_array;
-use function sprintf;
 
 /**
  * Class Structure
@@ -27,7 +25,7 @@ use function sprintf;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Structure
- * @since 13-08-2024
+ * @since 1.0.17
  */
 final class Structure
 {
@@ -49,7 +47,7 @@ final class Structure
      * @param self|null $parent
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public readonly string $class,
@@ -66,12 +64,12 @@ final class Structure
     /**
      * Creates a new instance of the model.
      *
-     * @param array $result
+     * @param array<string, mixed> $result
      *
-     * @return Model
+     * @return TModel&Model
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function createInstance(array $result): Model
     {
@@ -93,7 +91,7 @@ final class Structure
 
         if ($this->polymorphic !== null) {
             if (!array_key_exists($this->polymorphic->column, $result)) {
-                throw new StructureException(sprintf('Cannot create polymorphic model instance of base model "%s". The column "%s" is missing in the result.', $this->class, $this->polymorphic->column), StructureException::ERR_POLYMORPHIC_COLUMN_MISSING);
+                throw StructureException::polymorphicColumnMissing($this->class, $this->polymorphic->column);
             }
 
             $polymorphicClass = $this->polymorphic->map[$result[$this->polymorphic->column]];
@@ -125,7 +123,7 @@ final class Structure
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function eagerLoadRelation(RelationInterface $relation, ModelArrayList $instances, array $forced = [], array $disabled = []): void
     {
@@ -139,7 +137,7 @@ final class Structure
         if ($this->connection->logger->isEnabled()) {
             $deferred = $this->connection->logger->deferred();
             $relation->eagerLoad($instances);
-            $deferred->commit(new EagerLoadEvent($relation, new Stopwatch()));
+            $deferred->commit(new EagerLoadEvent($relation));
         } else {
             $relation->eagerLoad($instances);
         }
@@ -159,7 +157,7 @@ final class Structure
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function eagerLoadRelations(array $instances, array $forced = [], array $disabled = []): void
     {
@@ -208,7 +206,7 @@ final class Structure
      * @return PropertyDefinition
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getProperty(string $key): PropertyDefinition
     {
@@ -218,7 +216,7 @@ final class Structure
             }
         }
 
-        throw new StructureException(sprintf('Model "%s" does not have a property "%s".', $this->class, $key), StructureException::ERR_UNKNOWN_PROPERTY);
+        throw StructureException::missingProperty($this->class, $key);
     }
 
     /**
@@ -228,7 +226,7 @@ final class Structure
      *
      * @return bool
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function hasProperty(string $key): bool
     {
@@ -249,14 +247,14 @@ final class Structure
      * @return ColumnLiteral
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function getColumn(string $key): ColumnLiteral
     {
         $property = $this->getProperty($key);
 
         if (!($property instanceof ColumnDefinition)) {
-            throw new StructureException(sprintf('Property "%s" of model "%s" is not a column.', $key, $this->class));
+            throw StructureException::invalidColumn($this->class, $key);
         }
 
         return new ColumnLiteral($this->connection->dialect, $property->key, $this->table);
@@ -267,7 +265,7 @@ final class Structure
      *
      * @return ColumnDefinition[]|null
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getPrimaryKey(): array|null
     {
@@ -301,7 +299,7 @@ final class Structure
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function getRelation(RelationDefinition $property): RelationInterface
     {
@@ -314,7 +312,7 @@ final class Structure
             $attribute instanceof HasManyThrough => new HasManyThroughRelation($attribute, $property, $this),
             $attribute instanceof HasOne => new HasOneRelation($attribute, $property, $this),
             $attribute instanceof CustomRelationAttributeInterface => $attribute->createRelationInstance($property, $this),
-            default => throw new RelationException(sprintf('Implementation for relation "%s" is missing for property "%s" of model "%s".', $attribute::class, $property->name, $this->class), RelationException::ERR_IMPLEMENTATION_MISSING)
+            default => throw StructureException::missingRelationImplementation($this->class, $property->name, $attribute::class)
         };
     }
 
@@ -325,7 +323,7 @@ final class Structure
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function getRelations(): Generator
     {
@@ -341,7 +339,7 @@ final class Structure
      *
      * @return ColumnLiteral
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function getRelationPrimaryKey(): ColumnLiteral
     {
@@ -364,7 +362,7 @@ final class Structure
      * @return self<TStructureModel>
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public static function of(string $class): self
     {

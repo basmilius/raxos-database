@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Definition;
 
-use JetBrains\PhpStorm\Pure;
+use JetBrains\PhpStorm\{ArrayShape, Pure};
 use Raxos\Database\Orm\Caster\CasterInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 
@@ -12,7 +12,7 @@ use Raxos\Foundation\Util\ArrayUtil;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Definition
- * @since 13-08-2024
+ * @since 1.0.17
  */
 final readonly class ColumnDefinition extends PropertyDefinition
 {
@@ -37,7 +37,7 @@ final readonly class ColumnDefinition extends PropertyDefinition
      * @param bool $isVisible
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public ?string $caster,
@@ -61,12 +61,48 @@ final readonly class ColumnDefinition extends PropertyDefinition
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     #[Pure]
     public function isIn(array $keys): bool
     {
         return ArrayUtil::in($keys, [$this->name, $this->alias, $this->key]);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    #[ArrayShape([
+        'name' => 'string',
+        'alias' => 'string|null',
+        'is_hidden' => 'bool',
+        'is_visible' => 'bool',
+        'caster' => 'string|null',
+        'default_value' => 'mixed',
+        'is_foreign_key' => 'bool',
+        'is_primary_key' => 'bool',
+        'is_computed' => 'bool',
+        'is_immutable' => 'bool',
+        'key' => 'string',
+        'types' => 'string[]',
+        'visible_only' => 'string[]'
+    ])]
+    public function jsonSerialize(): array
+    {
+        return [
+            ...parent::jsonSerialize(),
+            'caster' => $this->caster,
+            'default_value' => $this->defaultValue,
+            'is_foreign_key' => $this->isForeignKey,
+            'is_primary_key' => $this->isPrimaryKey,
+            'is_computed' => $this->isComputed,
+            'is_immutable' => $this->isImmutable,
+            'key' => $this->key,
+            'types' => $this->types,
+            'visible_only' => $this->visibleOnly
+        ];
     }
 
 }

@@ -5,7 +5,7 @@ namespace Raxos\Database\Connector;
 
 use JetBrains\PhpStorm\Pure;
 use PDO;
-use Raxos\Database\Error\{ConnectionException, DatabaseException};
+use Raxos\Database\Error\{ConnectionException};
 
 /**
  * Class MySqlConnector
@@ -53,18 +53,18 @@ readonly class MySqlConnector extends Connector
      * @param array $options
      *
      * @return static
-     * @throws DatabaseException
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public static function fromOptions(array $options): self
     {
         if (!isset($options['host'])) {
-            throw new ConnectionException('Missing the required host option.', ConnectionException::ERR_INCOMPLETE_OPTIONS);
+            throw ConnectionException::missingOption('host');
         }
 
         if (!isset($options['database'])) {
-            throw new ConnectionException('Missing the required database option.', ConnectionException::ERR_INCOMPLETE_OPTIONS);
+            throw ConnectionException::missingOption('database');
         }
 
         $username = $options['username'] ?? null;

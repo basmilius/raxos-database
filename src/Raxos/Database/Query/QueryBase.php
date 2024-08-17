@@ -14,7 +14,7 @@ use Raxos\Database\Error\{ConnectionException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ColumnLiteral, ComparatorAwareLiteral, Literal, ValueInterface};
 use Raxos\Foundation\Collection\ArrayList;
-use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
+use Raxos\Foundation\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
 use Stringable;
@@ -27,19 +27,18 @@ use function is_array;
 use function is_bool;
 use function is_int;
 use function is_string;
-use function sprintf;
 
 /**
  * Class QueryBase
  *
  * @template TModel of Model
- * @template-implements QueryBaseInterface<TModel>
+ * @implements QueryBaseInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryBaseInterface, Stringable
+abstract class QueryBase implements DebuggableInterface, JsonSerializable, QueryBaseInterface, Stringable
 {
 
     private static int $index = 0;
@@ -169,7 +168,7 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
             try {
                 return $this->connection->quote((string)$value);
             } catch (ConnectionException $err) {
-                throw new QueryException('Could not quote value, no connection found.', QueryException::ERR_NOT_CONNECTED, $err);
+                throw QueryException::connection($err);
             }
         }
 
@@ -414,7 +413,7 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
         $index = ArrayUtil::findIndex($this->pieces, static fn(array $piece) => $piece[0] === $clause);
 
         if ($index === null) {
-            throw new QueryException(sprintf('Clause "%s" is not defined in the query.', $clause), QueryException::ERR_CLAUSE_NOT_DEFINED);
+            throw QueryException::missingClause($clause);
         }
 
         $this->pieces[$index] = $fn($this->pieces[$index]);
@@ -625,7 +624,7 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
         $result = $this->single($fetchMode, $options);
 
         if ($result === null) {
-            throw new QueryException('No result was found.', QueryException::ERR_NO_RESULT);
+            throw QueryException::missingResult();
         }
 
         return $result;
@@ -636,7 +635,7 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function statement(array $options = []): Statement
+    public function statement(array $options = []): StatementInterface
     {
         $statement = new Statement($this->connection, $this, $options);
 
@@ -695,7 +694,7 @@ abstract class QueryBase implements DebugInfoInterface, JsonSerializable, QueryB
     {
         return [
             'sql' => $this->toSql(),
-            'type' => $this->prepared ? 'PREPARED' : 'RAW',
+            'type' => $this->prepared ? 'PREPARED QUERY' : 'RAW QUERY',
             'params' => $this->params
         ];
     }

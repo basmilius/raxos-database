@@ -11,7 +11,7 @@ use function is_numeric;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Struct
- * @since 15-08-2024
+ * @since 1.0.17
  */
 final readonly class Select
 {
@@ -24,11 +24,12 @@ final readonly class Select
      * @param Entry[] $entries
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public array $entries = []
-    ) {
+    )
+    {
         $this->isEmpty = empty($this->entries);
     }
 
@@ -39,7 +40,7 @@ final readonly class Select
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function add(QueryInterface|ValueInterface|string|int ...$values): self
     {
@@ -58,7 +59,7 @@ final readonly class Select
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public static function new(): self
     {
@@ -72,7 +73,7 @@ final readonly class Select
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public static function of(array $keys): self
     {

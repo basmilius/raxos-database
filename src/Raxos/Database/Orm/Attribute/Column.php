@@ -20,7 +20,7 @@ use Attribute;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 13-08-2024
+ * @since 1.0.17
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 readonly class Column implements AttributeInterface
@@ -32,7 +32,7 @@ readonly class Column implements AttributeInterface
      * @param string|null $key
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public ?string $key = null

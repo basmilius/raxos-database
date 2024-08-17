@@ -28,7 +28,7 @@ use Raxos\Database\Orm\Structure\Structure;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 15-08-2024
+ * @since 1.0.17
  */
 interface CustomRelationAttributeInterface extends RelationAttributeInterface
 {
@@ -41,7 +41,7 @@ interface CustomRelationAttributeInterface extends RelationAttributeInterface
      *
      * @return RelationInterface<TDeclaringModel, TReferenceModel>
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function createRelationInstance(RelationDefinition $property, Structure $declaringStructure): RelationInterface;
 

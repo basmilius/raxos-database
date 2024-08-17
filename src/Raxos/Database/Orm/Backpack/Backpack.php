@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Backpack;
 
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
-use Raxos\Foundation\PHP\MagicMethods\DebugInfoInterface;
+use Raxos\Foundation\Contract\DebuggableInterface;
 use function array_key_exists;
 
 /**
@@ -12,9 +12,9 @@ use function array_key_exists;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Backpack
- * @since 13-08-2024
+ * @since 1.0.17
  */
-final class Backpack implements BackpackInterface, DebugInfoInterface
+final class Backpack implements BackpackInterface, DebuggableInterface
 {
 
     use ArrayAccessible;
@@ -26,7 +26,7 @@ final class Backpack implements BackpackInterface, DebugInfoInterface
      * @param array $data
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         private array $data = []
@@ -35,7 +35,7 @@ final class Backpack implements BackpackInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getValue(string $key): mixed
     {
@@ -45,7 +45,7 @@ final class Backpack implements BackpackInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function hasValue(string $key): bool
     {
@@ -55,7 +55,7 @@ final class Backpack implements BackpackInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function setValue(string $key, mixed $value): void
     {
@@ -65,7 +65,7 @@ final class Backpack implements BackpackInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function unsetValue(string $key): void
     {
@@ -75,7 +75,7 @@ final class Backpack implements BackpackInterface, DebugInfoInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __debugInfo(): ?array
     {

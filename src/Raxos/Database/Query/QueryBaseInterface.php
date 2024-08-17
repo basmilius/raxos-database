@@ -7,7 +7,8 @@ use BackedEnum;
 use Generator;
 use PDO;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
-use Raxos\Database\Orm\{Error\RelationException, Error\StructureException, Model, ModelArrayList};
+use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Query\Struct\{ColumnLiteral, Literal, ValueInterface};
 use Raxos\Foundation\Collection\ArrayList;
 use stdClass;
@@ -16,7 +17,7 @@ use Stringable;
 /**
  * Interface QueryInterface
  *
- * @template TModel
+ * @template TModel of Model
  *
  * @author Bas Milius <bas@glybe.nl>
  * @package Raxos\Database\Query
@@ -306,7 +307,7 @@ interface QueryBaseInterface
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Statement::array()
+     * @see StatementInterface::array()
      */
     public function array(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): array;
 
@@ -324,7 +325,7 @@ interface QueryBaseInterface
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Statement::arrayList()
+     * @see StatementInterface::arrayList()
      */
     public function arrayList(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): ArrayList|ModelArrayList;
 
@@ -342,7 +343,7 @@ interface QueryBaseInterface
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Statement::cursor()
+     * @see StatementInterface::cursor()
      */
     public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Generator;
 
@@ -355,7 +356,7 @@ interface QueryBaseInterface
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
-     * @see Statement::run()
+     * @see StatementInterface::run()
      */
     public function run(array $options = []): void;
 
@@ -379,7 +380,7 @@ interface QueryBaseInterface
      * @param int $fetchMode
      * @param array $options
      *
-     * @return TModel|stdClass|array|null
+     * @return TModel|Model|stdClass|array|null
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException
@@ -397,7 +398,7 @@ interface QueryBaseInterface
      * @param int $fetchMode
      * @param array $options
      *
-     * @return TModel|stdClass|array
+     * @return TModel|Model|stdClass|array
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException
@@ -413,10 +414,10 @@ interface QueryBaseInterface
      *
      * @param array $options
      *
-     * @return Statement
+     * @return StatementInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function statement(array $options = []): Statement;
+    public function statement(array $options = []): StatementInterface;
 
 }

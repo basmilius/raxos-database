@@ -13,7 +13,6 @@ use Raxos\Database\Query\Struct\ColumnLiteral;
 use function assert;
 use function is_numeric;
 use function Raxos\Database\Query\in;
-use function sprintf;
 
 /**
  * Class BelongsToRelation
@@ -24,7 +23,7 @@ use function sprintf;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 15-08-2024
+ * @since 1.0.17
  */
 final readonly class BelongsToRelation implements RelationInterface, WritableRelationInterface
 {
@@ -44,7 +43,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public BelongsTo $attribute,
@@ -52,7 +51,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         public Structure $declaringStructure
     )
     {
-        $referenceModel = $this->property->types[0] ?? throw new RelationException(sprintf('Could not find reference model of relation "%s" of model "%s".', $this->property->name, $this->declaringStructure->class), RelationException::ERR_REFERENCE_MODEL_MISSING);
+        $referenceModel = $this->property->types[0] ?? throw RelationException::referenceModelMissing($this->property, $this->declaringStructure);
         $this->referenceStructure = Structure::of($referenceModel);
 
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
@@ -75,7 +74,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
@@ -99,7 +98,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function query(Model $instance): QueryInterface
     {
@@ -109,7 +108,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function rawQuery(): QueryInterface
     {
@@ -120,7 +119,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function eagerLoad(ModelArrayList $instances): void
     {
@@ -143,7 +142,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function write(Model $instance, RelationDefinition $property, Model|ModelArrayList|null $newValue): void
     {

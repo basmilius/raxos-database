@@ -5,10 +5,8 @@ namespace Raxos\Database\Query;
 
 use BackedEnum;
 use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
-use Raxos\Database\Orm\Definition\PropertyDefinition;
-use Raxos\Database\Orm\Definition\RelationDefinition;
-use Raxos\Database\Orm\Error\RelationException;
-use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
+use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\Struct\{AfterExpressionInterface, ComparatorAwareLiteral, Literal, Select, SubQueryLiteral, ValueInterface};
@@ -25,7 +23,6 @@ use function is_float;
 use function is_int;
 use function is_numeric;
 use function is_string;
-use function sprintf;
 use function str_contains;
 use function substr;
 use function trim;
@@ -34,8 +31,8 @@ use function trim;
  * Class Query
  *
  * @template TModel of Model
- * @template-extends QueryBase<TModel>
- * @template-implements QueryInterface<TModel>
+ * @extends QueryBase<TModel>
+ * @implements QueryInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
@@ -624,7 +621,7 @@ abstract class Query extends QueryBase implements QueryInterface
 
         foreach ($structure->getPrimaryKey() as $property) {
             if (empty($primaryKey)) {
-                throw new QueryException(sprintf('Too few primary key values for model "%s".', $modelClass), QueryException::ERR_PRIMARY_KEY_MISMATCH);
+                throw QueryException::primaryKeyMismatchTooFew($modelClass);
             }
 
             $value = array_shift($primaryKey);
@@ -637,7 +634,7 @@ abstract class Query extends QueryBase implements QueryInterface
         }
 
         if (!empty($primaryKey)) {
-            throw new QueryException(sprintf('Too many primary key values for model "%s".', $modelClass), QueryException::ERR_PRIMARY_KEY_MISMATCH);
+            throw QueryException::primaryKeyMismatchTooMany($modelClass);
         }
 
         return $this;
@@ -719,7 +716,7 @@ abstract class Query extends QueryBase implements QueryInterface
     public function insertIntoValues(string $table, array $pairs): static
     {
         if (empty($pairs)) {
-            throw new QueryException('There must be at least one item.', QueryException::ERR_MISSING_FIELDS);
+            throw QueryException::incomplete();
         }
 
         if (array_is_list($pairs)) {
@@ -744,7 +741,7 @@ abstract class Query extends QueryBase implements QueryInterface
     public function insertIgnoreIntoValues(string $table, array $pairs): static
     {
         if (empty($pairs)) {
-            throw new QueryException('There must be at least one item.', QueryException::ERR_MISSING_FIELDS);
+            throw QueryException::incomplete();
         }
 
         if (array_is_list($pairs)) {
@@ -923,7 +920,7 @@ abstract class Query extends QueryBase implements QueryInterface
     protected function baseInsert(string $clause, string $table, array $fields): static
     {
         if (empty($fields)) {
-            throw new QueryException('Insert queries require fields.', QueryException::ERR_MISSING_FIELDS);
+            throw QueryException::incomplete();
         }
 
         $fields = array_map($this->dialect->escapeFields(...), $fields);
@@ -1079,14 +1076,14 @@ abstract class Query extends QueryBase implements QueryInterface
     protected function baseWhereHas(string $relation, ?callable $fn, callable $clause, bool $negate = false): static
     {
         if ($this->modelClass === null) {
-            throw new QueryException('The query needs a model to use the whereHas function.', QueryException::ERR_INVALID_MODEL);
+            throw QueryException::missingModel();
         }
 
         $structure = Structure::of($this->modelClass);
         $property = $structure->getProperty($relation);
 
         if (!($property instanceof RelationDefinition)) {
-            throw new StructureException(sprintf('Property "%s" of model "%s" is not a relation.', $property->name, $structure->class), StructureException::ERR_INVALID_RELATION);
+            throw StructureException::invalidRelation($structure->class, $property->name);
         }
 
         $relation = $structure->getRelation($property);

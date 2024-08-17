@@ -8,7 +8,7 @@ namespace Raxos\Database\Orm\Backpack;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Backpack
- * @since 13-08-2024
+ * @since 1.0.17
  */
 interface BackpackInterface
 {
@@ -20,7 +20,7 @@ interface BackpackInterface
      *
      * @return mixed
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getValue(string $key): mixed;
 
@@ -31,7 +31,7 @@ interface BackpackInterface
      *
      * @return bool
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function hasValue(string $key): bool;
 
@@ -43,7 +43,7 @@ interface BackpackInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function setValue(string $key, mixed $value): void;
 
@@ -54,7 +54,7 @@ interface BackpackInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function unsetValue(string $key): void;
 

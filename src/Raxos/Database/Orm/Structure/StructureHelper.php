@@ -5,9 +5,8 @@ namespace Raxos\Database\Orm\Structure;
 
 use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Dialect\Dialect;
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Query\Struct\ColumnLiteral;
 use function is_int;
 use function is_string;
@@ -17,7 +16,7 @@ use function is_string;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Structure
- * @since 13-08-2024
+ * @since 1.0.17
  */
 final class StructureHelper
 {
@@ -33,7 +32,7 @@ final class StructureHelper
      *
      * @return ColumnLiteral
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public static function composeRelationKey(Dialect $dialect, ?string $column, ?string $table, ColumnLiteral $default): ColumnLiteral
     {
@@ -53,7 +52,7 @@ final class StructureHelper
      *
      * @return ModelArrayList<class-string<Model>, ModelArrayList>
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public static function groupInstances(ModelArrayList $instances, ?string $polymorphicMasterClass = null): ModelArrayList
     {
@@ -71,7 +70,7 @@ final class StructureHelper
      *
      * @return bool
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public static function isVisible(PropertyDefinition $property, bool $forceVisible, bool $forceHidden): bool
     {
@@ -88,7 +87,7 @@ final class StructureHelper
      *
      * @return array
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     #[Pure]
     public static function normalizeKeys(array|string $keys): array

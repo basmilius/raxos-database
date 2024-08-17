@@ -15,7 +15,7 @@ use function is_string;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Caster
- * @since 15-08-2024
+ * @since 1.0.17
  */
 final readonly class IntSetCaster implements CasterInterface
 {
@@ -23,7 +23,7 @@ final readonly class IntSetCaster implements CasterInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function decode(float|int|string|null $value, Model $instance): array
     {
@@ -37,7 +37,7 @@ final readonly class IntSetCaster implements CasterInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function encode(mixed $value, Model $instance): string|float|int|null
     {

@@ -8,7 +8,7 @@ namespace Raxos\Database\Orm;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 13-08-2024
+ * @since 1.0.17
  */
 interface VisibilityInterface
 {
@@ -20,7 +20,7 @@ interface VisibilityInterface
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function makeHidden(array|string $keys): static;
 
@@ -31,7 +31,7 @@ interface VisibilityInterface
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function makeVisible(array|string $keys): static;
 
@@ -43,7 +43,7 @@ interface VisibilityInterface
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function only(array|string $keys): static;
 

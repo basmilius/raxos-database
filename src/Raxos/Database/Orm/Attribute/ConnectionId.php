@@ -17,7 +17,7 @@ use Attribute;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 13-08-2024
+ * @since 1.0.17
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class ConnectionId implements AttributeInterface
@@ -29,7 +29,7 @@ final readonly class ConnectionId implements AttributeInterface
      * @param string $connectionId
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public string $connectionId = 'default'

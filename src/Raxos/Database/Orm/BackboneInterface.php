@@ -17,7 +17,7 @@ use Raxos\Database\Query\QueryInterface;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
- * @since 13-08-2024
+ * @since 1.0.17
  */
 interface BackboneInterface
 {
@@ -29,7 +29,7 @@ interface BackboneInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function addInstance(Model $instance): void;
 
@@ -38,7 +38,7 @@ interface BackboneInterface
      *
      * @return Model
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function createInstance(): Model;
 
@@ -49,7 +49,7 @@ interface BackboneInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function removeInstance(Model $instance): void;
 
@@ -60,7 +60,7 @@ interface BackboneInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function addSaveTask(callable $fn): void;
 
@@ -69,7 +69,7 @@ interface BackboneInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function runSaveTasks(): void;
 
@@ -84,7 +84,7 @@ interface BackboneInterface
      *
      * @return mixed
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getCastedValue(string $caster, #[ExpectedValues(['decode', 'encode'])] string $mode, mixed $value): mixed;
 
@@ -95,7 +95,7 @@ interface BackboneInterface
      *
      * @return mixed
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getColumnValue(ColumnDefinition $property): mixed;
 
@@ -106,7 +106,7 @@ interface BackboneInterface
      *
      * @return mixed
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getMacroValue(MacroDefinition $property): mixed;
 
@@ -122,7 +122,7 @@ interface BackboneInterface
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getRelationValue(RelationDefinition $property): Model|ModelArrayList|null;
 
@@ -135,7 +135,7 @@ interface BackboneInterface
      * @return void
      * @throws InstanceException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function setColumnValue(ColumnDefinition $property, mixed $value): void;
 
@@ -151,7 +151,7 @@ interface BackboneInterface
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function setRelationValue(RelationDefinition $property, mixed $value): void;
 
@@ -162,7 +162,7 @@ interface BackboneInterface
      * @throws InstanceException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function getPrimaryKeyValues(): array|null;
 
@@ -174,7 +174,7 @@ interface BackboneInterface
      *
      * @return bool
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function isModified(?string $key = null): bool;
 
@@ -190,7 +190,7 @@ interface BackboneInterface
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 14-08-2024
+     * @since 1.0.17
      */
     public function queryRelation(Model $instance, string $key): QueryInterface;
 

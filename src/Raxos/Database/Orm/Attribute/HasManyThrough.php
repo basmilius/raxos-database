@@ -40,7 +40,7 @@ use Raxos\Database\Orm\Model;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 15-08-2024
+ * @since 1.0.17
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class HasManyThrough implements AttributeInterface, RelationAttributeInterface
@@ -63,7 +63,7 @@ final readonly class HasManyThrough implements AttributeInterface, RelationAttri
      * @param string|null $orderBy
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public string $referenceModel,

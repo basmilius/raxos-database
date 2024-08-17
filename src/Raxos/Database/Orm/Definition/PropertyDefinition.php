@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Definition;
 
-use JetBrains\PhpStorm\Pure;
+use JetBrains\PhpStorm\{ArrayShape, Pure};
+use JsonSerializable;
 use Raxos\Foundation\Util\ArrayUtil;
 
 /**
@@ -11,9 +12,9 @@ use Raxos\Foundation\Util\ArrayUtil;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Definition
- * @since 13-08-2024
+ * @since 1.0.17
  */
-abstract readonly class PropertyDefinition
+abstract readonly class PropertyDefinition implements JsonSerializable
 {
 
     /**
@@ -25,7 +26,7 @@ abstract readonly class PropertyDefinition
      * @param bool $isVisible
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 13-08-2024
+     * @since 1.0.17
      */
     public function __construct(
         public string $name,
@@ -41,12 +42,33 @@ abstract readonly class PropertyDefinition
      *
      * @return bool
      * @author Bas Milius <bas@mili.us>
-     * @since 15-08-2024
+     * @since 1.0.17
      */
     #[Pure]
     public function isIn(array $keys): bool
     {
         return ArrayUtil::in($keys, [$this->name, $this->alias]);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    #[ArrayShape([
+        'name' => 'string',
+        'alias' => 'string|null',
+        'is_hidden' => 'bool',
+        'is_visible' => 'bool'
+    ])]
+    public function jsonSerialize(): array
+    {
+        return [
+            'name' => $this->name,
+            'alias' => $this->alias,
+            'is_hidden' => $this->isHidden,
+            'is_visible' => $this->isVisible
+        ];
     }
 
 }
