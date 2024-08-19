@@ -5,6 +5,7 @@ namespace Raxos\Database\Connector;
 
 use PDO;
 use Raxos\Database\Error\ConnectionException;
+use SensitiveParameter;
 
 /**
  * Class MySqlConnector
@@ -33,6 +34,7 @@ readonly class MySqlConnector extends Connector
         string $host,
         public string $database,
         ?string $username = null,
+        #[SensitiveParameter]
         ?string $password = null,
         int $port = 3306,
         array $options = []

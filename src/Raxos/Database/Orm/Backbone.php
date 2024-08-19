@@ -4,20 +4,25 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use BackedEnum;
+use Generator;
 use JetBrains\PhpStorm\ExpectedValues;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\Backpack\{Backpack, BackpackInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
+use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Orm\Relation\WritableRelationInterface;
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Foundation\Util\Singleton;
+use function array_column;
 use function array_map;
 use function array_search;
 use function array_shift;
 use function in_array;
 use function is_subclass_of;
+use function iterator_to_array;
+use function Raxos\Database\Query\literal;
 
 /**
  * Class Backbone
@@ -31,8 +36,8 @@ use function is_subclass_of;
 final class Backbone implements AccessInterface, BackboneInterface
 {
 
-    public const string RELATION_LINKING_KEY = '__linking_key';
-
+    public readonly CacheInterface $cache;
+    public readonly ConnectionInterface $connection;
     public readonly Structure $structure;
 
     public readonly BackpackInterface $data;
@@ -64,6 +69,8 @@ final class Backbone implements AccessInterface, BackboneInterface
     )
     {
         $this->structure = Structure::of($this->class);
+        $this->connection = $this->structure->connection;
+        $this->cache = $this->connection->cache;
 
         $this->data = new Backpack($data);
         $this->castCache = new Backpack();
@@ -302,6 +309,53 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
+     * @since 1.0.19
+     */
+    public function save(): void
+    {
+        $primaryKey = $this->structure->primaryKey;
+        $values = iterator_to_array($this->getSaveableValues());
+
+        if (empty($values)) {
+            return;
+        }
+
+        if ($this->isNew) {
+            // note(Bas): saves a new record for the model.
+            $primaryKeyValue = $this->class::query()
+                ->insertIntoValues($this->structure->table, $values)
+                ->runReturning(array_column($primaryKey, 'key'));
+
+            $record = $this->class::select()
+                ->withoutModel()
+                ->wherePrimaryKey($this->class, $primaryKeyValue)
+                ->single();
+
+            $this->data->replaceWith($record);
+            $this->isNew = false;
+
+            $this->cache->set($this->class, $primaryKeyValue, $this->currentInstance);
+        } else {
+            // note(Bas): saves the modified fields of an existing record.
+            $primaryKey = array_map(fn(ColumnDefinition $property) => $this->getValue($property->name), $primaryKey);
+            $this->class::update($primaryKey, $values);
+        }
+
+        // todo(Bas): This should be improved. It would be nice to check if any
+        //  properties that are related to these caches are updated and clear
+        //  them only if needed. For example; we wouldn't want to clear the
+        //  relation cache for a model when non of the relation related
+        //  properties are updated.
+        $this->castCache->clear();
+        $this->macroCache->clear();
+        $this->relationCache->clear();
+
+        $this->modified = [];
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
     public function getValue(string $key): mixed
@@ -326,10 +380,6 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     public function hasValue(string $key): bool
     {
-        if ($key === self::RELATION_LINKING_KEY) {
-            return true;
-        }
-
         return $this->structure->hasProperty($key);
     }
 
@@ -340,12 +390,6 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     public function setValue(string $key, mixed $value): void
     {
-        if ($key === self::RELATION_LINKING_KEY) {
-            $this->data->setValue($key, $value);
-
-            return;
-        }
-
         $property = $this->structure->getProperty($key);
 
         try {
@@ -377,6 +421,42 @@ final class Backbone implements AccessInterface, BackboneInterface
         }
 
         $this->data->unsetValue($key);
+    }
+
+    /**
+     * Gets the saveable columns with their values.
+     *
+     * @return Generator<string, mixed>
+     * @throws InstanceException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.19
+     */
+    private function getSaveableValues(): Generator
+    {
+        foreach ($this->structure->properties as $property) {
+            if (!($property instanceof ColumnDefinition)) {
+                continue;
+            }
+
+            if (!$this->isNew && !in_array($property->name, $this->modified, true)) {
+                continue;
+            }
+
+            if ($this->data->hasValue($property->key)) {
+                $value = $this->getValue($property->name);
+
+                if ($value instanceof BackedEnum) {
+                    $value = $value->value;
+                }
+            } elseif ($property->isComputed || $property->isPrimaryKey) {
+                continue;
+            } else {
+                $value = literal('default');
+            }
+
+            yield $property->key => $value;
+        }
     }
 
 }

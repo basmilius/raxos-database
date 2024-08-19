@@ -58,4 +58,24 @@ interface BackpackInterface
      */
     public function unsetValue(string $key): void;
 
+    /**
+     * Clears out the backpack.
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.19
+     */
+    public function clear(): void;
+
+    /**
+     * Replaces the contents of the backpack with the given data.
+     *
+     * @param array $data
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.19
+     */
+    public function replaceWith(array $data): void;
+
 }

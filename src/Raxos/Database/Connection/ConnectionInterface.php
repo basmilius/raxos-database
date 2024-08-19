@@ -11,14 +11,14 @@ use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Logger\Logger;
-use Raxos\Database\Orm\Cache;
+use Raxos\Database\Orm\CacheInterface;
 use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Query\{QueryInterface, StatementInterface};
 
 /**
  * Interface ConnectionInterface
  *
- * @property-read Cache $cache
+ * @property-read CacheInterface $cache
  * @property-read Dialect $dialect
  * @property-read string $id
  * @property-read Logger $logger

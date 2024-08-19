@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use BackedEnum;
-use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
+use Raxos\Database\Error\{ConnectionException, QueryException};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Struct\{Literal, Select, ValueInterface};
@@ -64,7 +64,6 @@ interface QueryInterface extends QueryBaseInterface
      * @param Literal|Literal[]|string[]|string $fields
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -193,7 +192,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -367,7 +366,6 @@ interface QueryInterface extends QueryBaseInterface
      * @param Literal[]|string[]|Literal|string $fields
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -452,7 +450,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $values
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -652,7 +650,6 @@ interface QueryInterface extends QueryBaseInterface
      * @param string[] $fields
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -666,7 +663,6 @@ interface QueryInterface extends QueryBaseInterface
      * @param string[] $fields
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -680,7 +676,6 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $pairs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -694,7 +689,6 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $pairs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -708,7 +702,6 @@ interface QueryInterface extends QueryBaseInterface
      * @param string[] $fields
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -722,7 +715,6 @@ interface QueryInterface extends QueryBaseInterface
      * @param array $pairs
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -861,7 +853,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param QueryInterface $query
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -874,7 +866,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param QueryInterface $query
      *
      * @return QueryInterface<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

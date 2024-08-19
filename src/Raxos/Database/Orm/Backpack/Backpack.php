@@ -39,7 +39,7 @@ final class Backpack implements BackpackInterface, DebuggableInterface
      */
     public function getValue(string $key): mixed
     {
-        return $this->data[$key];
+        return $this->data[$key] ?? null;
     }
 
     /**
@@ -70,6 +70,26 @@ final class Backpack implements BackpackInterface, DebuggableInterface
     public function unsetValue(string $key): void
     {
         unset($this->data[$key]);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.19
+     */
+    public function clear(): void
+    {
+        $this->data = [];
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.19
+     */
+    public function replaceWith(array $data): void
+    {
+        $this->data = $data;
     }
 
     /**

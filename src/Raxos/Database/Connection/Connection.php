@@ -11,7 +11,7 @@ use Raxos\Database\Db;
 use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Logger\Logger;
-use Raxos\Database\Orm\Cache;
+use Raxos\Database\Orm\CacheInterface;
 use Raxos\Database\Query\{QueryInterface, Statement, StatementInterface};
 use function array_key_exists;
 use function in_array;
@@ -33,7 +33,7 @@ abstract class Connection implements ConnectionInterface
      * Connection constructor.
      *
      * @param string $id
-     * @param Cache $cache
+     * @param CacheInterface $cache
      * @param Connector $connector
      * @param Dialect $dialect
      * @param Logger $logger
@@ -45,7 +45,7 @@ abstract class Connection implements ConnectionInterface
         public readonly string $id,
         public readonly Connector $connector,
         public readonly Dialect $dialect,
-        public readonly Cache $cache,
+        public readonly CacheInterface $cache,
         public readonly Logger $logger
     ) {}
 

@@ -171,7 +171,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
         foreach ($instances as $instance) {
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
-                $results->filter(fn(Model $reference) => $reference->getValue('__local_linking_key') === $instance->{$this->declaringKey->column})
+                $results->filter(fn(Model $reference) => $reference->backbone->data->getValue('__local_linking_key') === $instance->{$this->declaringKey->column})
             );
         }
     }

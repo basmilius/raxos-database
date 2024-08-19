@@ -74,7 +74,7 @@ final class Structure
     public function createInstance(array $result): Model
     {
         $cache = $this->connection->cache;
-        $primaryKey = $this->getPrimaryKey();
+        $primaryKey = $this->primaryKey;
 
         if (is_array($primaryKey)) {
             $primaryKeyValue = array_map(static fn(ColumnDefinition $property) => $result[$property->key], $primaryKey);
@@ -261,36 +261,6 @@ final class Structure
     }
 
     /**
-     * Gets the primary key(s).
-     *
-     * @return ColumnDefinition[]|null
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
-     */
-    public function getPrimaryKey(): array|null
-    {
-        $properties = [];
-
-        foreach ($this->properties as $property) {
-            if (!($property instanceof ColumnDefinition)) {
-                continue;
-            }
-
-            if (!$property->isPrimaryKey) {
-                continue;
-            }
-
-            $properties[] = $property;
-        }
-
-        if (empty($properties)) {
-            return null;
-        }
-
-        return $properties;
-    }
-
-    /**
      * Returns the relation instance for the given property.
      *
      * @param RelationDefinition $property
@@ -343,13 +313,43 @@ final class Structure
      */
     public function getRelationPrimaryKey(): ColumnLiteral
     {
-        $property = $this->getPrimaryKey();
+        $property = $this->primaryKey;
 
         if (is_array($property)) {
             $property = $property[0];
         }
 
         return new ColumnLiteral($this->connection->dialect, $property->key, $this->table);
+    }
+
+    /**
+     * Gets the primary key(s).
+     *
+     * @return ColumnDefinition[]|null
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    private function getPrimaryKey(): array|null
+    {
+        $properties = [];
+
+        foreach ($this->properties as $property) {
+            if (!($property instanceof ColumnDefinition)) {
+                continue;
+            }
+
+            if (!$property->isPrimaryKey) {
+                continue;
+            }
+
+            $properties[] = $property;
+        }
+
+        if (empty($properties)) {
+            return null;
+        }
+
+        return $properties;
     }
 
     /**

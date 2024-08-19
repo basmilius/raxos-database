@@ -57,17 +57,17 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
 
         $this->declaringKey = StructureHelper::composeRelationKey(
-            $this->declaringStructure->connection->dialect,
+            $this->referenceStructure->connection->dialect,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
-            $referencePrimaryKey
+            $referencePrimaryKey->asForeignKeyFor($this->declaringStructure)
         );
 
         $this->referenceKey = StructureHelper::composeRelationKey(
-            $this->referenceStructure->connection->dialect,
+            $this->declaringStructure->connection->dialect,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
-            $referencePrimaryKey->asForeignKeyFor($this->declaringStructure)
+            $referencePrimaryKey
         );
     }
 
@@ -78,7 +78,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
-        $foreignKey = $instance->{$this->referenceKey->column};
+        $foreignKey = $instance->{$this->declaringKey->column};
 
         if ($foreignKey === null || (is_numeric($foreignKey) && (int)$foreignKey === 0)) {
             return null;
@@ -86,7 +86,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
 
         $cache = $this->referenceStructure->connection->cache;
 
-        if (($cached = $cache->find($this->referenceStructure->class, fn(Model $model) => $model->{$this->declaringKey->column} === $foreignKey)) !== null) {
+        if (($cached = $cache->find($this->referenceStructure->class, fn(Model $model) => $model->{$this->referenceKey->column} === $foreignKey)) !== null) {
             return $cached;
         }
 
@@ -102,7 +102,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      */
     public function query(Model $instance): QueryInterface
     {
-        return $this->referenceStructure->class::where($this->declaringKey, $instance->{$this->referenceKey->column});
+        return $this->referenceStructure->class::where($this->referenceKey, $instance->{$this->declaringKey->column});
     }
 
     /**
@@ -113,7 +113,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     public function rawQuery(): QueryInterface
     {
         return $this->referenceStructure->class::select(prepared: false)
-            ->where($this->declaringKey, $this->referenceKey);
+            ->where($this->referenceKey, $this->declaringKey);
     }
 
     /**
@@ -126,7 +126,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         $cache = $this->referenceStructure->connection->cache;
 
         $values = $instances
-            ->column($this->referenceKey->column)
+            ->column($this->declaringKey->column)
             ->unique()
             ->filter(fn(string|int|null $key) => $key !== null && !$cache->has($this->referenceStructure->class, $key));
 
@@ -135,7 +135,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         }
 
         $this->referenceStructure->class::select()
-            ->where($this->declaringKey, in($values->toArray()))
+            ->where($this->referenceKey, in($values->toArray()))
             ->array();
     }
 

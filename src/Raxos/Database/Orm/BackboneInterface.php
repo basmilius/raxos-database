@@ -5,15 +5,21 @@ namespace Raxos\Database\Orm;
 
 use JetBrains\PhpStorm\ExpectedValues;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
+use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Orm\Caster\CasterInterface;
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
+use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\QueryInterface;
 
 /**
  * Interface BackboneInterface
  *
  * @template TModel of Model
+ *
+ * @property-read CacheInterface $cache
+ * @property-read ConnectionInterface $connection
+ * @property-read Structure $structure
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
@@ -193,5 +199,24 @@ interface BackboneInterface
      * @since 1.0.17
      */
     public function queryRelation(Model $instance, string $key): QueryInterface;
+
+    /**
+     * Saves the model.
+     * - If the model is new, a new record is created in the database
+     *   and all fields are treated as modified.
+     * - If the model is loaded from the database, only the fields that
+     *   are actually modified are saved.
+     *
+     * @return void
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws InstanceException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.19
+     */
+    public function save(): void;
 
 }

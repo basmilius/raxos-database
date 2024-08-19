@@ -33,7 +33,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     use ObjectAccessible;
     use Queryable;
 
-    public readonly Backbone $backbone;
+    public readonly BackboneInterface $backbone;
 
     private array $hidden = [];
     private array $visible = [];
@@ -41,14 +41,14 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     /**
      * Model constructor.
      *
-     * @param Backbone|null $backbone
+     * @param BackboneInterface|null $backbone
      *
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
     public function __construct(
-        ?Backbone $backbone = null
+        ?BackboneInterface $backbone = null
     )
     {
         $this->backbone = $backbone ?? new Backbone(static::class, [], true);
@@ -79,7 +79,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     {
         $primaryKey = $this->backbone->getPrimaryKeyValues();
 
-        $cache = $this->backbone->structure->connection->cache;
+        $cache = $this->backbone->cache;
         $cache->unset(static::class, $primaryKey);
 
         self::delete($primaryKey);
@@ -89,10 +89,20 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      * Saves the model.
      *
      * @return void
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws InstanceException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function save(): void {}
+    public function save(): void
+    {
+        $this->backbone->currentInstance = $this;
+        $this->backbone->save();
+    }
 
     /**
      * {@inheritdoc}

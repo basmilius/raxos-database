@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use BackedEnum;
-use Raxos\Database\Error\{ConnectionException, DatabaseException, QueryException};
+use Raxos\Database\Error\{ConnectionException, QueryException};
 use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Model;
@@ -619,7 +619,7 @@ abstract class Query extends QueryBase implements QueryInterface
 
         $structure = Structure::of($modelClass);
 
-        foreach ($structure->getPrimaryKey() as $property) {
+        foreach ($structure->primaryKey as $property) {
             if (empty($primaryKey)) {
                 throw QueryException::primaryKeyMismatchTooFew($modelClass);
             }
@@ -648,7 +648,7 @@ abstract class Query extends QueryBase implements QueryInterface
     public function wherePrimaryKeyIn(string $modelClass, array $primaryKeys): static
     {
         $structure = Structure::of($modelClass);
-        $properties = $structure->getPrimaryKey();
+        $properties = $structure->primaryKey;
 
         if (count($properties) === 1) {
             return $this->where($structure->getColumn($properties[0]->key), in($primaryKeys));
@@ -912,7 +912,6 @@ abstract class Query extends QueryBase implements QueryInterface
      * @param array $fields
      *
      * @return static<TModel>
-     * @throws DatabaseException
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -1109,7 +1108,7 @@ abstract class Query extends QueryBase implements QueryInterface
      * @param QueryInterface $query
      *
      * @return static<TModel>
-     * @throws DatabaseException
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

@@ -6,7 +6,7 @@ namespace Raxos\Database\Connection;
 use Raxos\Database\Connector\Connector;
 use Raxos\Database\Dialect\MariaDbDialect;
 use Raxos\Database\Logger\Logger;
-use Raxos\Database\Orm\Cache;
+use Raxos\Database\Orm\{Cache, CacheInterface};
 use Raxos\Database\Query\MariaDbQuery;
 
 /**
@@ -24,7 +24,7 @@ final class MariaDbConnection extends AbstractMySqlLikeConnection
      *
      * @param string $id
      * @param Connector $connector
-     * @param Cache $cache
+     * @param CacheInterface $cache
      * @param Logger $logger
      *
      * @author Bas Milius <bas@mili.us>
@@ -33,7 +33,7 @@ final class MariaDbConnection extends AbstractMySqlLikeConnection
     public function __construct(
         string $id,
         Connector $connector,
-        Cache $cache = new Cache(),
+        CacheInterface $cache = new Cache(),
         Logger $logger = new Logger()
     )
     {

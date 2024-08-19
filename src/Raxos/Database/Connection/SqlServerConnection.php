@@ -7,7 +7,7 @@ use Raxos\Database\Connector\{Connector, SqlServerConnector};
 use Raxos\Database\Dialect\SqlServerDialect;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Logger\Logger;
-use Raxos\Database\Orm\Cache;
+use Raxos\Database\Orm\{Cache, CacheInterface};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Query\{QueryInterface, SqlServerQuery};
 
@@ -28,7 +28,7 @@ final class SqlServerConnection extends Connection
      *
      * @param string $id
      * @param Connector $connector
-     * @param Cache $cache
+     * @param CacheInterface $cache
      * @param Logger $logger
      *
      * @author Bas Milius <bas@mili.us>
@@ -37,7 +37,7 @@ final class SqlServerConnection extends Connection
     public function __construct(
         string $id,
         Connector $connector,
-        Cache $cache = new Cache(),
+        CacheInterface $cache = new Cache(),
         Logger $logger = new Logger()
     )
     {
