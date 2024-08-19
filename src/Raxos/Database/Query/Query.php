@@ -1005,7 +1005,7 @@ abstract class Query extends QueryBase implements QueryInterface
                     $query = new static($this->connection);
                     $value->after($query);
 
-                    $result[] = "({$value}) as {$alias}";
+                    $result[] = "({$query}) as {$alias}";
                 } elseif ($value instanceof ValueInterface) {
                     $value = $value->get($this);
 
