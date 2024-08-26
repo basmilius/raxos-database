@@ -10,6 +10,7 @@ use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Logger\QueryEvent;
 use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Foundation\Util\ArrayUtil;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Collection\ArrayList;
@@ -93,9 +94,9 @@ class Statement implements StatementInterface
     public final function arrayList(int $fetchMode = PDO::FETCH_ASSOC): ArrayList|ModelArrayList
     {
         $results = $this->array($fetchMode);
-        $isAllModels = empty(array_filter($results, static fn(mixed $result) => !($result instanceof Model)));
+        $allModels = ArrayUtil::every($results, static fn(mixed $result) => $result instanceof Model);
 
-        if ($isAllModels) {
+        if ($allModels) {
             return new ModelArrayList($results);
         }
 
@@ -332,6 +333,10 @@ class Statement implements StatementInterface
     {
         if (!is_array($instances)) {
             $instances = [$instances];
+        }
+
+        if ($this->query instanceof InternalQueryInterface) {
+            $this->query->_internal_invokeBeforeRelations($instances);
         }
 
         if (empty($instances)) {

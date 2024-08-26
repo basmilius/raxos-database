@@ -8,15 +8,16 @@ use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Logger\EagerLoadEvent;
 use Raxos\Database\Orm\{Backbone, Model, ModelArrayList};
-use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, CustomRelationAttributeInterface, HasMany, HasManyThrough, HasOne};
+use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, CustomRelationAttributeInterface, HasMany, HasManyThrough, HasOne, HasOneThrough};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, RelationInterface};
+use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation, RelationInterface};
 use Raxos\Database\Query\Struct\ColumnLiteral;
 use function array_key_exists;
 use function array_map;
 use function in_array;
 use function is_array;
+use function str_starts_with;
 
 /**
  * Class Structure
@@ -41,6 +42,7 @@ final class Structure
      *
      * @param class-string<Model> $class
      * @param ConnectionInterface $connection
+     * @param string[]|null $onDuplicateKeyUpdate
      * @param PolymorphicDefinition|null $polymorphic
      * @param PropertyDefinition[] $properties
      * @param string $table
@@ -52,6 +54,7 @@ final class Structure
     public function __construct(
         public readonly string $class,
         public readonly ConnectionInterface $connection,
+        public readonly ?array $onDuplicateKeyUpdate,
         public readonly ?PolymorphicDefinition $polymorphic,
         public readonly array $properties,
         public readonly string $table,
@@ -83,10 +86,21 @@ final class Structure
         }
 
         if ($primaryKeyValue !== null && $cache->has($this->class, $primaryKeyValue)) {
-            return $cache
-                ->get($this->class, $primaryKeyValue)
-                ->backbone
-                ->createInstance();
+            $backbone = $cache->get($this->class, $primaryKeyValue)->backbone;
+
+            // note(Bas): If for some reason we fetch a new record, we don't update
+            //  the fields, but instead keep the existing ones, because some of them
+            //  may be modified. But, we do update internal data points that are used
+            //  in relations for example, such as `__local_linking_key`.
+            foreach ($result as $key => $value) {
+                if (!str_starts_with($key, '__')) {
+                    continue;
+                }
+
+                $backbone->data->setValue($key, $value);
+            }
+
+            return $backbone->createInstance();
         }
 
         if ($this->polymorphic !== null) {
@@ -278,9 +292,11 @@ final class Structure
         return $this->relations[$property->name] ??= match (true) {
             $attribute instanceof BelongsTo => new BelongsToRelation($attribute, $property, $this),
             $attribute instanceof BelongsToMany => new BelongsToManyRelation($attribute, $property, $this),
+            $attribute instanceof BelongsToThrough => new BelongsToThroughRelation($attribute, $property, $this),
             $attribute instanceof HasMany => new HasManyRelation($attribute, $property, $this),
             $attribute instanceof HasManyThrough => new HasManyThroughRelation($attribute, $property, $this),
             $attribute instanceof HasOne => new HasOneRelation($attribute, $property, $this),
+            $attribute instanceof HasOneThrough => new HasOneThroughRelation($attribute, $property, $this),
             $attribute instanceof CustomRelationAttributeInterface => $attribute->createRelationInstance($property, $this),
             default => throw StructureException::missingRelationImplementation($this->class, $property->name, $attribute::class)
         };

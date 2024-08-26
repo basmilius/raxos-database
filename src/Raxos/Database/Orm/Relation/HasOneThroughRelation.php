@@ -3,68 +3,87 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Orm\Attribute\BelongsTo;
+use Raxos\Database\Orm\{Attribute\HasOneThrough, Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\QueryInterface;
-use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
 use Raxos\Foundation\Util\ArrayUtil;
-use function assert;
 use function Raxos\Database\Query\in;
 
 /**
- * Class BelongsToRelation
+ * Class HasOneThroughRelation
  *
  * @template TDeclaringModel of Model
+ * @template TLinkingModel of Model
  * @template TReferenceModel of Model
  * @implements RelationInterface<TDeclaringModel, TReferenceModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
- * @since 1.0.17
+ * @since 1.1.0
  */
-final readonly class BelongsToRelation implements RelationInterface, WritableRelationInterface
+final readonly class HasOneThroughRelation implements RelationInterface
 {
 
     public ColumnLiteral $declaringKey;
+    public ColumnLiteral $declaringLinkingKey;
     public ColumnLiteral $referenceKey;
+    public ColumnLiteral $referenceLinkingKey;
 
+    public Structure $linkingStructure;
     public Structure $referenceStructure;
 
     /**
-     * BelongsToRelation constructor.
+     * HasOneThroughRelation constructor.
      *
-     * @param BelongsTo $attribute
+     * @param HasOneThrough $attribute
      * @param RelationDefinition $property
-     * @param Structure<TDeclaringModel|Model> $declaringStructure
+     * @param Structure $declaringStructure
      *
      * @throws RelationException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 1.1.0
      */
     public function __construct(
-        public BelongsTo $attribute,
+        public HasOneThrough $attribute,
         public RelationDefinition $property,
         public Structure $declaringStructure
     )
     {
         $referenceModel = $this->property->types[0] ?? throw RelationException::referenceModelMissing($this->property, $this->declaringStructure);
+
+        $this->linkingStructure = Structure::of($this->attribute->linkingModel);
         $this->referenceStructure = Structure::of($referenceModel);
 
+        $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->dialect,
+            $this->declaringStructure->connection->dialect,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
-            $referencePrimaryKey->asForeignKeyFor($this->declaringStructure)
+            $declaringPrimaryKey
+        );
+
+        $this->declaringLinkingKey = RelationHelper::composeKey(
+            $this->linkingStructure->connection->dialect,
+            $this->attribute->declaringLinkingKey,
+            $this->attribute->declaringLinkingKeyTable,
+            $declaringPrimaryKey->asForeignKeyFor($this->linkingStructure)
+        );
+
+        $this->referenceLinkingKey = RelationHelper::composeKey(
+            $this->linkingStructure->connection->dialect,
+            $this->attribute->referenceLinkingKey,
+            $this->attribute->referenceLinkingKeyTable,
+            $referencePrimaryKey->asForeignKeyFor($this->linkingStructure)
         );
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->dialect,
+            $this->referenceStructure->connection->dialect,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $referencePrimaryKey
@@ -74,26 +93,10 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 1.1.0
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
-        $declaringValue = RelationHelper::declaringKeyValue($instance, $this->declaringKey);
-
-        if ($declaringValue === null) {
-            return null;
-        }
-
-        $cached = RelationHelper::findCached(
-            $declaringValue,
-            $this->referenceStructure,
-            $this->referenceKey
-        );
-
-        if ($cached !== null) {
-            return $cached;
-        }
-
         return $this
             ->query($instance)
             ->single();
@@ -102,58 +105,56 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 1.1.0
      */
     public function query(Model $instance): QueryInterface
     {
-        return $this->referenceStructure->class::where($this->referenceKey, $instance->{$this->declaringKey->column});
+        return $this->referenceStructure->class::select()
+            ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
+                ->on($this->referenceLinkingKey, $this->referenceKey))
+            ->where($this->declaringLinkingKey, $instance->{$this->declaringKey->column});
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 1.1.0
      */
     public function rawQuery(): QueryInterface
     {
         return $this->referenceStructure->class::select(prepared: false)
-            ->where($this->referenceKey, $this->declaringKey);
+            ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
+                ->on($this->referenceLinkingKey, $this->referenceKey))
+            ->where($this->declaringLinkingKey, $this->declaringKey);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 1.1.0
      */
     public function eagerLoad(ModelArrayList $instances): void
     {
-        $cache = $this->referenceStructure->connection->cache;
-
         $values = $instances
+            ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
             ->column($this->declaringKey->column)
-            ->unique()
-            ->filter(fn(string|int|null $key) => $key !== null && !$cache->has($this->referenceStructure->class, $key));
+            ->unique();
 
         if ($values->isEmpty()) {
             return;
         }
 
-        $this->referenceStructure->class::select()
-            ->where($this->referenceKey, in($values->toArray()))
+        $select = Select::new()->add(
+            $this->referenceStructure->class::col('*'),
+            __local_linking_key: $this->declaringLinkingKey
+        );
+
+        $this->referenceStructure->class::select($select)
+            ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
+                ->on($this->referenceLinkingKey, $this->referenceKey))
+            ->where($this->declaringLinkingKey, in($values->toArray()))
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
             ->array();
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
-     */
-    public function write(Model $instance, RelationDefinition $property, Model|ModelArrayList|null $newValue): void
-    {
-        assert($newValue === null || $newValue instanceof $this->referenceStructure->class);
-
-        $instance->{$this->declaringKey->column} = $newValue?->{$this->referenceKey->column};
     }
 
     /**
@@ -169,7 +170,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     private function onBeforeRelations(array $results, ModelArrayList $instances): void
     {
         foreach ($instances as $instance) {
-            $result = ArrayUtil::first($results, fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column});
+            $result = ArrayUtil::first($results, fn(Model $reference) => $reference->backbone->data->getValue('__local_linking_key') === $instance->{$this->declaringKey->column});
 
             if ($result === null) {
                 continue;

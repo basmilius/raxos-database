@@ -5,6 +5,7 @@ namespace Raxos\Database\Logger;
 
 use Raxos\Database\Orm\Relation\RelationInterface;
 use Raxos\Foundation\Util\Stopwatch;
+use Raxos\Foundation\Util\StringUtil;
 
 /**
  * Class EagerLoadEvent
@@ -41,9 +42,9 @@ final readonly class EagerLoadEvent extends Event
         $class = $this->relation::class;
         $flow = '';
 
-        $declaringModel = $this->relation->declaringModel ?? null;
-        $linkingModel = $this->relation->linkingModel ?? null;
-        $referenceModel = $this->relation->referenceModel ?? null;
+        $declaringModel = $this->shortClassName($this->relation->declaringStructure?->class ?? null);
+        $linkingModel = $this->shortClassName($this->relation->linkingStructure?->class ?? null);
+        $referenceModel = $this->shortClassName($this->relation->referenceStructure?->class ?? null);
 
         if ($declaringModel !== null && $linkingModel !== null && $referenceModel !== null) {
             $flow = "{$declaringModel} ➜ {$linkingModel} ➜ {$referenceModel}";
@@ -52,6 +53,24 @@ final readonly class EagerLoadEvent extends Event
         }
 
         return $this->printBase("{$class}({$flow})");
+    }
+
+    /**
+     * Returns the short class name.
+     *
+     * @param string|null $className
+     *
+     * @return string|null
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    private function shortClassName(?string $className): ?string
+    {
+        if ($className === null) {
+            return null;
+        }
+
+        return StringUtil::shortClassName($className);
     }
 
 }

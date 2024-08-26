@@ -7,9 +7,10 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasMany;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\StructureException;
-use Raxos\Database\Orm\Structure\{Structure, StructureHelper};
+use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\ColumnLiteral;
+use function array_filter;
 use function Raxos\Database\Query\in;
 
 /**
@@ -52,14 +53,14 @@ final readonly class HasManyRelation implements RelationInterface
 
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
 
-        $this->declaringKey = StructureHelper::composeRelationKey(
+        $this->declaringKey = RelationHelper::composeKey(
             $this->declaringStructure->connection->dialect,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
         );
 
-        $this->referenceKey = StructureHelper::composeRelationKey(
+        $this->referenceKey = RelationHelper::composeKey(
             $this->referenceStructure->connection->dialect,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
@@ -74,19 +75,9 @@ final readonly class HasManyRelation implements RelationInterface
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
-        $relationCache = $instance->backbone->relationCache;
-
-        if ($relationCache->hasValue($this->property->name)) {
-            return $relationCache->getValue($this->property->name);
-        }
-
-        $result = $this
+        return $this
             ->query($instance)
             ->arrayList();
-
-        $relationCache->setValue($this->property->name, $result);
-
-        return $result;
     }
 
     /**
@@ -130,16 +121,32 @@ final readonly class HasManyRelation implements RelationInterface
             return;
         }
 
-        $results = $this->referenceStructure->class::select()
+        $this->referenceStructure->class::select()
             ->where($this->referenceKey, in($values->toArray()))
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
-            ->arrayList();
+            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+            ->array();
+    }
 
+    /**
+     * Apply the results to the instances' relation cachee.
+     *
+     * @param Model[] $results
+     * @param ModelArrayList<int, Model> $instances
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    private function onBeforeRelations(array $results, ModelArrayList $instances): void
+    {
         foreach ($instances as $instance) {
+            $result = array_filter($results, fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column});
+
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
-                $results->filter(fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column})
+                new ModelArrayList($result)
             );
         }
     }

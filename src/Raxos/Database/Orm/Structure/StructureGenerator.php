@@ -6,7 +6,7 @@ namespace Raxos\Database\Orm\Structure;
 use Generator;
 use Raxos\Database\Db;
 use Raxos\Database\Error\ConnectionException;
-use Raxos\Database\Orm\Attribute\{Alias, AttributeInterface, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, Polymorphic, PrimaryKey, RelationAttributeInterface, Table, Visible};
+use Raxos\Database\Orm\Attribute\{Alias, AttributeInterface, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, RelationAttributeInterface, Table, Visible};
 use Raxos\Database\Orm\Caster\{BooleanCaster, CasterInterface};
 use Raxos\Database\Orm\Definition\{ClassStructureDefinition, ColumnDefinition, MacroDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\StructureException;
@@ -18,6 +18,7 @@ use ReflectionException;
 use ReflectionProperty;
 use function array_values;
 use function is_a;
+use function is_array;
 use function is_callable;
 use function is_subclass_of;
 use function iterator_to_array;
@@ -71,6 +72,7 @@ final class StructureGenerator
             $structure = self::$structures[$classRef->name] = new Structure(
                 $classRef->name,
                 $connection,
+                $model->onDuplicateKeyUpdate,
                 $model->polymorphic,
                 $properties,
                 $model->table,
@@ -109,6 +111,7 @@ final class StructureGenerator
     private static function class(ReflectionClass $class, ?Structure $parent = null): ClassStructureDefinition
     {
         $connectionId = $parent?->connection->id ?? 'default';
+        $onDuplicateKeyUpdate = null;
         $polymorphic = null;
         $table = $parent?->table;
 
@@ -120,6 +123,18 @@ final class StructureGenerator
             switch (true) {
                 case $attr instanceof ConnectionId:
                     $connectionId = $attr->connectionId;
+                    break;
+
+                case $attr instanceof OnDuplicateUpdate:
+                    $onDuplicateKeyUpdate = $attr->fields;
+
+                    if (!is_array($onDuplicateKeyUpdate)) {
+                        $onDuplicateKeyUpdate = [$onDuplicateKeyUpdate];
+                    }
+
+                    if (empty($onDuplicateKeyUpdate)) {
+                        $onDuplicateKeyUpdate = null;
+                    }
                     break;
 
                 case $attr instanceof Polymorphic:
@@ -138,6 +153,7 @@ final class StructureGenerator
 
         return new ClassStructureDefinition(
             connectionId: $connectionId,
+            onDuplicateKeyUpdate: $onDuplicateKeyUpdate,
             polymorphic: $polymorphic,
             table: $table
         );

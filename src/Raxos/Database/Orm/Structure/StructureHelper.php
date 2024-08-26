@@ -4,10 +4,8 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Structure;
 
 use JetBrains\PhpStorm\Pure;
-use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Query\Struct\ColumnLiteral;
 use function is_int;
 use function is_string;
 
@@ -20,27 +18,6 @@ use function is_string;
  */
 final class StructureHelper
 {
-
-    /**
-     * Composes a column literal based on the given column and table, for
-     * use within relations.
-     *
-     * @param Dialect $dialect
-     * @param string|null $column
-     * @param string|null $table
-     * @param ColumnLiteral $default
-     *
-     * @return ColumnLiteral
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
-     */
-    public static function composeRelationKey(Dialect $dialect, ?string $column, ?string $table, ColumnLiteral $default): ColumnLiteral
-    {
-        $column ??= $default->column;
-        $table ??= $default->table;
-
-        return new ColumnLiteral($dialect, $column, $table);
-    }
 
     /**
      * Groups the given instances by their model. If a master model

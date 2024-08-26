@@ -15,6 +15,7 @@ use function array_is_list;
 use function array_keys;
 use function array_map;
 use function array_shift;
+use function array_unique;
 use function array_values;
 use function assert;
 use function count;
@@ -943,7 +944,17 @@ abstract class Query extends QueryBase implements QueryInterface
      */
     protected function baseJoin(string $clause, string $table, ?callable $fn): static
     {
-        $this->addPiece($clause, $this->dialect->escapeTable($table));
+        $table = $this->dialect->escapeTable($table);
+
+        // note(Bas): this filters out double joins, but we need to figure out
+        //  if we still need to execute the given function.
+        foreach ($this->pieces as [$existingClause, $existingTable]) {
+            if (str_contains($existingClause, 'join') && $existingTable === $table) {
+                return $this;
+            }
+        }
+
+        $this->addPiece($clause, $table);
 
         $this->isOnDefined = false;
 
@@ -1053,7 +1064,7 @@ abstract class Query extends QueryBase implements QueryInterface
             }
         }
 
-        return $this->addPiece($clause, $result, $this->dialect->fieldSeparator);
+        return $this->addPiece($clause, array_unique($result), $this->dialect->fieldSeparator);
     }
 
     /**

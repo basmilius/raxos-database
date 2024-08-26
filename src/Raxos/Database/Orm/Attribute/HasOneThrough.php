@@ -7,49 +7,51 @@ use Attribute;
 use Raxos\Database\Orm\Model;
 
 /**
- * Class HasManyThrough
+ * Class HasOneThrough
  *
- * Defines a has many relation between two models that goes through another
- * model. For example, a user can have multiple garages which contain multiple
- * cars. If we want a relation between user and car, we can use this relation.
+ * Defines a belongs to relation between two models that goes through
+ * another model. For example, an address belongs to an owner, but goes
+ * through a house.
  *
- * User 1...∞ Garage 1...∞ Car
+ * Post 1...1 User 1...1 Country
  *
  * <code>
- *     class User extends Model {
- *         #[HasManyThrough(Car::class, Garage::class)]
- *         public ModelArrayList $cars;
- *
- *         #[HasMany(Garage::class)]
- *         public ModelArrayList $garages;
- *     }
- *
- *     class Garage extends Model {
- *         #[HasMany(Car::class)]
- *         public ModelArrayList $cars;
- *
+ *     class Post extends Model {
  *         #[BelongsTo]
  *         public User $user;
+ *
+ *         #[BelongsToThrough(User::class)]
+ *         public Country $country;
  *     }
  *
- *     class Car extends Model {
+ *     class User extends Model {
  *         #[BelongsTo]
- *         public Garage $garage;
+ *         public Country $country;
+ *
+ *         #[HasMany(Post::class)]
+ *         public ModelArrayList $posts;
+ *     }
+ *
+ *     class Country extends Model {
+ *         #[MasMany(User::class)]
+ *         public ModelArrayList $users;
+ *
+ *         #[HasOneThrough(Post::class, User::class)]
+ *         public Post $firstPost;
  *     }
  * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute
- * @since 1.0.17
+ * @since 1.1.0
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final readonly class HasManyThrough implements AttributeInterface, RelationAttributeInterface
+final readonly class HasOneThrough implements AttributeInterface, RelationAttributeInterface
 {
 
     /**
-     * HasManyThrough constructor.
+     * HasOneThrough constructor.
      *
-     * @param class-string<Model> $referenceModel
      * @param class-string<Model> $linkingModel
      * @param string|null $referenceKey
      * @param string|null $referenceKeyTable
@@ -60,13 +62,11 @@ final readonly class HasManyThrough implements AttributeInterface, RelationAttri
      * @param string|null $declaringKey
      * @param string|null $declaringKeyTable
      * @param bool $eagerLoad
-     * @param string|null $orderBy
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 1.1.0
      */
     public function __construct(
-        public string $referenceModel,
         public string $linkingModel,
         public ?string $referenceKey = null,
         public ?string $referenceKeyTable = null,
@@ -76,8 +76,7 @@ final readonly class HasManyThrough implements AttributeInterface, RelationAttri
         public ?string $declaringLinkingKeyTable = null,
         public ?string $declaringKey = null,
         public ?string $declaringKeyTable = null,
-        public bool $eagerLoad = false,
-        public ?string $orderBy = null
+        public bool $eagerLoad = false
     ) {}
 
 }

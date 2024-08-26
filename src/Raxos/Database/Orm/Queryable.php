@@ -10,6 +10,7 @@ use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureExc
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\{ColumnLiteral, Select, ValueInterface};
+use Raxos\Foundation\Collection\ArrayListInterface;
 use Stringable;
 
 /**
@@ -83,7 +84,7 @@ trait Queryable
      * @param int $offset
      * @param int $limit
      *
-     * @return ModelArrayList<int, static>
+     * @return ArrayListInterface<int, static>
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException
@@ -92,7 +93,7 @@ trait Queryable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function all(int $offset = 0, int $limit = 20): ModelArrayList
+    public static function all(int $offset = 0, int $limit = 20): ArrayListInterface
     {
         return self::select()
             ->limit($limit, $offset)
@@ -178,7 +179,7 @@ trait Queryable
 
         foreach ($primaryKeys as $primaryKey) {
             if ($cache->has(static::class, $primaryKey)) {
-                $results->add($cache->get(static::class, $primaryKey));
+                $results = $results->append($cache->get(static::class, $primaryKey));
                 continue;
             }
 
@@ -632,7 +633,7 @@ trait Queryable
      * Returns a new select query for the model.
      *
      * @param callable(Select):QueryInterface<static> $compose
-     * @param array|string|int $keys
+     * @param Select|array|string|int $keys
      *
      * @return QueryInterface<static>
      * @throws QueryException
@@ -640,10 +641,14 @@ trait Queryable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    private static function baseSelect(callable $compose, array|string|int $keys): QueryInterface
+    private static function baseSelect(callable $compose, Select|array|string|int $keys): QueryInterface
     {
+        if (!($keys instanceof Select)) {
+            $keys = Select::of($keys);
+        }
+
         return static::getQueryableJoins(
-            $compose(static::getQueryableColumns(Select::of($keys)))
+            $compose(static::getQueryableColumns($keys))
                 ->from(self::table())
         );
     }

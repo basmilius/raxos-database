@@ -18,12 +18,12 @@ use Attribute;
  *         #[Computed]
  *         public string $claims;
  *
- *         public static function getDefaultFields(array $fields): array {
- *             return self::extendFields($fields, [
- *                 self::column('*') => true,
+ *         public static function getQueryableColumns(Select $select): Select {
+ *             return $select->add(
+ *                 self::column('*'),
  *
- *                 'claims' => ...sub-query...
- *             ]);
+ *                 claims: (((sub query)))
+ *             );
  *         }
  *     }
  * </code>

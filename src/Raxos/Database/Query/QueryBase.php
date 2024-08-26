@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use BackedEnum;
+use Closure;
 use Generator;
 use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
@@ -38,7 +39,7 @@ use function is_string;
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-abstract class QueryBase implements DebuggableInterface, JsonSerializable, QueryBaseInterface, Stringable
+abstract class QueryBase implements DebuggableInterface, InternalQueryInterface, JsonSerializable, QueryBaseInterface, Stringable
 {
 
     private static int $index = 0;
@@ -54,6 +55,9 @@ abstract class QueryBase implements DebuggableInterface, JsonSerializable, Query
     private array $eagerLoadDisable = [];
     private array $params = [];
     private readonly int $paramsIndex;
+
+    // internal
+    private ?Closure $beforeRelations = null;
 
     /**
      * QueryBase constructor.
@@ -651,6 +655,43 @@ abstract class QueryBase implements DebuggableInterface, JsonSerializable, Query
         }
 
         return $statement;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    public function withQuery(callable $fn): static
+    {
+        return $fn($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    public function _internal_beforeRelations(callable $fn): QueryBaseInterface
+    {
+        $this->beforeRelations = $fn;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    public function _internal_invokeBeforeRelations(array $instances): void
+    {
+        if ($this->beforeRelations === null) {
+            return;
+        }
+
+        $beforeRelations = $this->beforeRelations;
+        $beforeRelations($instances);
     }
 
     /**

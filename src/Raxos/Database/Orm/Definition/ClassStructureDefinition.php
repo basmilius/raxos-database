@@ -20,6 +20,7 @@ final readonly class ClassStructureDefinition implements JsonSerializable
      * ClassStructureDefinition constructor.
      *
      * @param string $connectionId
+     * @param string[]|null $onDuplicateKeyUpdate
      * @param PolymorphicDefinition|null $polymorphic
      * @param string $table
      *
@@ -28,6 +29,7 @@ final readonly class ClassStructureDefinition implements JsonSerializable
      */
     public function __construct(
         public string $connectionId,
+        public ?array $onDuplicateKeyUpdate,
         public ?PolymorphicDefinition $polymorphic,
         public string $table
     ) {}
@@ -39,6 +41,7 @@ final readonly class ClassStructureDefinition implements JsonSerializable
      */
     #[ArrayShape([
         'connection_id' => 'string',
+        'on_duplicate_key_update' => 'string[]|null',
         'polymorphic' => 'Raxos\Database\Orm\Definition\PolymorphicDefinition|null',
         'table' => 'string'
     ])]
@@ -46,6 +49,7 @@ final readonly class ClassStructureDefinition implements JsonSerializable
     {
         return [
             'connection_id' => $this->connectionId,
+            'on_duplicate_key_update' => $this->onDuplicateKeyUpdate,
             'polymorphic' => $this->polymorphic,
             'table' => $this->table
         ];

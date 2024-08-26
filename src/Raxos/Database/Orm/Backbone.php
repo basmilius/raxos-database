@@ -205,9 +205,17 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     public function getRelationValue(RelationDefinition $property): Model|ModelArrayList|null
     {
-        return $this->structure
+        if ($this->relationCache->hasValue($property->name)) {
+            return $this->relationCache->getValue($property->name);
+        }
+
+        $result = $this->structure
             ->getRelation($property)
             ->fetch($this->currentInstance);
+
+        $this->relationCache->setValue($property->name, $result);
+
+        return $result;
     }
 
     /**
@@ -324,6 +332,8 @@ final class Backbone implements AccessInterface, BackboneInterface
             // note(Bas): saves a new record for the model.
             $primaryKeyValue = $this->class::query()
                 ->insertIntoValues($this->structure->table, $values)
+                ->conditional($this->structure->onDuplicateKeyUpdate !== null, fn(QueryInterface $query) => $query
+                    ->onDuplicateKeyUpdate($this->structure->onDuplicateKeyUpdate))
                 ->runReturning(array_column($primaryKey, 'key'));
 
             $record = $this->class::select()
@@ -391,6 +401,9 @@ final class Backbone implements AccessInterface, BackboneInterface
     public function setValue(string $key, mixed $value): void
     {
         $property = $this->structure->getProperty($key);
+        $oldValue = $this->currentInstance instanceof MutationListenerInterface
+            ? $this->getValue($property->name)
+            : null;
 
         try {
             match (true) {
@@ -398,6 +411,10 @@ final class Backbone implements AccessInterface, BackboneInterface
                 $property instanceof MacroDefinition => throw InstanceException::immutableMacro($this->class, $property->name),
                 $property instanceof RelationDefinition => $this->setRelationValue($property, $value)
             };
+
+            if ($this->currentInstance instanceof MutationListenerInterface) {
+                $this->currentInstance->onMutation($property, $value, $oldValue);
+            }
         } catch (QueryException|RelationException $err) {
             throw InstanceException::writeFailed($this->class, $property->name, $err);
         }

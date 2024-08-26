@@ -317,7 +317,7 @@ interface QueryBaseInterface
      * @param int $fetchMode
      * @param array $options
      *
-     * @return ModelArrayList<int, TModel>|iterable<int, TModel>
+     * @return ArrayList<int, TModel>|ModelArrayList<int, TModel>|iterable<int, TModel>
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException
@@ -419,5 +419,16 @@ interface QueryBaseInterface
      * @since 1.0.0
      */
     public function statement(array $options = []): StatementInterface;
+
+    /**
+     * Runs the given function using the current query instance.
+     *
+     * @param callable(static):static $fn
+     *
+     * @return $this
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    public function withQuery(callable $fn): static;
 
 }

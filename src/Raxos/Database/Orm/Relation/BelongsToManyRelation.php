@@ -7,9 +7,10 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsToMany;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\StructureException;
-use Raxos\Database\Orm\Structure\{Structure, StructureHelper};
+use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
+use function array_filter;
 use function implode;
 use function Raxos\Database\Query\in;
 use function sort;
@@ -68,28 +69,28 @@ final readonly class BelongsToManyRelation implements RelationInterface
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
 
-        $this->declaringKey = StructureHelper::composeRelationKey(
+        $this->declaringKey = RelationHelper::composeKey(
             $this->declaringStructure->connection->dialect,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
         );
 
-        $this->declaringLinkingKey = StructureHelper::composeRelationKey(
+        $this->declaringLinkingKey = RelationHelper::composeKey(
             $this->declaringStructure->connection->dialect,
             $this->attribute->declaringLinkingKey,
             $this->attribute->declaringLinkingKeyTable,
             $declaringPrimaryKey->asForeignKeyForTable($linkingTable)
         );
 
-        $this->referenceLinkingKey = StructureHelper::composeRelationKey(
+        $this->referenceLinkingKey = RelationHelper::composeKey(
             $this->referenceStructure->connection->dialect,
             $this->attribute->referenceLinkingKey,
             $this->attribute->referenceLinkingKeyTable,
             $referencePrimaryKey->asForeignKeyForTable($linkingTable)
         );
 
-        $this->referenceKey = StructureHelper::composeRelationKey(
+        $this->referenceKey = RelationHelper::composeKey(
             $this->referenceStructure->connection->dialect,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
@@ -104,19 +105,9 @@ final readonly class BelongsToManyRelation implements RelationInterface
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
-        $relationCache = $instance->backbone->relationCache;
-
-        if ($relationCache->hasValue($this->property->name)) {
-            return $relationCache->getValue($this->property->name);
-        }
-
-        $result = $this
+        return $this
             ->query($instance)
             ->arrayList();
-
-        $relationCache->setValue($this->property->name, $result);
-
-        return $result;
     }
 
     /**
@@ -170,18 +161,34 @@ final readonly class BelongsToManyRelation implements RelationInterface
             __local_linking_key: $this->declaringLinkingKey
         );
 
-        $results = $this->referenceStructure->class::select($select)
+        $this->referenceStructure->class::select($select)
             ->join($this->declaringLinkingKey->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
             ->where($this->declaringLinkingKey, in($values->toArray()))
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
-            ->arrayList();
+            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+            ->array();
+    }
 
+    /**
+     * Apply the results to the instances' relation cache.
+     *
+     * @param Model[] $results
+     * @param ModelArrayList<int, Model> $instances
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    private function onBeforeRelations(array $results, ModelArrayList $instances): void
+    {
         foreach ($instances as $instance) {
+            $result = array_filter($results, fn(Model $reference) => $reference->backbone->data->getValue('__local_linking_key') === $instance->{$this->declaringKey->column});
+
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
-                $results->filter(fn(Model $reference) => $reference->backbone->data->getValue('__local_linking_key') === $instance->{$this->declaringKey->column})
+                new ModelArrayList($result)
             );
         }
     }

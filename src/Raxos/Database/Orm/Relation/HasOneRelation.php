@@ -7,11 +7,11 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasOne;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Orm\Structure\{Structure, StructureHelper};
+use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Foundation\Util\ArrayUtil;
 use function assert;
-use function is_numeric;
 
 /**
  * Class HasOneRelation
@@ -55,14 +55,14 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
 
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
 
-        $this->referenceKey = StructureHelper::composeRelationKey(
+        $this->referenceKey = RelationHelper::composeKey(
             $this->referenceStructure->connection->dialect,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $declaringPrimaryKey->asForeignKeyFor($this->referenceStructure),
         );
 
-        $this->declaringKey = StructureHelper::composeRelationKey(
+        $this->declaringKey = RelationHelper::composeKey(
             $this->declaringStructure->connection->dialect,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
@@ -77,15 +77,19 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
-        $foreignKey = $instance->{$this->declaringKey->column};
+        $declaringValue = RelationHelper::declaringKeyValue($instance, $this->declaringKey);
 
-        if ($foreignKey === null || (is_numeric($foreignKey) && (int)$foreignKey === 0)) {
+        if ($declaringValue === null) {
             return null;
         }
 
-        $cache = $this->referenceStructure->connection->cache;
+        $cached = RelationHelper::findCached(
+            $declaringValue,
+            $this->referenceStructure,
+            $this->referenceKey
+        );
 
-        if (($cached = $cache->find($this->referenceStructure->class, fn(Model $model) => $model->{$this->referenceKey->column} === $foreignKey)) !== null) {
+        if ($cached !== null) {
             return $cached;
         }
 
@@ -135,6 +139,7 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
 
         $this->referenceStructure->class::select()
             ->whereIn($this->referenceKey, $values->toArray())
+            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
             ->array();
     }
 
@@ -159,6 +164,32 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
         if ($newValue instanceof Model) {
             $newValue->{$this->referenceKey->column} = $instance->{$this->declaringKey->column};
             $instance->backbone->addSaveTask(static fn() => $newValue->save());
+        }
+    }
+
+    /**
+     * Apply the results to the instances' relation cache.
+     *
+     * @param Model[] $results
+     * @param ModelArrayList<int, Model> $instances
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    private function onBeforeRelations(array $results, ModelArrayList $instances): void
+    {
+        foreach ($instances as $instance) {
+            $result = ArrayUtil::first($results, fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column});
+
+            if ($result === null) {
+                continue;
+            }
+
+            $instance->backbone->relationCache->setValue(
+                $this->property->name,
+                $result
+            );
         }
     }
 
