@@ -62,28 +62,4 @@ class SqlServerQuery extends Query
         return $this->addPiece('offset', "{$offset} rows");
     }
 
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function optimizeTable(string $table): static
-    {
-        $table = $this->dialect->escapeTable($table);
-
-        return $this->addPiece("alter index all on {$table} rebuild");
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function truncateTable(string $table): static
-    {
-        $table = $this->dialect->escapeTable($table);
-
-        return $this->addPiece('truncate table', $table);
-    }
-
 }

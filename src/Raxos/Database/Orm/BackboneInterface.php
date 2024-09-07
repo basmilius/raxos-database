@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use JetBrains\PhpStorm\ExpectedValues;
-use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Connection\ConnectionInterface;
+use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\Caster\CasterInterface;
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
@@ -199,6 +199,22 @@ interface BackboneInterface
      * @since 1.0.17
      */
     public function queryRelation(Model $instance, string $key): QueryInterface;
+
+    /**
+     * Reloads the record of the model. This will also flush the caster,
+     * macro and relation cache to start fresh.
+     *
+     * @return void
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws InstanceException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    public function reload(): void;
 
     /**
      * Saves the model.

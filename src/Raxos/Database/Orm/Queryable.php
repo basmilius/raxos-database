@@ -39,7 +39,7 @@ trait Queryable
         $structure = Structure::of(static::class);
 
         if ($key === '*') {
-            return new ColumnLiteral($structure->connection->dialect, $key, $structure->table);
+            return new ColumnLiteral($structure->connection->grammar, $key, $structure->table);
         }
 
         return $structure->getColumn($key);

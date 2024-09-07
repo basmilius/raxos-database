@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use Raxos\Database\Connector\{Connector, SqlServerConnector};
-use Raxos\Database\Dialect\SqlServerDialect;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
+use Raxos\Database\Grammar\SqlServerGrammar;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\{Cache, CacheInterface};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
@@ -41,7 +41,7 @@ final class SqlServerConnection extends Connection
         Logger $logger = new Logger()
     )
     {
-        parent::__construct($id, $connector, new SqlServerDialect(), $cache, $logger);
+        parent::__construct($id, $connector, $cache, new SqlServerGrammar(), $logger);
     }
 
     /**

@@ -70,28 +70,28 @@ final readonly class BelongsToManyRelation implements RelationInterface
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->dialect,
+            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
         );
 
         $this->declaringLinkingKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->dialect,
+            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringLinkingKey,
             $this->attribute->declaringLinkingKeyTable,
             $declaringPrimaryKey->asForeignKeyForTable($linkingTable)
         );
 
         $this->referenceLinkingKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->dialect,
+            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceLinkingKey,
             $this->attribute->referenceLinkingKeyTable,
             $referencePrimaryKey->asForeignKeyForTable($linkingTable)
         );
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->dialect,
+            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $referencePrimaryKey

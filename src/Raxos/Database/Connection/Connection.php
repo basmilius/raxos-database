@@ -8,8 +8,8 @@ use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
 use Raxos\Database\Connector\Connector;
 use Raxos\Database\Db;
-use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
+use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\CacheInterface;
 use Raxos\Database\Query\{QueryInterface, Statement, StatementInterface};
@@ -35,7 +35,7 @@ abstract class Connection implements ConnectionInterface
      * @param string $id
      * @param CacheInterface $cache
      * @param Connector $connector
-     * @param Dialect $dialect
+     * @param Grammar $grammar
      * @param Logger $logger
      *
      * @author Bas Milius <bas@mili.us>
@@ -44,8 +44,8 @@ abstract class Connection implements ConnectionInterface
     public function __construct(
         public readonly string $id,
         public readonly Connector $connector,
-        public readonly Dialect $dialect,
         public readonly CacheInterface $cache,
+        public readonly Grammar $grammar,
         public readonly Logger $logger
     ) {}
 

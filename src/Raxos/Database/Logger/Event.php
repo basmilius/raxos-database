@@ -3,13 +3,16 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Logger;
 
-use Raxos\Foundation\Util\{Stopwatch, StopwatchUnit};
+use Raxos\Foundation\Util\{Stopwatch, StopwatchUnit, StringUtil};
 use function array_shift;
 use function array_slice;
 use function count;
 use function debug_backtrace;
 use function explode;
 use function implode;
+use function in_array;
+use function str_ends_with;
+use function str_starts_with;
 use const DIRECTORY_SEPARATOR;
 
 /**
@@ -38,6 +41,7 @@ abstract readonly class Event
     {
         $trace = debug_backtrace();
         array_shift($trace);
+        array_shift($trace);
 
         $this->trace = $trace;
     }
@@ -45,26 +49,30 @@ abstract readonly class Event
     /**
      * Prints the event.
      *
+     * @param bool $backtrace
+     *
      * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    public abstract function print(): string;
+    public abstract function print(bool $backtrace): string;
 
     /**
      * Returns the base.
      *
      * @param string|null $extra
+     * @param bool $backtrace
+     * @param string|null $time
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    protected final function printBase(?string $extra = null): string
+    protected final function printBase(?string $extra = null, bool $backtrace = false, ?string $time = null): string
     {
-        $class = static::class;
-        $time = $this->stopwatch->format(StopwatchUnit::SECONDS);
-        $trace = $this->printTrace();
+        $class = StringUtil::shortClassName(static::class);
+        $time ??= $this->stopwatch->format(StopwatchUnit::SECONDS);
+        $trace = $backtrace ? $this->printTrace() : '';
 
         return <<<HTML
             <div class="_raxos_database_report_event">
@@ -83,6 +91,7 @@ abstract readonly class Event
      */
     protected final function printTrace(): string
     {
+        $functionsToIgnore = ['print_r', 'var_dump'];
         $trace = [];
 
         foreach ($this->trace as $index => $item) {
@@ -94,9 +103,24 @@ abstract readonly class Event
             $file = array_slice($file, -4);
             $file = '[...]' . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $file);
 
+            if (str_ends_with($file, '/dev/server.php')) {
+                continue;
+            }
+
             if (isset($item['class'])) {
-                $call = $item['class'] . $item['type'] . $item['function'] . '(...)';
+                $class = StringUtil::shortClassName($item['class']);
+
+                // note: By-default, we don't want to show the implementing side our internal Raxos stuff.
+                if (str_starts_with($item['class'], 'Raxos\\')) {
+                    continue;
+                }
+
+                $call = "<abbr title='{$item['class']}'>{$class}</abbr>" . $item['type'] . $item['function'] . '(...)';
             } elseif (isset($item['function'])) {
+                if (in_array($item['function'], $functionsToIgnore)) {
+                    continue;
+                }
+
                 $call = $item['function'] . '(...)';
             }
 

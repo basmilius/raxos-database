@@ -10,8 +10,8 @@ use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 use PDO;
 use Raxos\Database\Connection\Connection;
-use Raxos\Database\Dialect\Dialect;
 use Raxos\Database\Error\{ConnectionException, QueryException};
+use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Query\Struct\{AfterExpressionInterface, BeforeExpressionInterface, ColumnLiteral, ComparatorAwareLiteral, Literal, ValueInterface};
 use Raxos\Foundation\Collection\ArrayList;
@@ -44,12 +44,13 @@ abstract class QueryBase implements DebuggableInterface, InternalQueryInterface,
 
     private static int $index = 0;
 
-    public readonly Dialect $dialect;
+    public readonly Grammar $grammar;
 
     protected string $currentClause = '';
     /** @var class-string<Model>|null */
     protected ?string $modelClass = null;
     protected array $pieces = [];
+    protected ?int $position = null;
 
     private array $eagerLoad = [];
     private array $eagerLoadDisable = [];
@@ -73,7 +74,7 @@ abstract class QueryBase implements DebuggableInterface, InternalQueryInterface,
         public readonly bool $prepared = true
     )
     {
-        $this->dialect = $connection->dialect;
+        $this->grammar = $connection->grammar;
         $this->paramsIndex = ++self::$index;
     }
 
@@ -114,7 +115,7 @@ abstract class QueryBase implements DebuggableInterface, InternalQueryInterface,
 
         if ($lhs !== null && !($lhs instanceof ComparatorAwareLiteral)) {
             if (is_string($lhs)) {
-                $lhs = $this->dialect->escapeFields($lhs);
+                $lhs = $this->grammar->escape($lhs);
             } elseif ($lhs instanceof ValueInterface) {
                 $lhs = $lhs->get($this);
             }
@@ -201,7 +202,11 @@ abstract class QueryBase implements DebuggableInterface, InternalQueryInterface,
             $data = (string)$data;
         }
 
-        $this->pieces[] = [$clause, $data, $separator];
+        if ($this->position !== null) {
+            array_splice($this->pieces, $this->position++, 0, [[$clause, $data, $separator]]);
+        } else {
+            $this->pieces[] = [$clause, $data, $separator];
+        }
 
         if (isset($clause[2])) {
             $this->currentClause = $clause;
@@ -515,14 +520,8 @@ abstract class QueryBase implements DebuggableInterface, InternalQueryInterface,
         $original->removeClause('offset');
         $original->removeClause('order by');
 
-        $query = $original->connection
-            ->query()
-            ->select('count(*)')
-            ->from($original, '__n__');
-
-        $query->params = $original->params;
-
-        return (int)$query
+        return (int)$original
+            ->replaceClause('select', fn(array $piece) => ['select', 'count(*)', null])
             ->statement()
             ->fetchColumn();
     }
@@ -583,7 +582,7 @@ abstract class QueryBase implements DebuggableInterface, InternalQueryInterface,
     public function runReturning(array|Literal|string $column): array|string|int
     {
         $statement = $this
-            ->addPiece('returning', $column, $this->dialect->fieldSeparator)
+            ->addPiece('returning', $column, $this->grammar->columnSeparator)
             ->statement();
 
         $statement->run();

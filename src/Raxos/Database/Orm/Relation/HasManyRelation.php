@@ -54,14 +54,14 @@ final readonly class HasManyRelation implements RelationInterface
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->dialect,
+            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
         );
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->dialect,
+            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $declaringPrimaryKey->asForeignKeyFor($this->referenceStructure)

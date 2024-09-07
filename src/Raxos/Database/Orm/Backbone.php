@@ -6,11 +6,11 @@ namespace Raxos\Database\Orm;
 use BackedEnum;
 use Generator;
 use JetBrains\PhpStorm\ExpectedValues;
+use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\Backpack\{Backpack, BackpackInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
-use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Orm\Relation\WritableRelationInterface;
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\QueryInterface;
@@ -317,6 +317,25 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
+     * @since 26-08-2024
+     */
+    public function reload(): void
+    {
+        $record = $this->class::select()
+            ->withoutModel()
+            ->wherePrimaryKey($this->class, $this->getPrimaryKeyValues())
+            ->single();
+
+        $this->data->replaceWith($record);
+
+        $this->castCache->clear();
+        $this->macroCache->clear();
+        $this->relationCache->clear();
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.19
      */
     public function save(): void
@@ -401,7 +420,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     public function setValue(string $key, mixed $value): void
     {
         $property = $this->structure->getProperty($key);
-        $oldValue = $this->currentInstance instanceof MutationListenerInterface
+        $oldValue = !$this->isNew && $this->currentInstance instanceof MutationListenerInterface
             ? $this->getValue($property->name)
             : null;
 
@@ -412,7 +431,7 @@ final class Backbone implements AccessInterface, BackboneInterface
                 $property instanceof RelationDefinition => $this->setRelationValue($property, $value)
             };
 
-            if ($this->currentInstance instanceof MutationListenerInterface) {
+            if (!$this->isNew && $this->currentInstance instanceof MutationListenerInterface) {
                 $this->currentInstance->onMutation($property, $value, $oldValue);
             }
         } catch (QueryException|RelationException $err) {
@@ -465,6 +484,10 @@ final class Backbone implements AccessInterface, BackboneInterface
 
                 if ($value instanceof BackedEnum) {
                     $value = $value->value;
+                }
+
+                if ($property->caster !== null) {
+                    $value = $this->getCastedValue($property->caster, 'encode', $value);
                 }
             } elseif ($property->isComputed || $property->isPrimaryKey) {
                 continue;

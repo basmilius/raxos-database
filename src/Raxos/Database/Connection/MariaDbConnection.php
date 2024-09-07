@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use Raxos\Database\Connector\Connector;
-use Raxos\Database\Dialect\MariaDbDialect;
+use Raxos\Database\Grammar\MariaDbGrammar;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\{Cache, CacheInterface};
 use Raxos\Database\Query\MariaDbQuery;
@@ -37,7 +37,7 @@ final class MariaDbConnection extends AbstractMySqlLikeConnection
         Logger $logger = new Logger()
     )
     {
-        parent::__construct($id, $connector, new MariaDbDialect(), $cache, $logger);
+        parent::__construct($id, $connector, $cache, new MariaDbGrammar(), $logger);
     }
 
     /**

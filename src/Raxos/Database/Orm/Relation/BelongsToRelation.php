@@ -57,14 +57,14 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->dialect,
+            $this->referenceStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $referencePrimaryKey->asForeignKeyFor($this->declaringStructure)
         );
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->dialect,
+            $this->declaringStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $referencePrimaryKey

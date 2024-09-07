@@ -52,7 +52,7 @@ abstract class Query extends QueryBase implements QueryInterface
      */
     public function delete(string $table): static
     {
-        return $this->addPiece('delete', $this->dialect->escapeTable($table));
+        return $this->addPiece('delete', $this->grammar->escape($table));
     }
 
     /**
@@ -62,7 +62,7 @@ abstract class Query extends QueryBase implements QueryInterface
      */
     public function deleteFrom(string $table): static
     {
-        return $this->addPiece('delete from', $this->dialect->escapeTable($table));
+        return $this->addPiece('delete from', $this->grammar->escape($table));
     }
 
     /**
@@ -89,13 +89,13 @@ abstract class Query extends QueryBase implements QueryInterface
             $tables = [$tables];
         }
 
-        $tables = array_map($this->dialect->escapeTable(...), $tables);
+        $tables = array_map($this->grammar->escape(...), $tables);
 
         if ($alias !== null && count($tables) === 1) {
             $tables = array_map(static fn(string $table): string => "{$table} as {$alias}", $tables);
         }
 
-        return $this->addPiece('from', $tables, $this->dialect->tableSeparator);
+        return $this->addPiece('from', $tables, $this->grammar->tableSeparator);
     }
 
     /**
@@ -110,9 +110,9 @@ abstract class Query extends QueryBase implements QueryInterface
         }
 
         $fields = array_map(strval(...), $fields);
-        $fields = array_map($this->dialect->escapeFields(...), $fields);
+        $fields = array_map($this->grammar->escape(...), $fields);
 
-        return $this->addPiece('group by', $fields, $this->dialect->fieldSeparator);
+        return $this->addPiece('group by', $fields, $this->grammar->columnSeparator);
     }
 
     /**
@@ -243,9 +243,9 @@ abstract class Query extends QueryBase implements QueryInterface
             $fields = [$fields];
         }
 
-        $fields = array_map(fn(string $field): string => str_contains($field, '=') ? $field : $this->dialect->escapeFields($field) . " = VALUES({$field})", $fields);
+        $fields = array_map(fn(string $field): string => str_contains($field, '=') ? $field : $this->grammar->escape($field) . " = VALUES({$field})", $fields);
 
-        return $this->addPiece('on duplicate key update', $fields, $this->dialect->fieldSeparator);
+        return $this->addPiece('on duplicate key update', $fields, $this->grammar->columnSeparator);
     }
 
     /**
@@ -378,17 +378,17 @@ abstract class Query extends QueryBase implements QueryInterface
             }
 
             if (str_contains($field, ' asc') || str_contains($field, ' ASC')) {
-                return $this->dialect->escapeFields(substr($field, 0, -4)) . ' asc';
+                return $this->grammar->escape(substr($field, 0, -4)) . ' asc';
             }
 
             if (str_contains($field, ' desc') || str_contains($field, ' DESC')) {
-                return $this->dialect->escapeFields(substr($field, 0, -5)) . ' desc';
+                return $this->grammar->escape(substr($field, 0, -5)) . ' desc';
             }
 
-            return $this->dialect->escapeFields($field);
+            return $this->grammar->escape($field);
         }, $fields);
 
-        return $this->addPiece('order by', $fields, $this->dialect->fieldSeparator);
+        return $this->addPiece('order by', $fields, $this->grammar->columnSeparator);
     }
 
     /**
@@ -399,10 +399,10 @@ abstract class Query extends QueryBase implements QueryInterface
     public function orderByAsc(Literal|string $field): static
     {
         if (is_string($field)) {
-            $field = $this->dialect->escapeFields($field);
+            $field = $this->grammar->escape($field);
         }
 
-        $clause = $this->currentClause === 'order by' ? trim($this->dialect->fieldSeparator) : 'order by';
+        $clause = $this->currentClause === 'order by' ? trim($this->grammar->columnSeparator) : 'order by';
 
         return $this->addPiece($clause, $field . ' asc');
     }
@@ -415,10 +415,10 @@ abstract class Query extends QueryBase implements QueryInterface
     public function orderByDesc(Literal|string $field): static
     {
         if (is_string($field)) {
-            $field = $this->dialect->escapeFields($field);
+            $field = $this->grammar->escape($field);
         }
 
-        $clause = $this->currentClause === 'order by' ? trim($this->dialect->fieldSeparator) : 'order by';
+        $clause = $this->currentClause === 'order by' ? trim($this->grammar->columnSeparator) : 'order by';
 
         return $this->addPiece($clause, $field . ' desc');
     }
@@ -434,7 +434,7 @@ abstract class Query extends QueryBase implements QueryInterface
     ): static
     {
         $value = $this->addParam($value);
-        $expression = $this->dialect->escapeFields((string)$field) . ' = ' . $value;
+        $expression = $this->grammar->escape((string)$field) . ' = ' . $value;
 
         if ($this->currentClause === 'set') {
             $index = count($this->pieces) - 1;
@@ -448,7 +448,7 @@ abstract class Query extends QueryBase implements QueryInterface
 
             $this->pieces[$index][1] = $existing;
         } else {
-            $this->addPiece('set', $expression, $this->dialect->fieldSeparator);
+            $this->addPiece('set', $expression, $this->grammar->columnSeparator);
         }
 
         return $this;
@@ -485,7 +485,7 @@ abstract class Query extends QueryBase implements QueryInterface
      */
     public function update(string $table, ?array $pairs = null): static
     {
-        $this->addPiece('update', $this->dialect->escapeTable($table));
+        $this->addPiece('update', $this->grammar->escape($table));
 
         if ($pairs === null) {
             return $this;
@@ -508,7 +508,7 @@ abstract class Query extends QueryBase implements QueryInterface
         $values = array_map($this->addParam(...), $values);
 
         $this->addPiece($this->isClauseDefined('values') ? ', ' : 'values');
-        $this->parenthesis(fn() => $this->addPiece('', $values, $this->dialect->fieldSeparator));
+        $this->parenthesis(fn() => $this->addPiece('', $values, $this->grammar->columnSeparator));
 
         return $this;
     }
@@ -923,10 +923,10 @@ abstract class Query extends QueryBase implements QueryInterface
             throw QueryException::incomplete();
         }
 
-        $fields = array_map($this->dialect->escapeFields(...), $fields);
+        $fields = array_map($this->grammar->escape(...), $fields);
 
-        $this->addPiece($clause, $this->dialect->escapeTable($table));
-        $this->parenthesis(fn() => $this->addPiece('', $fields, $this->dialect->fieldSeparator));
+        $this->addPiece($clause, $this->grammar->escape($table));
+        $this->parenthesis(fn() => $this->addPiece('', $fields, $this->grammar->columnSeparator));
 
         return $this;
     }
@@ -944,11 +944,15 @@ abstract class Query extends QueryBase implements QueryInterface
      */
     protected function baseJoin(string $clause, string $table, ?callable $fn): static
     {
-        $table = $this->dialect->escapeTable($table);
+        $table = $this->grammar->escape($table);
 
-        // note(Bas): this filters out double joins, but we need to figure out
-        //  if we still need to execute the given function.
-        foreach ($this->pieces as [$existingClause, $existingTable]) {
+        foreach ($this->pieces as $index => [$existingClause, $existingTable]) {
+            if ($existingClause === 'where') {
+                $this->position = $index;
+            }
+
+            // note(Bas): this filters out double joins, but we need to figure out
+            //  if we still need to execute the given function.
             if (str_contains($existingClause, 'join') && $existingTable === $table) {
                 return $this;
             }
@@ -965,6 +969,7 @@ abstract class Query extends QueryBase implements QueryInterface
         }
 
         $this->isOnDefined = false;
+        $this->position = null;
 
         return $this;
     }
@@ -996,14 +1001,14 @@ abstract class Query extends QueryBase implements QueryInterface
         }
 
         if (is_string($fields)) {
-            return $this->addPiece($clause, $this->dialect->escapeFields($fields));
+            return $this->addPiece($clause, $this->grammar->escape($fields));
         }
 
         $result = [];
 
         if ($fields instanceof Select) {
             foreach ($fields->entries as $entry) {
-                $alias = $entry->alias !== null ? $this->dialect->escapeFields($entry->alias) : null;
+                $alias = $entry->alias !== null ? $this->grammar->escape($entry->alias) : null;
                 $value = $entry->value;
 
                 if ($value instanceof QueryBaseInterface) {
@@ -1022,13 +1027,13 @@ abstract class Query extends QueryBase implements QueryInterface
 
                     $result[] = $alias !== null ? "{$value} as {$alias}" : $value;
                 } else {
-                    $value = $this->dialect->escapeFields($value);
+                    $value = $this->grammar->escape($value);
                     $result[] = $alias !== null ? "{$value} as {$alias}" : $value;
                 }
             }
         } elseif (!array_is_list($fields)) {
             foreach ($fields as $alias => $field) {
-                $alias = $this->dialect->escapeFields($alias);
+                $alias = $this->grammar->escape($alias);
 
                 if ($field === null || $field === true) {
                     $result[] = $alias;
@@ -1047,24 +1052,24 @@ abstract class Query extends QueryBase implements QueryInterface
 
                     $result[] = "{$field} as {$alias}";
                 } else {
-                    $result[] = $this->dialect->escapeFields($field) . ' as ' . $alias;
+                    $result[] = $this->grammar->escape($field) . ' as ' . $alias;
                 }
             }
         } else {
             foreach ($fields as $field) {
                 if (is_array($field) && count($field) === 2) {
-                    $result[] = $this->dialect->escapeFields($field[0]) . ' as ' . $this->dialect->escapeFields($field[1]);
+                    $result[] = $this->grammar->escape($field[0]) . ' as ' . $this->grammar->escape($field[1]);
                 } elseif (is_numeric($field)) {
                     $result[] = (string)$field;
                 } elseif ($field instanceof ValueInterface) {
                     $result[] = $field->get($this);
                 } else {
-                    $result[] = $this->dialect->escapeFields((string)$field);
+                    $result[] = $this->grammar->escape((string)$field);
                 }
             }
         }
 
-        return $this->addPiece($clause, array_unique($result), $this->dialect->fieldSeparator);
+        return $this->addPiece($clause, array_unique($result), $this->grammar->columnSeparator);
     }
 
     /**
@@ -1130,19 +1135,5 @@ abstract class Query extends QueryBase implements QueryInterface
 
         return $this;
     }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 1.0.0
-     */
-    public abstract function optimizeTable(string $table): static;
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
-     * @since 1.0.0
-     */
-    public abstract function truncateTable(string $table): static;
 
 }

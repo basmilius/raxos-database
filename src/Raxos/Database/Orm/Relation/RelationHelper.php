@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use JetBrains\PhpStorm\Pure;
-use Raxos\Database\Dialect\Dialect;
+use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\{InternalQueryInterface, QueryInterface};
@@ -26,7 +26,7 @@ final class RelationHelper
     /**
      * Composes a column literal based on the given column and table.
      *
-     * @param Dialect $dialect
+     * @param Grammar $grammar
      * @param string|null $column
      * @param string|null $table
      * @param ColumnLiteral $default
@@ -35,12 +35,12 @@ final class RelationHelper
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function composeKey(Dialect $dialect, ?string $column, ?string $table, ColumnLiteral $default): ColumnLiteral
+    public static function composeKey(Grammar $grammar, ?string $column, ?string $table, ColumnLiteral $default): ColumnLiteral
     {
         $column ??= $default->column;
         $table ??= $default->table;
 
-        return new ColumnLiteral($dialect, $column, $table);
+        return new ColumnLiteral($grammar, $column, $table);
     }
 
     /**

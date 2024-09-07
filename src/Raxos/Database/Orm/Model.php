@@ -111,7 +111,8 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      */
     public function makeHidden(array|string $keys): static
     {
-        $keys = StructureHelper::normalizeKeys($keys);
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $keys = StructureHelper::normalizeKeys($keys, $this->backbone->structure);
 
         $clone = $this->backbone->createInstance();
         $clone->hidden = array_merge_recursive($this->hidden, $keys);
@@ -127,7 +128,8 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      */
     public function makeVisible(array|string $keys): static
     {
-        $keys = StructureHelper::normalizeKeys($keys);
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $keys = StructureHelper::normalizeKeys($keys, $this->backbone->structure);
 
         $clone = $this->backbone->createInstance();
         $clone->visible = array_merge_recursive($this->visible, $keys);
@@ -143,7 +145,9 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      */
     public function only(array|string $keys): static
     {
+        /** @noinspection PhpUnhandledExceptionInspection */
         $keys = StructureHelper::normalizeKeys($keys);
+
         $hidden = [];
         $visible = [];
 

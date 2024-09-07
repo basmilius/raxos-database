@@ -10,13 +10,12 @@ use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Logger\QueryEvent;
 use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Foundation\Util\ArrayUtil;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Collection\ArrayList;
+use Raxos\Foundation\Util\ArrayUtil;
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
-use function array_filter;
 use function array_map;
 use function class_exists;
 use function is_array;
@@ -304,7 +303,7 @@ class Statement implements StatementInterface
             $stopwatch = new Stopwatch(__METHOD__);
             $result = $stopwatch->run($this->pdoStatement->execute(...));
 
-            $this->connection->logger->log(new QueryEvent($this->pdoStatement->queryString, $stopwatch));
+            $this->connection->logger->log(new QueryEvent($this->query, $stopwatch));
         } else {
             $result = $this->pdoStatement->execute();
         }

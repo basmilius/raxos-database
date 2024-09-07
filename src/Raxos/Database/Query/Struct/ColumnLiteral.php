@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Query\Struct;
 
 use JetBrains\PhpStorm\ArrayShape;
-use Raxos\Database\Dialect\Dialect;
+use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Contract\DebuggableInterface;
@@ -24,7 +24,7 @@ final readonly class ColumnLiteral extends Literal implements DebuggableInterfac
     /**
      * ColumnLiteral constructor.
      *
-     * @param Dialect $dialect
+     * @param Grammar $grammar
      * @param string $column
      * @param string|null $table
      * @param string|null $database
@@ -33,16 +33,16 @@ final readonly class ColumnLiteral extends Literal implements DebuggableInterfac
      * @since 1.0.16
      */
     public function __construct(
-        private Dialect $dialect,
+        private Grammar $grammar,
         public string $column,
         public ?string $table = null,
         public ?string $database = null
     )
     {
         $parts = array_filter([
-            $database !== null ? $this->dialect->escapeField($this->database) : null,
-            $table !== null ? $this->dialect->escapeField($this->table) : null,
-            $this->dialect->escapeField($this->column)
+            $database !== null ? $this->grammar->escape($this->database) : null,
+            $table !== null ? $this->grammar->escape($this->table) : null,
+            $this->grammar->escape($this->column)
         ]);
 
         parent::__construct(implode('.', $parts));
@@ -60,7 +60,7 @@ final readonly class ColumnLiteral extends Literal implements DebuggableInterfac
     public function asForeignKeyFor(Structure $structure): self
     {
         return new self(
-            $this->dialect,
+            $this->grammar,
             "{$this->table}_{$this->column}",
             $structure->table,
             $this->database
@@ -79,7 +79,7 @@ final readonly class ColumnLiteral extends Literal implements DebuggableInterfac
     public function asForeignKeyForTable(string $table): self
     {
         return new self(
-            $this->dialect,
+            $this->grammar,
             "{$this->table}_{$this->column}",
             $table,
             $this->database

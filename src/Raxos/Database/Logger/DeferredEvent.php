@@ -28,7 +28,7 @@ final readonly class DeferredEvent extends Event
      */
     public function __construct(
         private Logger $logger,
-        private int $index
+        public int $index
     )
     {
         parent::__construct(new Stopwatch());
@@ -53,7 +53,7 @@ final readonly class DeferredEvent extends Event
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    public function print(): string
+    public function print(bool $backtrace): string
     {
         return '';
     }

@@ -21,12 +21,14 @@ final readonly class EagerLoadEvent extends Event
      * EagerLoadEvent constructor.
      *
      * @param RelationInterface $relation
+     * @param int $events
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
     public function __construct(
-        public RelationInterface $relation
+        public RelationInterface $relation,
+        public int $events
     )
     {
         parent::__construct(new Stopwatch());
@@ -37,7 +39,7 @@ final readonly class EagerLoadEvent extends Event
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    public function print(): string
+    public function print(bool $backtrace): string
     {
         $class = $this->relation::class;
         $flow = '';
@@ -52,7 +54,10 @@ final readonly class EagerLoadEvent extends Event
             $flow = "{$declaringModel} ➜ {$referenceModel}";
         }
 
-        return $this->printBase("{$class}({$flow})");
+        $shortClass = StringUtil::shortClassName($class);
+        $class = "<abbr title='{$class}'>{$shortClass}</abbr>";
+
+        return $this->printBase("{$class}({$flow})", $backtrace, "Triggered {$this->events} events");
     }
 
     /**

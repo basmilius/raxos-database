@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Structure;
 
 use JetBrains\PhpStorm\Pure;
-use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\{BackboneInterface, Error\StructureException, Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, PropertyDefinition, RelationDefinition};
 use function is_int;
 use function is_string;
@@ -61,27 +61,30 @@ final class StructureHelper
      * Returns a normalized array for use in visibility.
      *
      * @param string[]|string $keys
+     * @param Structure|null $structure
      *
      * @return array
+     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    #[Pure]
-    public static function normalizeKeys(array|string $keys): array
+    public static function normalizeKeys(array|string $keys, ?Structure $structure = null): array
     {
+        $normalizeKey = static fn(string $key) => $structure?->getProperty($key)->name ?? $key;
+
         if (is_string($keys)) {
-            return [$keys => null];
+            return [$normalizeKey($keys) => null];
         }
 
         $result = [];
 
         foreach ($keys as $key => $value) {
             if (is_int($key)) {
-                $result[$value] = null;
+                $result[$normalizeKey($value)] = null;
             } elseif ($value === null) {
-                $result[$key] = null;
+                $result[$normalizeKey($key)] = null;
             } else {
-                $result[$key] = self::normalizeKeys($value);
+                $result[$normalizeKey($key)] = self::normalizeKeys($value, $structure);
             }
         }
 

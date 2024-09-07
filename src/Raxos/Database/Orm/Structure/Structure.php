@@ -151,7 +151,7 @@ final class Structure
         if ($this->connection->logger->isEnabled()) {
             $deferred = $this->connection->logger->deferred();
             $relation->eagerLoad($instances);
-            $deferred->commit(new EagerLoadEvent($relation));
+            $deferred->commit(new EagerLoadEvent($relation, $this->connection->logger->count() - ($deferred->index + 1)));
         } else {
             $relation->eagerLoad($instances);
         }
@@ -271,7 +271,7 @@ final class Structure
             throw StructureException::invalidColumn($this->class, $key);
         }
 
-        return new ColumnLiteral($this->connection->dialect, $property->key, $this->table);
+        return new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
     }
 
     /**
@@ -335,7 +335,7 @@ final class Structure
             $property = $property[0];
         }
 
-        return new ColumnLiteral($this->connection->dialect, $property->key, $this->table);
+        return new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
     }
 
     /**

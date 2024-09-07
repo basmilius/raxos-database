@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Logger;
 
 use Raxos\Foundation\Util\StopwatchUnit;
+use function array_filter;
 use function array_map;
 use function array_sum;
 use function count;
@@ -23,6 +24,18 @@ final class Logger
 
     /** @var Event[] */
     private array $events = [];
+
+    /**
+     * Returns the amount of events.
+     *
+     * @return int
+     * @author Bas Milius <bas@mili.us>
+     * @since 05-09-2024
+     */
+    public function count(): int
+    {
+        return count($this->events);
+    }
 
     /**
      * Enables the logger.
@@ -106,23 +119,27 @@ final class Logger
     /**
      * Prints the logger report.
      *
+     * @param bool $backtrace
+     *
      * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    public function print(): string
+    public function print(bool $backtrace = false): string
     {
         $styles = $this->styles();
 
-        $events = implode("\n", array_map(static fn(Event $event) => $event->print(), $this->events));
+        $events = implode("\n", array_map(static fn(Event $event) => $event->print($backtrace), $this->events));
+        $totalEagerLoads = count(array_filter($this->events, static fn(Event $event) => $event instanceof EagerLoadEvent && $event->events > 0));
         $totalExecutionTime = array_sum(array_map(static fn(Event $event) => $event->stopwatch->as(StopwatchUnit::SECONDS), $this->events));
+        $totalQueries = count(array_filter($this->events, static fn(Event $event) => $event instanceof QueryEvent));
 
         return <<<HTML
             <div id="_raxos_database_report">
                 {$styles}
                 
                 <h1>Raxos Database Report</h1>
-                <p>Total execution time: {$totalExecutionTime}s</p>
+                <p>{$totalQueries} total queries | {$totalEagerLoads} eager loads | {$totalExecutionTime}s query time</p>
                 
                 <hr>
                 
@@ -149,11 +166,14 @@ final class Logger
                 #_raxos_database_report { position: fixed; top: 30px; right: 30px; bottom: 30px; width: 35dvw; padding: 15px; background: #111827; border-top: 6px solid #22d3ee; color: #f3f4f6; font-family: jetbrains-mono, monospace; font-size: 12px; line-height: 1.4; overflow: auto; }
                 #_raxos_database_report h1 { margin: 0; color: #22d3ee; font-size: 16px; line-height: 1; }
                 #_raxos_database_report hr { height: 2px; margin-bottom: 9px; background: #374151; border: 0; }
-                #_raxos_database_report ._raxos_database_report_events { display: flex; flex-flow: column; gap: 15px; }
+                #_raxos_database_report ._raxos_database_report_events { display: flex; flex-flow: column; }
+                #_raxos_database_report ._raxos_database_report_event { padding-top: 21px; padding-bottom: 21px; }
+                #_raxos_database_report ._raxos_database_report_event:first-child { padding-top: 9px; }
+                #_raxos_database_report ._raxos_database_report_event + ._raxos_database_report_event { border-top: 1px solid #1f2937; }
                 #_raxos_database_report ._raxos_database_report_event strong { color: #14b8a6; }
                 #_raxos_database_report ._raxos_database_report_event span { color: #374151; font-weight: 400; }
                 #_raxos_database_report ._raxos_database_report_event strong span { color: #9ca3af; }
-                #_raxos_database_report ._raxos_database_report_trace { color: #6b7280; font-size: 10px; }
+                #_raxos_database_report ._raxos_database_report_trace { margin-left: 2ch; color: #6b7280; font-size: 10px; }
             </style>
         HTML;
 

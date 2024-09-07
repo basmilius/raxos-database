@@ -872,26 +872,4 @@ interface QueryInterface extends QueryBaseInterface
      */
     public function withRecursive(string $name, QueryInterface $query): static;
 
-    /**
-     * Builds a `optimize table $tables` query.
-     *
-     * @param string $table
-     *
-     * @return QueryInterface<TModel>
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function optimizeTable(string $table): static;
-
-    /**
-     * Builds a `truncate table $tables` query.
-     *
-     * @param string $table
-     *
-     * @return QueryInterface<TModel>
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function truncateTable(string $table): static;
-
 }

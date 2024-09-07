@@ -56,14 +56,14 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->dialect,
+            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $declaringPrimaryKey->asForeignKeyFor($this->referenceStructure),
         );
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->dialect,
+            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
@@ -153,11 +153,13 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
         assert($newValue === null || $newValue instanceof $this->referenceStructure->class);
 
         // note(Bas): remove the relation between the previous value and the instance.
-        $oldValue = $instance->{$this->property->name};
+        if (!$instance->backbone->isNew) {
+            $oldValue = $instance->{$this->property->name};
 
-        if ($oldValue instanceof Model) {
-            $oldValue->{$this->referenceKey->column} = null;
-            $instance->backbone->addSaveTask(static fn() => $oldValue->save());
+            if ($oldValue instanceof Model) {
+                $oldValue->{$this->referenceKey->column} = null;
+                $instance->backbone->addSaveTask(static fn() => $oldValue->save());
+            }
         }
 
         // note(Bas): create a relation between the new value and the instance.
