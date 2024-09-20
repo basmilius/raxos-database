@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use Raxos\Database\Query\QueryInterface;
+use Raxos\Database\Contract\{QueryInterface, QueryValueInterface};
 use function is_numeric;
 
 /**
@@ -36,13 +36,13 @@ final readonly class Select
     /**
      * Adds the given value(s).
      *
-     * @param QueryInterface|ValueInterface|string|int ...$values
+     * @param QueryInterface|QueryValueInterface|string|int ...$values
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function add(QueryInterface|ValueInterface|string|int ...$values): self
+    public function add(QueryInterface|QueryValueInterface|string|int ...$values): self
     {
         $entries = $this->entries;
 
@@ -55,7 +55,7 @@ final readonly class Select
     }
 
     /**
-     * Creates a new select.
+     * Creates a new select set.
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
@@ -67,7 +67,7 @@ final readonly class Select
     }
 
     /**
-     * Creates a new select for the given keys.
+     * Creates a new select set for the given keys.
      *
      * @param array $keys
      *

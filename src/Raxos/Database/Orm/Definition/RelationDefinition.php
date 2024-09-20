@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Definition;
 
 use JetBrains\PhpStorm\ArrayShape;
-use Raxos\Database\Orm\Attribute\RelationAttributeInterface;
+use Raxos\Database\Orm\Contract\RelationAttributeInterface;
 
 /**
  * Class RelationDefinition

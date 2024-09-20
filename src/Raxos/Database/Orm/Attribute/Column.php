@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\AttributeInterface;
 
 /**
  * Class Column
@@ -11,12 +12,12 @@ use Attribute;
  * Defines a database column. When {@see Column::$key} is given,
  * that key will be used in communication with the database.
  *
- *  <code>
- *      class User extends Model {
- *          #[Column]
- *          public string $name;
- *      }
- *  </code>
+ * ```
+ * class User extends Model {
+ *     #[Column]
+ *     public string $name;
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

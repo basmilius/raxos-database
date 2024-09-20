@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Query;
+namespace Raxos\Database\Contract;
 
 use Generator;
 use PDO;
@@ -15,7 +15,7 @@ use stdClass;
  * Interface StatementInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Query
+ * @package Raxos\Database\Contract
  * @since 1.0.17
  */
 interface StatementInterface
@@ -187,7 +187,7 @@ interface StatementInterface
     public function fetchColumn(int $index = 0): mixed;
 
     /**
-     * Returns the amount of rows in the result.
+     * Returns the number of rows in the result.
      *
      * @return int
      * @author Bas Milius <bas@mili.us>

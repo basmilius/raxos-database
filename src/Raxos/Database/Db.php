@@ -5,10 +5,9 @@ namespace Raxos\Database;
 
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use Raxos\Database\Connection\ConnectionInterface;
 use Raxos\Database\Connector\Connector;
+use Raxos\Database\Contract\{ConnectionInterface, QueryInterface, StatementInterface};
 use Raxos\Database\Error\{ConnectionException, DatabaseException};
-use Raxos\Database\Query\{QueryInterface, StatementInterface};
 use function is_subclass_of;
 
 /**
@@ -194,7 +193,7 @@ class Db
     }
 
     /**
-     * Executes the given query and returns the amount of affected rows.
+     * Executes the given query and returns the number of affected rows.
      *
      * @param QueryInterface|string $query
      * @param string|null $id

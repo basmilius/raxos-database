@@ -1,30 +1,29 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Query\Struct;
+namespace Raxos\Database\Contract;
 
 use Raxos\Database\Error\QueryException;
-use Raxos\Database\Query\QueryBaseInterface;
 
 /**
- * Interface AfterExpressionInterface
+ * Interface AfterQueryExpressionInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Query\Struct
+ * @package Raxos\Database\Contract
  * @since 1.0.0
  */
-interface AfterExpressionInterface
+interface AfterQueryExpressionInterface
 {
 
     /**
      * Executes after an expression is added to the given query.
      *
-     * @param QueryBaseInterface $query
+     * @param QueryInterface $query
      *
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function after(QueryBaseInterface $query): void;
+    public function after(QueryInterface $query): void;
 
 }

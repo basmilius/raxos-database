@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\AttributeInterface;
 
 /**
  * Class Visible
@@ -11,13 +12,13 @@ use Attribute;
  * Defines that a field should be visible by default. If {@see Visible::$only}
  * is defined, only those fields of the value of the column are visible.
  *
- * <code>
- *     class Post extends Model {
- *         #[HasOne]
- *         #[Visible(['id', 'full_name'])]
- *         public User $creator;
- *     }
- * </code>
+ * ```
+ * class Post extends Model {
+ *     #[HasOne]
+ *     #[Visible(['id', 'full_name'])]
+ *     public User $creator;
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

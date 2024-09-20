@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Logger;
 
-use Raxos\Database\Query\{QueryBase, QueryInterface};
-use Raxos\Foundation\Util\Stopwatch;
-use Raxos\Foundation\Util\StringUtil;
+use Raxos\Database\Contract\QueryInterface;
+use Raxos\Database\Query\Query;
+use Raxos\Foundation\Util\{Stopwatch, StringUtil};
 use ReflectionClass;
 use function str_replace;
 
@@ -46,7 +46,7 @@ final readonly class QueryEvent extends Event
         $query = $this->query;
 
         if ($query instanceof QueryInterface) {
-            $classRef = new ReflectionClass(QueryBase::class);
+            $classRef = new ReflectionClass(Query::class);
             $modelClassRef = $classRef->getProperty('modelClass');
             $paramsRef = $classRef->getProperty('params');
 

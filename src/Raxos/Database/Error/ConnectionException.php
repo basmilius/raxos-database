@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Error;
 
 use PDOException;
-use Raxos\Database\Connection\ConnectionInterface;
+use Raxos\Database\Contract\ConnectionInterface;
 use Raxos\Foundation\Error\ExceptionId;
 use function base_convert;
 use function hash;
@@ -74,7 +74,7 @@ final class ConnectionException extends DatabaseException
     }
 
     /**
-     * Returns a not connected exception.
+     * Returns a 'not connected' exception.
      *
      * @return self
      * @author Bas Milius <bas@mili.us>

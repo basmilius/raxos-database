@@ -1,30 +1,29 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Query\Struct;
+namespace Raxos\Database\Contract;
 
 use Raxos\Database\Error\QueryException;
-use Raxos\Database\Query\QueryBaseInterface;
 
 /**
- * Interface BeforeExpressionInterface
+ * Interface BeforeQueryExpressionInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Query\Struct
+ * @package Raxos\Database\Contract
  * @since 1.0.0
  */
-interface BeforeExpressionInterface
+interface BeforeQueryExpressionInterface
 {
 
     /**
      * Executes before an expression is added to the given query.
      *
-     * @param QueryBaseInterface $query
+     * @param QueryInterface $query
      *
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function before(QueryBaseInterface $query): void;
+    public function before(QueryInterface $query): void;
 
 }

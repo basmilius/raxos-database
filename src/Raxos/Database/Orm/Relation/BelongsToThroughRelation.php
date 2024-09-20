@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
+use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsToThrough;
+use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\Structure;
-use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
 use Raxos\Foundation\Util\ArrayUtil;
 use function Raxos\Database\Query\in;

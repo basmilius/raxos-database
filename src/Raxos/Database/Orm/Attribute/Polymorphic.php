@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\AttributeInterface;
 
 /**
  * Class Polymorphic
@@ -12,21 +13,28 @@ use Attribute;
  * share a single database table. By default, the `type` column is used to
  * determine which class should be used for the database record.
  *
- * <code>
- *     #[Polymorphic(map: [])]
- *     #[Table('shop_element')]
- *     abstract class ShopElement extends Model {
- *         // common fields
- *     }
+ * ```
+ * #[Polymorphic(map: [
+ *     'button' => ShopElementButton::class,
+ *     'product' => ShopElementProduct::class
+ * ])]
+ * #[Table('shop_element')]
+ * abstract class ShopElement extends Model {
+ *     // common fields
+ * }
+ * ```
  *
- *     class ShopElementButton extends ShopElement {
- *         // fields only for a button shop element
- *     }
+ * ```
+ * class ShopElementButton extends ShopElement {
+ *     // fields only for a button shop element
+ * }
+ * ```
  *
- *     class ShopElementProduct extends ShopElement {
- *         // fields only for a product shop element
- *     }
- * </code>
+ * ```
+ * class ShopElementProduct extends ShopElement {
+ *     // fields only for a product shop element
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

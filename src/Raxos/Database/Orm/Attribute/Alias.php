@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\AttributeInterface;
 use Raxos\Foundation\Contract\ArrayableInterface;
 
 /**
@@ -13,13 +14,13 @@ use Raxos\Foundation\Contract\ArrayableInterface;
  * {@see ArrayableInterface::toArray()} and {@see JsonSerializable::jsonSerialize()}.
  * If alias is used without a value, the key of the property is used.
  *
- * <code>
- *     class Post extends Model {
- *         #[ForeignKey]
- *         #[Alias('user_id')]
- *         public string $userId;
- *     }
- * </code>
+ * ```
+ * class Post extends Model {
+ *     #[ForeignKey]
+ *     #[Alias('user_id')]
+ *     public string $userId;
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

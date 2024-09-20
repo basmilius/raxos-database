@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
+use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Orm\Model;
 

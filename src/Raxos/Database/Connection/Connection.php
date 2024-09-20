@@ -7,12 +7,15 @@ use BackedEnum;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
 use Raxos\Database\Connector\Connector;
+use Raxos\Database\Contract\ConnectionInterface;
+use Raxos\Database\Contract\QueryInterface;
+use Raxos\Database\Contract\StatementInterface;
 use Raxos\Database\Db;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Logger\Logger;
-use Raxos\Database\Orm\CacheInterface;
-use Raxos\Database\Query\{QueryInterface, Statement, StatementInterface};
+use Raxos\Database\Orm\Contract\CacheInterface;
+use Raxos\Database\Query\Statement;
 use function array_key_exists;
 use function in_array;
 

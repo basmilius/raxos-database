@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Backpack;
+namespace Raxos\Database\Orm;
 
+use Raxos\Database\Orm\Contract\BackpackInterface;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
 use Raxos\Foundation\Contract\DebuggableInterface;
 use function array_key_exists;

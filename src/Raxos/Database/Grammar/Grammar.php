@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Grammar;
 
-use Raxos\Database\Query\QueryInterface;
+use Raxos\Database\Contract\QueryInterface;
 use function array_map;
 use function explode;
 use function implode;

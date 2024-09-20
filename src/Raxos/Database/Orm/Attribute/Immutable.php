@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\AttributeInterface;
 
 /**
  * Class Immutable
@@ -11,13 +12,13 @@ use Attribute;
  * Marks the column, marco or relation as immutable. No write actions
  * are allowed to the field.
  *
- * <code>
- *     class User extends Model {
- *         #[Column]
- *         #[Immutable]
- *         public string $encryptionKey;
- *     }
- * </code>
+ * ```
+ * class User extends Model {
+ *     #[Column]
+ *     #[Immutable]
+ *     public string $encryptionKey;
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm;
+namespace Raxos\Database\Orm\Contract;
 
 /**
  * Interface VisibilityInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm
+ * @package Raxos\Database\Orm\Contract
  * @since 1.0.17
  */
 interface VisibilityInterface

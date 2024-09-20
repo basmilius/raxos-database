@@ -3,14 +3,15 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
+use Raxos\Database\Orm\Contract\VisibilityInterface;
 use Raxos\Foundation\Collection\ArrayList;
 
 /**
  * Class ModelArrayList
  *
  * @template TKey of array-key
- * @template TModel of Model
- * @extends ArrayList<TKey, TModel>
+ * @template TValue of Model
+ * @template ArrayList<TKey, TValue>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm

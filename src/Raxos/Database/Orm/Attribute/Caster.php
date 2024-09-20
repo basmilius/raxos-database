@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use Raxos\Database\Orm\Caster\CasterInterface;
+use Raxos\Database\Orm\Contract\{AttributeInterface, CasterInterface};
 
 /**
  * Class Caster
@@ -12,13 +12,13 @@ use Raxos\Database\Orm\Caster\CasterInterface;
  * Defines a caster for the field. For example, a datetime within the
  * database can be 'cast' to a DateTime instance on php's side.
  *
- * <code>
- *     class Post extends Model {
- *         #[Column]
- *         #[Caster(DateTimeCast::class)
- *         public DateTime $publishedOn;
- *     }
- * </code>
+ * ```
+ * class Post extends Model {
+ *     #[Column]
+ *     #[Caster(DateTimeCast::class)
+ *     public DateTime $publishedOn;
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

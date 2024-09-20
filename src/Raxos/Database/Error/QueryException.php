@@ -138,7 +138,7 @@ final class QueryException extends DatabaseException
     }
 
     /**
-     * Returns a not in transaction exception.
+     * Returns a 'not in transaction' exception.
      *
      * @return self
      * @author Bas Milius <bas@mili.us>

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Query;
+namespace Raxos\Database\Contract;
 
 use Raxos\Database\Orm\Model;
 
@@ -9,7 +9,7 @@ use Raxos\Database\Orm\Model;
  * Interface InternalQueryInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Query
+ * @package Raxos\Database\Contract
  * @since 1.1.0
  * @internal
  * @private
@@ -19,17 +19,17 @@ interface InternalQueryInterface
 
     /**
      * The given function will be invoked before any relations
-     * are eager loaded by the orm.
+     * are eagerly loaded by the orm.
      *
      * @param callable(Model[]):void $fn
      *
-     * @return QueryBaseInterface
+     * @return QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      * @internal
      * @private
      */
-    public function _internal_beforeRelations(callable $fn): QueryBaseInterface;
+    public function _internal_beforeRelations(callable $fn): QueryInterface;
 
     /**
      * If {@see self::_internal_beforeRelations()} is set, that function

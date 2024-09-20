@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm;
+namespace Raxos\Database\Orm\Contract;
 
+use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Error\{ConnectionException, QueryException};
 use Raxos\Database\Orm\Error\StructureException;
-use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\Select;
 
 /**
  * Interface QueryableInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm
+ * @package Raxos\Database\Orm\Contract
  * @since 1.0.17
  */
 interface QueryableInterface

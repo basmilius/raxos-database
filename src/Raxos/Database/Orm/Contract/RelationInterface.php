@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Relation;
+namespace Raxos\Database\Orm\Contract;
 
+use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Orm\Attribute\RelationAttributeInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Query\QueryInterface;
 
 /**
  * Interface RelationInterface
@@ -20,7 +19,7 @@ use Raxos\Database\Query\QueryInterface;
  * @property RelationDefinition $property
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm\Relation
+ * @package Raxos\Database\Orm\Contract
  * @since 1.0.17
  */
 interface RelationInterface

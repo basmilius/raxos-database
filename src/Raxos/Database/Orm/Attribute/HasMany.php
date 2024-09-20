@@ -4,28 +4,31 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\{AttributeInterface, RelationAttributeInterface};
 use Raxos\Database\Orm\Model;
 
 /**
  * Class HasMany
  *
- * Defines a has many relation between two models. For example, a single
- * user can have multiple addresses. The address on the other hand belongs
+ * Defines a HasMany relation between two models. For example, a single
+ * user can have multiple addresses. The address, on the other hand, belongs
  * to a single user.
  *
  * User 1...∞ Address
  *
- * <code>
- *     class User extends Model {
- *         #[HasMany(Address:class)]
- *         public ModelArrayList $addresses;
- *     }
+ * ```
+ * class User extends Model {
+ *     #[HasMany(Address:class)]
+ *     public ModelArrayList $addresses;
+ * }
+ * ```
  *
- *     class Address extends Model {
- *         #[BelongsTo]
- *         public User $user;
- *     }
- * </code>
+ * ```
+ * class Address extends Model {
+ *     #[BelongsTo]
+ *     public User $user;
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

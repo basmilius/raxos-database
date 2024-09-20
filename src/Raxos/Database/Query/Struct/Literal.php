@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use Raxos\Database\Query\QueryBaseInterface;
+use JsonSerializable;
+use Raxos\Database\Contract\{QueryInterface, QueryValueInterface};
 use Stringable;
 use function addslashes;
 
@@ -14,7 +15,7 @@ use function addslashes;
  * @package Raxos\Database\Query\Struct
  * @since 1.0.0
  */
-readonly class Literal implements ValueInterface
+readonly class Literal implements JsonSerializable, QueryValueInterface, Stringable
 {
 
     /**
@@ -34,7 +35,7 @@ readonly class Literal implements ValueInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function get(QueryBaseInterface $query): string|int|float
+    public function get(QueryInterface $query): string|int|float
     {
         if ($this->value instanceof Stringable) {
             return (string)$this->value;

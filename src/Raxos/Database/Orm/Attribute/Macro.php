@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\AttributeInterface;
 
 /**
  * Class Macro
@@ -15,24 +16,26 @@ use Attribute;
  * Macros are hidden by default and should be marked with {@see Visible}
  * to show them in responses.
  *
- * <code>
- *     class User extends Model {
- *         #[Column]
- *         public string $firstName;
+ * ```
+ * class User extends Model {
+ *     #[Column]
+ *     public string $firstName;
  *
- *         #[Column]
- *         public string $lastName;
+ *     #[Column]
+ *     public string $lastName;
  *
- *         #[Macro([UserMacros::class, 'getFullName'])]
- *         public string $fullName;
+ *     #[Macro([UserMacro::class, 'getFullName'])]
+ *     public string $fullName;
+ * }
+ * ```
+ *
+ * ```
+ * class UserMacro {
+ *     public static function getFullName(User $user): string {
+ *         return "{$user->firstName} {$user->lastName}";
  *     }
- *
- *     class UserMacros {
- *         public static function getFullName(User $user): string {
- *             return "{$user->firstName} {$user->lastName}";
- *         }
- *     }
- * </code>
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

@@ -4,19 +4,20 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\AttributeInterface;
 
 /**
  * Class Hidden
  *
  * Marks the column, marco or relation as hidden.
  *
- * <code>
- *     class User extends Model {
- *         #[Column]
- *         #[Hidden]
- *         public string $password;
- *     }
- * </code>
+ * ```
+ * class User extends Model {
+ *     #[Column]
+ *     #[Hidden]
+ *     public string $password;
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

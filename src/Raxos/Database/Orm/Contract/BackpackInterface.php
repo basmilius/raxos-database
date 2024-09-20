@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Backpack;
+namespace Raxos\Database\Orm\Contract;
 
 /**
  * Interface BackpackInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm\Backpack
+ * @package Raxos\Database\Orm\Contract
  * @since 1.0.17
  */
 interface BackpackInterface

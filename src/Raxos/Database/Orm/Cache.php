@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use JetBrains\PhpStorm\Pure;
+use Raxos\Database\Orm\Contract\CacheInterface;
 use Raxos\Foundation\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use function array_map;

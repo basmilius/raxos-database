@@ -4,13 +4,13 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use BackedEnum;
-use Raxos\Database\Connection\ConnectionInterface;
+use Raxos\Database\Contract\{QueryInterface, QueryValueInterface};
+use Raxos\Database\Contract\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
 use Raxos\Database\Orm\Structure\Structure;
-use Raxos\Database\Query\QueryInterface;
-use Raxos\Database\Query\Struct\{ColumnLiteral, Select, ValueInterface};
-use Raxos\Foundation\Collection\ArrayListInterface;
+use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
+use Raxos\Foundation\Contract\ArrayListInterface;
 use Stringable;
 
 /**
@@ -273,9 +273,9 @@ trait Queryable
     /**
      * Returns a `having $lhs $cmp $rhs` query for the model.
      *
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<static>
      * @throws ConnectionException
@@ -286,9 +286,9 @@ trait Queryable
      * @see QueryInterface::having()
      */
     public static function having(
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): QueryInterface
     {
         return self::select()
@@ -491,9 +491,9 @@ trait Queryable
     /**
      * Returns a `where $lhs $cmp $rhs` query for the model.
      *
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<static>
      * @throws ConnectionException
@@ -504,9 +504,9 @@ trait Queryable
      * @see QueryInterface::where()
      */
     public static function where(
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): QueryInterface
     {
         return self::select()
@@ -636,6 +636,7 @@ trait Queryable
      * @param Select|array|string|int $keys
      *
      * @return QueryInterface<static>
+     * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>

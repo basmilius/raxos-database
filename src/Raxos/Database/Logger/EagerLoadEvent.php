@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Logger;
 
-use Raxos\Database\Orm\Relation\RelationInterface;
-use Raxos\Foundation\Util\Stopwatch;
-use Raxos\Foundation\Util\StringUtil;
+use Raxos\Database\Orm\Contract\RelationInterface;
+use Raxos\Foundation\Util\{Stopwatch, StringUtil};
 
 /**
  * Class EagerLoadEvent

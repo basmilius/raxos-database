@@ -1,27 +1,435 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Query;
+namespace Raxos\Database\Contract;
 
 use BackedEnum;
-use Raxos\Database\Error\{ConnectionException, QueryException};
+use Generator;
+use PDO;
+use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Orm\Model;
-use Raxos\Database\Query\Struct\{Literal, Select, ValueInterface};
+use Raxos\Database\Query\Struct\{ColumnLiteral, Literal, Select};
+use Raxos\Foundation\Collection\ArrayList;
+use stdClass;
 use Stringable;
 
 /**
  * Interface QueryInterface
  *
- * @template TModel of Model
- * @extends QueryBaseInterface<TModel>
+ * @template TModel
  *
- * @author Bas Milius <bas@glybe.nl>
- * @package Raxos\Database\Query
+ * @author Bas Milius <bas@mili.us>
+ * @package Raxos\Database\Contract
  * @since 1.0.0
  */
-interface QueryInterface extends QueryBaseInterface
+interface QueryInterface
 {
+
+    /**
+     * Adds an expression to the query.
+     *
+     * @param string $clause
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+     *
+     * @return QueryInterface<TModel>
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function addExpression(
+        string $clause,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+    ): static;
+
+    /**
+     * Adds a param and returns its name or when not in prepared mode, returns the
+     * value as string or int.
+     *
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $value
+     *
+     * @return string|int
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function addParam(BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $value): string|int;
+
+    /**
+     * Adds a query piece.
+     *
+     * @param string $clause
+     * @param ColumnLiteral|array|string|int|null $data
+     * @param string|null $separator
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function addPiece(string $clause, ColumnLiteral|array|string|int|null $data = null, ?string $separator = null): static;
+
+    /**
+     * Executes the given function if the given bool is true.
+     *
+     * @param bool $is
+     * @param callable $fn
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function conditional(bool $is, callable $fn): static;
+
+    /**
+     * Wraps the given function with parenthesis or does nothing when the given bool is false.
+     *
+     * @param bool $is
+     * @param callable $fn
+     *
+     * @return QueryInterface<TModel>
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function conditionalParenthesis(bool $is, callable $fn): static;
+
+    /**
+     * Eager load the given relations when a Model is fetched from the database.
+     *
+     * @param string|string[] $relations
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function eagerLoad(string|array $relations): static;
+
+    /**
+     * Disables eager loading for the given relation(s).
+     *
+     * @param string|string[] $relations
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function eagerLoadDisable(string|array $relations): static;
+
+    /**
+     * Removes eager loading from the query.
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function eagerLoadReset(): static;
+
+    /**
+     * Merges the given query with the current one.
+     *
+     * @param QueryInterface $query
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function merge(QueryInterface $query): static;
+
+    /**
+     * Wraps the given function in parentheses.
+     *
+     * @param callable $fn
+     * @param bool $patch
+     *
+     * @return QueryInterface<TModel>
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function parenthesis(callable $fn, bool $patch = true): static;
+
+    /**
+     * Closes a parenthesis group.
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function parenthesisClose(): static;
+
+    /**
+     * Opens a parenthesis group.
+     *
+     * @param string|null $lhs
+     * @param string|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+     *
+     * @return QueryInterface<TModel>
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function parenthesisOpen(
+        ?string $lhs = null,
+        ?string $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
+    ): static;
+
+    /**
+     * Adds the given raw expression to the query.
+     *
+     * @param string $expression
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function raw(string $expression): static;
+
+    /**
+     * Returns TRUE if the given clause is defined in the query.
+     *
+     * @param string $clause
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function isClauseDefined(string $clause): bool;
+
+    /**
+     * Returns TRUE when a model is associated with the query.
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function isModelQuery(): bool;
+
+    /**
+     * Removes the given clause from the query.
+     *
+     * @param string $clause
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function removeClause(string $clause): static;
+
+    /**
+     * Replaces the given clause using the given function. The function
+     * receives the array piece.
+     *
+     * @param string $clause
+     * @param callable $fn
+     *
+     * @return QueryInterface<TModel>
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function replaceClause(string $clause, callable $fn): static;
+
+    /**
+     * Associates a model.
+     *
+     * @param string $class
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function withModel(string $class): static;
+
+    /**
+     * Removes the associated model.
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function withoutModel(): static;
+
+    /**
+     * Puts the pieces together and builds the query.
+     *
+     * @return string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function toSql(): string;
+
+    /**
+     * Returns the result row count found based on the current query. The
+     * select part of the query is removed.
+     *
+     * @return int
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function resultCount(): int;
+
+    /**
+     * Returns the total rows found based on the current query. Any limit
+     * clause is ignored and the select part is removed. This is useful for
+     * queries used for pagination and such.
+     *
+     * @return int
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function totalCount(): int;
+
+    /**
+     * Runs the query and returns an array containing all the results.
+     *
+     * @param int $fetchMode
+     * @param array $options
+     *
+     * @return array<array-key, TModel>
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see StatementInterface::array()
+     */
+    public function array(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): array;
+
+    /**
+     * Runs the query and returns an ArrayList containing all the results.
+     *
+     * @param int $fetchMode
+     * @param array $options
+     *
+     * @return ArrayList<int, TModel>|ModelArrayList<int, TModel>|iterable<int, TModel>
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see StatementInterface::arrayList()
+     */
+    public function arrayList(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): mixed;
+
+    /**
+     * Runs the query and returns a generator containing all results.
+     *
+     * @param int $fetchMode
+     * @param array $options
+     *
+     * @return Generator<TModel>
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see StatementInterface::cursor()
+     */
+    public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Generator;
+
+    /**
+     * Runs the query.
+     *
+     * @param array $options
+     *
+     * @throws ExecutionException
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     * @see StatementInterface::run()
+     */
+    public function run(array $options = []): void;
+
+    /**
+     * Returns a query that returns a value. Useful for insert queries.
+     *
+     * @param Literal|Literal[]|string|string[] $column
+     *
+     * @return string[]|int[]|string|int
+     * @throws ExecutionException
+     * @throws QueryException
+     * @since 1.0.16
+     * @author Bas Milius <bas@mili.us>
+     */
+    public function runReturning(array|Literal|string $column): array|string|int;
+
+    /**
+     * Executes the query and returns the first row. When no result is found,
+     * null is returned.
+     *
+     * @param int $fetchMode
+     * @param array $options
+     *
+     * @return TModel|stdClass|array|null
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function single(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): mixed;
+
+    /**
+     * Executes the query and returns the first result. When no result is found,
+     * a query exception is thrown.
+     *
+     * @param int $fetchMode
+     * @param array $options
+     *
+     * @return TModel|stdClass|array
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function singleOrFail(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): mixed;
+
+    /**
+     * Creates a statement with the current query.
+     *
+     * @param array $options
+     *
+     * @return StatementInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
+    public function statement(array $options = []): StatementInterface;
+
+    /**
+     * Runs the given function using the current query instance.
+     *
+     * @param callable(static):static $fn
+     *
+     * @return QueryInterface<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    public function withQuery(callable $fn): static;
 
     /**
      * Adds a `delete $table` expression.
@@ -72,9 +480,9 @@ interface QueryInterface extends QueryBaseInterface
     /**
      * Adds a `having $field $comparator $value` expression.
      *
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
@@ -82,9 +490,9 @@ interface QueryInterface extends QueryBaseInterface
      * @since 1.0.0
      */
     public function having(
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static;
 
     /**
@@ -187,9 +595,9 @@ interface QueryInterface extends QueryBaseInterface
     /**
      * Adds a `on $left $comparator $right` expression.
      *
-     * @param Stringable|ValueInterface|string|int|float|bool $lhs
-     * @param Stringable|ValueInterface|string|int|float|bool $cmp
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
+     * @param Stringable|QueryValueInterface|string|int|float|bool $lhs
+     * @param Stringable|QueryValueInterface|string|int|float|bool $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
@@ -197,13 +605,13 @@ interface QueryInterface extends QueryBaseInterface
      * @since 1.0.0
      */
     public function on(
-        Stringable|ValueInterface|string|int|float|bool $lhs,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+        Stringable|QueryValueInterface|string|int|float|bool $lhs,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static;
 
     /**
-     * Adds a `on duplicate key update $fields` expression.
+     * Adds an `on duplicate key update $fields` expression.
      *
      * @param string[]|string $fields
      *
@@ -214,11 +622,11 @@ interface QueryInterface extends QueryBaseInterface
     public function onDuplicateKeyUpdate(array|string $fields): static;
 
     /**
-     * Adds a `or $field $comparator $value` expression.
+     * Adds an `or $field $comparator $value` expression.
      *
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
@@ -226,9 +634,9 @@ interface QueryInterface extends QueryBaseInterface
      * @since 1.0.0
      */
     public function orWhere(
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static;
 
     /**
@@ -260,7 +668,7 @@ interface QueryInterface extends QueryBaseInterface
     public function orWhereHas(string $relation, ?callable $fn): static;
 
     /**
-     * Adds a `or $field in ($options)` expression.
+     * Adds an `or $field in ($options)` expression.
      *
      * @param Literal|string $field
      * @param array $options
@@ -273,7 +681,7 @@ interface QueryInterface extends QueryBaseInterface
     public function orWhereIn(Literal|string $field, array $options): static;
 
     /**
-     * Adds a `or not exists $query` expression.
+     * Adds an `or not exists $query` expression.
      *
      * @param QueryInterface $query
      *
@@ -301,7 +709,7 @@ interface QueryInterface extends QueryBaseInterface
     public function orWhereNotHas(string $relation, callable $fn): static;
 
     /**
-     * Adds a `or where $field not in ($options)` expression.
+     * Adds an `or where $field not in ($options)` expression.
      *
      * @param Literal|string $field
      * @param array $options
@@ -314,7 +722,7 @@ interface QueryInterface extends QueryBaseInterface
     public function orWhereNotIn(Literal|string $field, array $options): static;
 
     /**
-     * Adds a `or $field is not null` expression.
+     * Adds an `or $field is not null` expression.
      *
      * @param Literal|string $field
      *
@@ -326,7 +734,7 @@ interface QueryInterface extends QueryBaseInterface
     public function orWhereNotNull(Literal|string $field): static;
 
     /**
-     * Adds a `or $field is null` expression.
+     * Adds an `or $field is null` expression.
      *
      * @param Literal|string $field
      *
@@ -341,9 +749,9 @@ interface QueryInterface extends QueryBaseInterface
      * Queries the given relation based on one condition.
      *
      * @param string $relation
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
      * @throws ConnectionException
@@ -355,13 +763,13 @@ interface QueryInterface extends QueryBaseInterface
      */
     public function orWhereRelation(
         string $relation,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static;
 
     /**
-     * Adds a `order by $fields` expression.
+     * Adds an `order by $fields` expression.
      *
      * @param Literal[]|string[]|Literal|string $fields
      *
@@ -372,7 +780,7 @@ interface QueryInterface extends QueryBaseInterface
     public function orderBy(Literal|array|string $fields): static;
 
     /**
-     * Adds a `order by $field asc` expression.
+     * Adds an `order by $field asc` expression.
      *
      * @param Literal|string $field
      *
@@ -383,7 +791,7 @@ interface QueryInterface extends QueryBaseInterface
     public function orderByAsc(Literal|string $field): static;
 
     /**
-     * Adds a `order by $field desc` expression.
+     * Adds an `order by $field desc` expression.
      *
      * @param Literal|string $field
      *
@@ -396,8 +804,8 @@ interface QueryInterface extends QueryBaseInterface
     /**
      * Adds a `set $field = $value` expression.
      *
-     * @param Stringable|ValueInterface|string $field
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $value
+     * @param Stringable|QueryValueInterface|string $field
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $value
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
@@ -405,12 +813,12 @@ interface QueryInterface extends QueryBaseInterface
      * @since 1.0.0
      */
     public function set(
-        Stringable|ValueInterface|string $field,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $value
+        Stringable|QueryValueInterface|string $field,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $value
     ): static;
 
     /**
-     * Adds a `union $query` expression.
+     * Adds an `union $query` expression.
      *
      * @param QueryInterface $query
      *
@@ -421,7 +829,7 @@ interface QueryInterface extends QueryBaseInterface
     public function union(QueryInterface $query): static;
 
     /**
-     * Adds a `union all $query` expression.
+     * Adds an `union all $query` expression.
      *
      * @param QueryInterface $query
      *
@@ -432,7 +840,7 @@ interface QueryInterface extends QueryBaseInterface
     public function unionAll(QueryInterface $query): static;
 
     /**
-     * Adds a `update $table set $pairs` expression.
+     * Adds an `update $table set $pairs` expression.
      *
      * @param string $table
      * @param array|null $pairs
@@ -459,9 +867,9 @@ interface QueryInterface extends QueryBaseInterface
     /**
      * Adds an `where $field $comparator $value` expression.
      *
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
@@ -469,9 +877,9 @@ interface QueryInterface extends QueryBaseInterface
      * @since 1.0.0
      */
     public function where(
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static;
 
     /**
@@ -582,7 +990,7 @@ interface QueryInterface extends QueryBaseInterface
 
     /**
      * Adds a set of where expressions for the primary key of the given
-     * model class. If multiple primary keys exists for the model, all
+     * model class. If multiple primary keys exist for the model, all
      * of them are added using `and`.
      *
      * Example: `where table.pk1 = 1 and table.pk2 = 'test'`
@@ -612,7 +1020,7 @@ interface QueryInterface extends QueryBaseInterface
      * @param class-string<TQueryModel>|class-string<Model> $modelClass
      * @param array $primaryKeys
      *
-     * @return $this
+     * @return QueryInterface<TModel>
      * @throws QueryException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
@@ -624,9 +1032,9 @@ interface QueryInterface extends QueryBaseInterface
      * Queries the given relation based on one condition.
      *
      * @param string $relation
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp
-     * @param BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
      * @throws ConnectionException
@@ -638,13 +1046,13 @@ interface QueryInterface extends QueryBaseInterface
      */
     public function whereRelation(
         string $relation,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $lhs = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $cmp = null,
-        BackedEnum|Stringable|ValueInterface|string|int|float|bool|null $rhs = null
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static;
 
     /**
-     * Adds a `insert into $table ($fields)` expression.
+     * Adds an `insert into $table ($fields)` expression.
      *
      * @param string $table
      * @param string[] $fields
@@ -657,7 +1065,7 @@ interface QueryInterface extends QueryBaseInterface
     public function insertInto(string $table, array $fields): static;
 
     /**
-     * Adds a `insert ignore into $table ($fields)` expression.
+     * Adds an `insert ignore into $table ($fields)` expression.
      *
      * @param string $table
      * @param string[] $fields
@@ -670,7 +1078,7 @@ interface QueryInterface extends QueryBaseInterface
     public function insertIgnoreInto(string $table, array $fields): static;
 
     /**
-     * Adds a `insert into $table ($pairs:keys) values ($pairs:values)` expression.
+     * Adds an `insert into $table ($pairs:keys) values ($pairs:values)` expression.
      *
      * @param string $table
      * @param array $pairs
@@ -683,7 +1091,7 @@ interface QueryInterface extends QueryBaseInterface
     public function insertIntoValues(string $table, array $pairs): static;
 
     /**
-     * Adds a `insert ignore into $table ($pairs:keys) values ($pairs:values)` expression.
+     * Adds an `insert ignore into $table ($pairs:keys) values ($pairs:values)` expression.
      *
      * @param string $table
      * @param array $pairs
@@ -787,7 +1195,7 @@ interface QueryInterface extends QueryBaseInterface
     public function fullJoin(string $table, ?callable $fn = null): static;
 
     /**
-     * Adds a `inner join $table $fn()` expression.
+     * Adds an `inner join $table $fn()` expression.
      *
      * @param string $table
      * @param callable|null $fn

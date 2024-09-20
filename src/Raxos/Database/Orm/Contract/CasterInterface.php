@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Caster;
+namespace Raxos\Database\Orm\Contract;
 
 use Raxos\Database\Orm\Error\CasterException;
 use Raxos\Database\Orm\Model;
@@ -10,7 +10,7 @@ use Raxos\Database\Orm\Model;
  * Interface CasterInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm\Caster
+ * @package Raxos\Database\Orm\Contract
  * @since 1.0.17
  */
 interface CasterInterface

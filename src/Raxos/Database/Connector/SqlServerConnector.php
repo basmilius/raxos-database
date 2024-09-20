@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Raxos\Database\Connector;
 
 use PDO;
-use SensitiveParameter;
 
 /**
  * Class SqlServerConnector
@@ -35,7 +34,6 @@ readonly class SqlServerConnector extends Connector
         public string $database,
         public string $schema = 'dbo',
         ?string $username = null,
-        #[SensitiveParameter]
         ?string $password = null,
         int $port = 1433,
         array $options = []

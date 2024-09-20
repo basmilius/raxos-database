@@ -5,10 +5,11 @@ namespace Raxos\Database\Orm;
 
 use JsonSerializable;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
+use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, QueryableInterface, VisibilityInterface};
+use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
 use Raxos\Database\Orm\Structure\StructureHelper;
-use Raxos\Database\Query\QueryInterface;
 use Raxos\Database\Query\Struct\Select;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
 use Raxos\Foundation\Contract\{ArrayableInterface, DebuggableInterface};
@@ -21,6 +22,8 @@ use function sprintf;
 
 /**
  * Class Model
+ *
+ * @mixin Queryable<static>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm

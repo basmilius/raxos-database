@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use JetBrains\PhpStorm\Pure;
+use Raxos\Database\Contract\{InternalQueryInterface, QueryInterface};
 use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Structure\Structure;
-use Raxos\Database\Query\{InternalQueryInterface, QueryInterface};
 use Raxos\Database\Query\Struct\ColumnLiteral;
 use function is_numeric;
 

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use Raxos\Database\Query\QueryBaseInterface;
+use Raxos\Database\Contract\QueryInterface;
 
 /**
  * Class NotInComparatorAwareLiteral
@@ -20,7 +20,7 @@ readonly class NotInComparatorAwareLiteral extends InComparatorAwareLiteral
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function get(QueryBaseInterface $query): string
+    public function get(QueryInterface $query): string
     {
         return 'not ' . parent::get($query);
     }

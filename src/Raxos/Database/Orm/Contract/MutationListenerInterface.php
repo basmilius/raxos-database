@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm;
+namespace Raxos\Database\Orm\Contract;
 
 use Raxos\Database\Orm\Definition\PropertyDefinition;
 
@@ -9,7 +9,7 @@ use Raxos\Database\Orm\Definition\PropertyDefinition;
  * Interface MutationListenerInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm
+ * @package Raxos\Database\Orm\Contract
  * @since 1.1.0
  */
 interface MutationListenerInterface
@@ -17,7 +17,7 @@ interface MutationListenerInterface
 
     /**
      * This function is invoked when a mutation within the model happens. This is
-     * only try for mutations that are done on properties that are tracked by the
+     * only tried for mutations that are done on properties that are tracked by the
      * database model.
      *
      * @param PropertyDefinition $property

@@ -8,7 +8,6 @@ use PDO;
 use PDOException;
 use Raxos\Database\Error\ConnectionException;
 use Raxos\Foundation\Contract\DebuggableInterface;
-use SensitiveParameter;
 
 /**
  * Class Connector
@@ -42,7 +41,6 @@ abstract readonly class Connector implements DebuggableInterface, JsonSerializab
     public function __construct(
         public string $dsn,
         public ?string $username = null,
-        #[SensitiveParameter]
         public ?string $password = null,
         array $options = []
     )

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm;
+namespace Raxos\Database\Orm\Contract;
 
 use Raxos\Database\Orm\Error\{InstanceException, StructureException};
 
@@ -9,8 +9,8 @@ use Raxos\Database\Orm\Error\{InstanceException, StructureException};
  * Interface AccessInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm
- * @since 1.0.17
+ * @package Raxos\Database\Orm\Contract
+ * @since 20-09-2024
  */
 interface AccessInterface
 {

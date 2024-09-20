@@ -1,19 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Connection;
+namespace Raxos\Database\Contract;
 
 use BackedEnum;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use PDOStatement;
 use Raxos\Database\Db;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Logger\Logger;
-use Raxos\Database\Orm\CacheInterface;
+use Raxos\Database\Orm\Contract\CacheInterface;
 use Raxos\Database\Orm\Error\StructureException;
-use Raxos\Database\Query\{QueryInterface, StatementInterface};
 
 /**
  * Interface ConnectionInterface
@@ -24,7 +22,7 @@ use Raxos\Database\Query\{QueryInterface, StatementInterface};
  * @property-read Logger $logger
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Connection
+ * @package Raxos\Database\Contract
  * @since 1.0.16
  */
 interface ConnectionInterface
@@ -87,7 +85,7 @@ interface ConnectionInterface
     public function column(QueryInterface|string $query): string|int|false;
 
     /**
-     * Executes the given query and returns the amount of affected rows.
+     * Executes the given query and returns the number of affected rows.
      *
      * @param QueryInterface|string $query
      *
@@ -100,7 +98,7 @@ interface ConnectionInterface
     public function execute(QueryInterface|string $query): int;
 
     /**
-     * Returns the amount of rows that were found in the last query.
+     * Returns the number of rows that were found in the last query.
      *
      * @return int
      * @throws ConnectionException

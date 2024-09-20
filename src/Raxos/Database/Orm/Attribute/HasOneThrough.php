@@ -4,42 +4,47 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\{AttributeInterface, RelationAttributeInterface};
 use Raxos\Database\Orm\Model;
 
 /**
  * Class HasOneThrough
  *
- * Defines a belongs to relation between two models that goes through
- * another model. For example, an address belongs to an owner, but goes
+ * Defines a HasOne relation between two models that goes through
+ * another model. For example, an address belongs to an owner but goes
  * through a house.
  *
  * Post 1...1 User 1...1 Country
  *
- * <code>
- *     class Post extends Model {
- *         #[BelongsTo]
- *         public User $user;
+ * ```
+ * class Post extends Model {
+ *     #[BelongsTo]
+ *     public User $user;
  *
- *         #[BelongsToThrough(User::class)]
- *         public Country $country;
- *     }
+ *     #[BelongsToThrough(User::class)]
+ *     public Country $country;
+ * }
+ * ```
  *
- *     class User extends Model {
- *         #[BelongsTo]
- *         public Country $country;
+ * ```
+ * class User extends Model {
+ *     #[BelongsTo]
+ *     public Country $country;
  *
- *         #[HasMany(Post::class)]
- *         public ModelArrayList $posts;
- *     }
+ *     #[HasMany(Post::class)]
+ *     public ModelArrayList $posts;
+ * }
+ * ```
  *
- *     class Country extends Model {
- *         #[MasMany(User::class)]
- *         public ModelArrayList $users;
+ * ```
+ * class Country extends Model {
+ *     #[MasMany(User::class)]
+ *     public ModelArrayList $users;
  *
- *         #[HasOneThrough(Post::class, User::class)]
- *         public Post $firstPost;
- *     }
- * </code>
+ *     #[HasOneThrough(Post::class, User::class)]
+ *     public Post $firstPost;
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

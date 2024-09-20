@@ -4,42 +4,47 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\{AttributeInterface, RelationAttributeInterface};
 use Raxos\Database\Orm\Model;
 
 /**
  * Class BelongsToThrough
  *
- * Defines a belongs to relation between two models that goes through
- * another model. For example, an address belongs to an owner, but goes
+ * Defines a BelongsTo relation between two models that goes through
+ * another model. For example, an address belongs to an owner but goes
  * through a house.
  *
  * Address 1...1 House ∞...1 Owner
  *
- * <code>
- *     class Address extends Model {
- *         #[BelongsTo]
- *         public House $house;
+ * ```
+ * class Address extends Model {
+ *     #[BelongsTo]
+ *     public House $house;
  *
- *         #[BelongsToThrough(House::class)]
- *         public Owner $owner;
- *     }
+ *     #[BelongsToThrough(House::class)]
+ *     public Owner $owner;
+ * }
+ * ```
  *
- *     class House extends Model {
- *         #[BelongsTo]
- *         public Owner $owner;
+ * ```
+ * class House extends Model {
+ *     #[BelongsTo]
+ *     public Owner $owner;
  *
- *         #[MasMany(Address::class)]
- *         public ModelArrayList $addresses;
- *     }
+ *     #[MasMany(Address::class)]
+ *     public ModelArrayList $addresses;
+ * }
+ * ```
  *
- *     class Owner extends Model {
- *         #[MasMany(House::class)]
- *         public ModelArrayList $houses;
+ * ```
+ * class Owner extends Model {
+ *     #[MasMany(House::class)]
+ *     public ModelArrayList $houses;
  *
- *         #[MasManyThrough(Address::class, House::class)]
- *         public ModelArrayList $addresses;
- *     }
- * </code>
+ *     #[MasManyThrough(Address::class, House::class)]
+ *     public ModelArrayList $addresses;
+ * }
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

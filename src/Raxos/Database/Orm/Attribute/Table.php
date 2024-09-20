@@ -4,16 +4,17 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\AttributeInterface;
 
 /**
  * Class Table
  *
  * Defines the database table of the model.
  *
- * <code>
- *     #[Table('posts')]
- *     class Post extends Model {}
- * </code>
+ * ```
+ * #[Table('posts')]
+ * class Post extends Model {}
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

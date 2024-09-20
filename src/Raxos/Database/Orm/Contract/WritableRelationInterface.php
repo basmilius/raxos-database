@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm\Relation;
+namespace Raxos\Database\Orm\Contract;
 
 use Raxos\Database\Error\QueryException;
 use Raxos\Database\Orm\{Model, ModelArrayList};
@@ -15,7 +15,7 @@ use Raxos\Database\Orm\Error\{RelationException, StructureException};
  * @template TReferenceModel of Model
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm\Relation
+ * @package Raxos\Database\Orm\Contract
  * @since 1.0.17
  */
 interface WritableRelationInterface

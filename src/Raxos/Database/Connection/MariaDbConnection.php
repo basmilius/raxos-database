@@ -6,7 +6,8 @@ namespace Raxos\Database\Connection;
 use Raxos\Database\Connector\Connector;
 use Raxos\Database\Grammar\MariaDbGrammar;
 use Raxos\Database\Logger\Logger;
-use Raxos\Database\Orm\{Cache, CacheInterface};
+use Raxos\Database\Orm\Cache;
+use Raxos\Database\Orm\Contract\CacheInterface;
 use Raxos\Database\Query\MariaDbQuery;
 
 /**

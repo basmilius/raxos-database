@@ -4,14 +4,15 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Structure;
 
 use Generator;
-use Raxos\Database\Connection\ConnectionInterface;
+use Raxos\Database\Contract\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Logger\EagerLoadEvent;
 use Raxos\Database\Orm\{Backbone, Model, ModelArrayList};
-use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, CustomRelationAttributeInterface, HasMany, HasManyThrough, HasOne, HasOneThrough};
+use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
+use Raxos\Database\Orm\Contract\{CustomRelationAttributeInterface, RelationInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation, RelationInterface};
+use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
 use Raxos\Database\Query\Struct\ColumnLiteral;
 use function array_key_exists;
 use function array_map;
@@ -89,9 +90,9 @@ final class Structure
             $backbone = $cache->get($this->class, $primaryKeyValue)->backbone;
 
             // note(Bas): If for some reason we fetch a new record, we don't update
-            //  the fields, but instead keep the existing ones, because some of them
-            //  may be modified. But, we do update internal data points that are used
-            //  in relations for example, such as `__local_linking_key`.
+            //  the fields but instead keep the existing ones because some of them
+            //  may be modified. But we do update internal data points that are used
+            //  in relations, for example, such as `__local_linking_key`.
             foreach ($result as $key => $value) {
                 if (!str_starts_with($key, '__')) {
                     continue;

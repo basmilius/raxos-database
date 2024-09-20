@@ -5,7 +5,7 @@ namespace Raxos\Database\Orm\Error;
 
 use Raxos\Database\Error\ConnectionException;
 use Raxos\Database\Orm\Attribute\Table;
-use Raxos\Database\Orm\Caster\CasterInterface;
+use Raxos\Database\Orm\Contract\CasterInterface;
 use Raxos\Foundation\Error\ExceptionId;
 use ReflectionException;
 use function sprintf;

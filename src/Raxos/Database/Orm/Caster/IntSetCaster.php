@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Caster;
 
+use Raxos\Database\Orm\Contract\CasterInterface;
 use Raxos\Database\Orm\Model;
 use function array_map;
 use function explode;

@@ -1,13 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Orm;
+namespace Raxos\Database\Orm\Contract;
+
+use Raxos\Database\Orm\Model;
 
 /**
  * Interface CacheInterface
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Orm
+ * @package Raxos\Database\Orm\Contract
  * @since 1.0.17
  */
 interface CacheInterface
@@ -83,7 +85,7 @@ interface CacheInterface
     public function set(string $modelClass, array|string|int $primaryKey, Model $instance): void;
 
     /**
-     * Removes a model from cache.
+     * Removes a model from the cache.
      *
      * @param class-string<Model> $modelClass
      * @param array|string|int $primaryKey

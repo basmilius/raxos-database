@@ -110,7 +110,7 @@ abstract readonly class Event
             if (isset($item['class'])) {
                 $class = StringUtil::shortClassName($item['class']);
 
-                // note: By-default, we don't want to show the implementing side our internal Raxos stuff.
+                // note: By default, we don't want to show the implementing side of our internal Raxos stuff.
                 if (str_starts_with($item['class'], 'Raxos\\')) {
                     continue;
                 }

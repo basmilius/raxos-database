@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Definition;
 
 use JetBrains\PhpStorm\{ArrayShape, Pure};
-use Raxos\Database\Orm\Caster\CasterInterface;
+use Raxos\Database\Orm\Contract\CasterInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 
 /**

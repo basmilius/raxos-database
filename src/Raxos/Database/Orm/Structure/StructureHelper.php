@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Structure;
 
-use JetBrains\PhpStorm\Pure;
-use Raxos\Database\Orm\{BackboneInterface, Error\StructureException, Model, ModelArrayList};
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, PropertyDefinition, RelationDefinition};
+use Raxos\Database\Orm\Error\StructureException;
 use function is_int;
 use function is_string;
 
@@ -20,21 +20,21 @@ final class StructureHelper
 {
 
     /**
-     * Groups the given instances by their model. If a master model
-     * is given, that model is filtered out, because it probably is
-     * the master model within a polymorphic structure.
+     * Groups the given instances by their model. If a parent model
+     * is given, that model is filtered out because it probably is
+     * the parent model within a polymorphic structure.
      *
      * @param ModelArrayList $instances
-     * @param string|null $polymorphicMasterClass
+     * @param string|null $parentClass
      *
      * @return ModelArrayList<class-string<Model>, ModelArrayList>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function groupInstances(ModelArrayList $instances, ?string $polymorphicMasterClass = null): ModelArrayList
+    public static function groupInstances(ModelArrayList $instances, ?string $parentClass = null): ModelArrayList
     {
         return $instances
-            ->filter(fn(Model $instance) => $instance::class !== $polymorphicMasterClass)
+            ->filter(fn(Model $instance) => $instance::class !== $parentClass)
             ->groupBy(fn(Model $instance) => $instance::class);
     }
 

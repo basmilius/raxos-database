@@ -4,16 +4,17 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Raxos\Database\Orm\Contract\AttributeInterface;
 
 /**
  * Class ConnectionId
  *
  * Defines the default connection id the model should use.
  *
- * <code>
- *     #[ConnectionId('crm')]
- *     class Person extends Model {}
- * </code>
+ * ```
+ * #[ConnectionId('crm')]
+ * class Person extends Model {}
+ * ```
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

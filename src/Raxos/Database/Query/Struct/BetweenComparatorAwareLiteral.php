@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Struct;
 
-use Raxos\Database\Query\QueryBaseInterface;
+use Raxos\Database\Contract\QueryInterface;
 use Stringable;
 use function is_string;
 
@@ -39,7 +39,7 @@ readonly class BetweenComparatorAwareLiteral extends ComparatorAwareLiteral
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function get(QueryBaseInterface $query): string|int|float
+    public function get(QueryInterface $query): string|int|float
     {
         $lower = $this->lower;
         $upper = $this->upper;

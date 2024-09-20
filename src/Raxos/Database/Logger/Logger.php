@@ -26,7 +26,7 @@ final class Logger
     private array $events = [];
 
     /**
-     * Returns the amount of events.
+     * Returns the number of events.
      *
      * @return int
      * @author Bas Milius <bas@mili.us>

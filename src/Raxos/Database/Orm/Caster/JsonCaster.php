@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Caster;
 
 use JsonException;
+use Raxos\Database\Orm\Contract\CasterInterface;
 use Raxos\Database\Orm\Model;
 use function is_string;
 use function json_decode;
