@@ -30,7 +30,7 @@ final class Logger
      *
      * @return int
      * @author Bas Milius <bas@mili.us>
-     * @since 05-09-2024
+     * @since 1.0.16
      */
     public function count(): int
     {

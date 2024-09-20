@@ -43,7 +43,7 @@ abstract readonly class Grammar
      *
      * @return QueryInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 26-08-2024
+     * @since 1.1.0
      */
     public function composeOptimizeTable(QueryInterface $query, string $table): QueryInterface
     {
@@ -58,7 +58,7 @@ abstract readonly class Grammar
      *
      * @return QueryInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 26-08-2024
+     * @since 1.1.0
      */
     public function composeTruncateTable(QueryInterface $query, string $table): QueryInterface
     {

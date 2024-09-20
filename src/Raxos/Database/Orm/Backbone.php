@@ -316,7 +316,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 26-08-2024
+     * @since 1.1.0
      */
     public function reload(): void
     {

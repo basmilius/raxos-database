@@ -10,7 +10,7 @@ use Raxos\Database\Orm\Error\{InstanceException, StructureException};
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Contract
- * @since 20-09-2024
+ * @since 1.0.17
  */
 interface AccessInterface
 {
