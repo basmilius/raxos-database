@@ -369,6 +369,8 @@ final class Backbone implements AccessInterface, BackboneInterface
             $this->class::update($primaryKey, $values);
         }
 
+        $this->runSaveTasks();
+
         // todo(Bas): This should be improved. It would be nice to check if any
         //  properties that are related to these caches are updated and clear
         //  them only if needed. For example; we wouldn't want to clear the

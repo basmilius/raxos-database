@@ -158,15 +158,19 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
             $oldValue = $instance->{$this->property->name};
 
             if ($oldValue instanceof Model) {
-                $oldValue->{$this->referenceKey->column} = null;
-                $instance->backbone->addSaveTask(static fn() => $oldValue->save());
+                $instance->backbone->addSaveTask(function () use ($oldValue): void {
+                    $oldValue->{$this->referenceKey->column} = null;
+                    $oldValue->save();
+                });
             }
         }
 
         // note(Bas): create a relation between the new value and the instance.
         if ($newValue instanceof Model) {
-            $newValue->{$this->referenceKey->column} = $instance->{$this->declaringKey->column};
-            $instance->backbone->addSaveTask(static fn() => $newValue->save());
+            $instance->backbone->addSaveTask(function () use ($instance, $newValue): void {
+                $newValue->{$this->referenceKey->column} = $instance->{$this->declaringKey->column};
+                $newValue->save();
+            });
         }
     }
 

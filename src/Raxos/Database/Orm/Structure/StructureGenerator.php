@@ -62,6 +62,12 @@ final class StructureGenerator
 
         try {
             $classRef = new ReflectionClass($class);
+            $parentClassRef = $classRef->getParentClass();
+
+            if ($parent === null && $parentClassRef->name !== Model::class) {
+                $parent = self::for($parentClassRef->name);
+            }
+
             $model = self::class($classRef, $parent);
             $connection = Db::getOrFail($model->connectionId);
             $properties = iterator_to_array(self::properties($classRef));
