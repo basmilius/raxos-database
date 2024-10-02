@@ -129,10 +129,11 @@ final class Logger
     {
         $styles = $this->styles();
 
-        $events = implode("\n", array_map(static fn(Event $event) => $event->print($backtrace), $this->events));
-        $totalEagerLoads = count(array_filter($this->events, static fn(Event $event) => $event instanceof EagerLoadEvent && $event->events > 0));
-        $totalExecutionTime = array_sum(array_map(static fn(Event $event) => $event->stopwatch->as(StopwatchUnit::SECONDS), $this->events));
-        $totalQueries = count(array_filter($this->events, static fn(Event $event) => $event instanceof QueryEvent));
+        $filteredEvents = array_filter($this->events, static fn(Event $event) => !($event instanceof EagerLoadEvent) || $event->events > 0);
+        $events = implode("\n", array_map(static fn(Event $event) => $event->print($backtrace), $filteredEvents));
+        $totalEagerLoads = count(array_filter($filteredEvents, static fn(Event $event) => $event instanceof EagerLoadEvent && $event->events > 0));
+        $totalExecutionTime = array_sum(array_map(static fn(Event $event) => $event->stopwatch->as(StopwatchUnit::SECONDS), $filteredEvents));
+        $totalQueries = count(array_filter($filteredEvents, static fn(Event $event) => $event instanceof QueryEvent));
 
         return <<<HTML
             <div id="_raxos_database_report">
@@ -163,9 +164,12 @@ final class Logger
             <link rel="stylesheet" href="https://font.bmcdn.nl/css2?family=jetbrains-mono"/>
             
             <style>
-                #_raxos_database_report { position: fixed; top: 30px; right: 30px; bottom: 30px; width: 35dvw; padding: 15px; background: #111827; border-top: 6px solid #22d3ee; color: #f3f4f6; font-family: jetbrains-mono, monospace; font-size: 12px; line-height: 1.4; overflow: auto; }
+                #_raxos_database_report, #_raxos_database_report::before, #_raxos_database_report::after { box-sizing: border-box; }
+                #_raxos_database_report { position: fixed; top: 30px; right: 30px; height: 72px; width: 480px; padding: 15px; background: #111827; border-radius: 6px; box-shadow: 0 3px 9px rgb(0 0 0 / .25); color: #f3f4f6; font-family: jetbrains-mono, monospace; font-size: 12px; line-height: 1.5; overflow: auto; transition: 420ms ease-in-out; }
+                #_raxos_database_report:hover { height: calc(100dvh - 60px); width: 60dvw; }
                 #_raxos_database_report h1 { margin: 0; color: #22d3ee; font-size: 16px; line-height: 1; }
                 #_raxos_database_report hr { height: 2px; margin-bottom: 9px; background: #374151; border: 0; }
+                #_raxos_database_report abbr { text-decoration-color: #374151; text-underline-offset: 3px; }
                 #_raxos_database_report ._raxos_database_report_events { display: flex; flex-flow: column; }
                 #_raxos_database_report ._raxos_database_report_event { padding-top: 21px; padding-bottom: 21px; }
                 #_raxos_database_report ._raxos_database_report_event:first-child { padding-top: 9px; }
@@ -173,7 +177,7 @@ final class Logger
                 #_raxos_database_report ._raxos_database_report_event strong { color: #14b8a6; }
                 #_raxos_database_report ._raxos_database_report_event span { color: #374151; font-weight: 400; }
                 #_raxos_database_report ._raxos_database_report_event strong span { color: #9ca3af; }
-                #_raxos_database_report ._raxos_database_report_trace { margin-left: 2ch; color: #6b7280; font-size: 10px; }
+                #_raxos_database_report ._raxos_database_report_trace { margin-top: .5ch; margin-left: 2ch; color: #6b7280; font-size: 11px; }
             </style>
         HTML;
 

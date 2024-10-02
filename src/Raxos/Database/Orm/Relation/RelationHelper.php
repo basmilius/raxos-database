@@ -78,7 +78,7 @@ final class RelationHelper
     public static function findCached(mixed $declaringValue, Structure $referenceStructure, ColumnLiteral $referenceKey): ?Model
     {
         return $referenceStructure->connection->cache
-            ->find($referenceStructure->class, fn(Model $model) => $model->{$referenceKey->column} === $declaringValue);
+            ->find($referenceStructure->class, static fn(Model $model) => $model->{$referenceKey->column} === $declaringValue);
     }
 
     /**
@@ -95,8 +95,8 @@ final class RelationHelper
     #[Pure]
     public static function onBeforeRelations(ModelArrayList $instances, callable $fn): callable
     {
-        return function (InternalQueryInterface&QueryInterface $query) use ($fn, $instances): QueryInterface {
-            $query->_internal_beforeRelations(fn(array $results) => $fn($results, $instances));
+        return static function (InternalQueryInterface&QueryInterface $query) use ($fn, $instances): QueryInterface {
+            $query->_internal_beforeRelations(static fn(array $results) => $fn($results, $instances));
 
             return $query;
         };

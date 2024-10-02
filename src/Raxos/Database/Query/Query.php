@@ -538,7 +538,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $original->removeClause('order by');
 
         return (int)$original
-            ->replaceClause('select', fn(array $piece) => ['select', 'count(*)', null])
+            ->replaceClause('select', static fn(array $piece) => ['select', 'count(*)', null])
             ->statement()
             ->fetchColumn();
     }
@@ -1337,7 +1337,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->where($structure->getColumn($properties[0]->key), in($primaryKeys));
         }
 
-        $columns = array_map(fn(PropertyDefinition $property) => $structure->getColumn($property->name), $properties);
+        $columns = array_map(static fn(PropertyDefinition $property) => $structure->getColumn($property->name), $properties);
 
         $this->where('1 = 1');
 

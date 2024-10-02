@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use JsonSerializable;
+use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, QueryableInterface, VisibilityInterface};
-use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
 use Raxos\Database\Orm\Structure\StructureHelper;

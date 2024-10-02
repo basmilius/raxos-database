@@ -4,15 +4,21 @@ declare(strict_types=1);
 namespace Raxos\Database\Logger;
 
 use Raxos\Foundation\Util\{Stopwatch, StopwatchUnit, StringUtil};
+use function array_map;
 use function array_shift;
 use function array_slice;
 use function count;
 use function debug_backtrace;
 use function explode;
+use function htmlspecialchars;
 use function implode;
 use function in_array;
+use function is_array;
+use function is_bool;
+use function is_null;
+use function is_object;
+use function is_string;
 use function str_ends_with;
-use function str_starts_with;
 use const DIRECTORY_SEPARATOR;
 
 /**
@@ -24,6 +30,8 @@ use const DIRECTORY_SEPARATOR;
  */
 abstract readonly class Event
 {
+
+    private const bool SHOW_FILE_LINE = false;
 
     public array $trace;
 
@@ -110,25 +118,28 @@ abstract readonly class Event
             if (isset($item['class'])) {
                 $class = StringUtil::shortClassName($item['class']);
 
-                // note: By default, we don't want to show the implementing side of our internal Raxos stuff.
-                if (str_starts_with($item['class'], 'Raxos\\')) {
-                    continue;
-                }
-
-                $call = "<abbr title='{$item['class']}'>{$class}</abbr>" . $item['type'] . $item['function'] . '(...)';
+                $args = array_map($this->convertArg(...), $item['args']);
+                $call = "<abbr title='{$item['class']}'>{$class}</abbr>" . $item['type'] . $item['function'] . '(<span>' . implode(', ', $args) . '</span>)';
             } elseif (isset($item['function'])) {
                 if (in_array($item['function'], $functionsToIgnore)) {
                     continue;
                 }
 
-                $call = $item['function'] . '(...)';
+                $args = array_map($this->convertArg(...), $item['args']);
+                $call = $item['function'] . '(<span>' . implode(', ', $args) . '</span>)';
             }
 
             $prefix = $index === count($this->trace) - 1 ? '└' : '├';
 
-            $trace[] = <<<HTML
-            {$prefix} {$call} <span>⟶ {$file}:{$line}</span>
-            HTML;
+            if (self::SHOW_FILE_LINE) {
+                $trace[] = <<<HTML
+                {$prefix} {$call} <span>⟶ {$file}:{$line}</span>
+                HTML;
+            } else {
+                $trace[] = <<<HTML
+                {$prefix} {$call}
+                HTML;
+            }
         }
 
         $trace = implode('<br>', $trace);
@@ -139,6 +150,40 @@ abstract readonly class Event
             </div>
         HTML;
 
+    }
+
+    /**
+     * Returns a string representation of the given value.
+     *
+     * @param mixed $value
+     *
+     * @return string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.2.0
+     */
+    private function convertArg(mixed $value): string
+    {
+        if (is_array($value)) {
+            return '[' . implode(', ', array_map($this->convertArg(...), $value)) . ']';
+        }
+
+        if (is_object($value)) {
+            return StringUtil::shortClassName($value::class);
+        }
+
+        if (is_string($value)) {
+            return '"' . htmlspecialchars($value) . '"';
+        }
+
+        if (is_null($value)) {
+            return 'NULL';
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'TRUE' : 'FALSE';
+        }
+
+        return (string)$value;
     }
 
 }

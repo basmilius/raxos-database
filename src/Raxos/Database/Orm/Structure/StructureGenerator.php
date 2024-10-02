@@ -208,9 +208,9 @@ final class StructureGenerator
     private static function property(ReflectionProperty $property): ?PropertyDefinition
     {
         $attributes = $property->getAttributes(AttributeInterface::class, ReflectionAttribute::IS_INSTANCEOF);
-        $isRelation = ArrayUtil::some($attributes, fn(ReflectionAttribute $attribute) => is_a($attribute->getName(), RelationAttributeInterface::class, true));
-        $isMacro = ArrayUtil::some($attributes, fn(ReflectionAttribute $attribute) => is_a($attribute->getName(), Macro::class, true));
-        $isColumn = ArrayUtil::some($attributes, fn(ReflectionAttribute $attribute) => is_a($attribute->getName(), Column::class, true));
+        $isRelation = ArrayUtil::some($attributes, static fn(ReflectionAttribute $attribute) => is_a($attribute->getName(), RelationAttributeInterface::class, true));
+        $isMacro = ArrayUtil::some($attributes, static fn(ReflectionAttribute $attribute) => is_a($attribute->getName(), Macro::class, true));
+        $isColumn = ArrayUtil::some($attributes, static fn(ReflectionAttribute $attribute) => is_a($attribute->getName(), Column::class, true));
 
         return match (true) {
             $isRelation => self::propertyRelation($property, $attributes),

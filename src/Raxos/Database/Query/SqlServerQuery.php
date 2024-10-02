@@ -41,7 +41,7 @@ class SqlServerQuery extends Query
             throw QueryException::invalid('A select clause is required to limit results.');
         }
 
-        return $this->replaceClause('select', function (array $piece) use ($limit): array {
+        return $this->replaceClause('select', static function (array $piece) use ($limit): array {
             $piece[0] = "select top {$limit}";
 
             return $piece;

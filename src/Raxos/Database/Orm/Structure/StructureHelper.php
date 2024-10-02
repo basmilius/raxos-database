@@ -34,8 +34,8 @@ final class StructureHelper
     public static function groupInstances(ModelArrayList $instances, ?string $parentClass = null): ModelArrayList
     {
         return $instances
-            ->filter(fn(Model $instance) => $instance::class !== $parentClass)
-            ->groupBy(fn(Model $instance) => $instance::class);
+            ->filter(static fn(Model $instance) => $instance::class !== $parentClass)
+            ->groupBy(static fn(Model $instance) => $instance::class);
     }
 
     /**
