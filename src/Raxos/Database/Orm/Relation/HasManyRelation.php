@@ -12,6 +12,7 @@ use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\Struct\ColumnLiteral;
 use function array_filter;
+use function array_values;
 use function Raxos\Database\Query\in;
 
 /**
@@ -144,6 +145,7 @@ final readonly class HasManyRelation implements RelationInterface
     {
         foreach ($instances as $instance) {
             $result = array_filter($results, fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column});
+            $result = array_values($result);
 
             $instance->backbone->relationCache->setValue(
                 $this->property->name,

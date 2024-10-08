@@ -9,8 +9,7 @@ use Generator;
 use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 use PDO;
-use Raxos\Database\Connection\Connection;
-use Raxos\Database\Contract\{AfterQueryExpressionInterface, BeforeQueryExpressionInterface, InternalQueryInterface, QueryInterface, QueryValueInterface, StatementInterface};
+use Raxos\Database\Contract\{AfterQueryExpressionInterface, BeforeQueryExpressionInterface, ConnectionInterface, InternalQueryInterface, QueryInterface, QueryValueInterface, StatementInterface};
 use Raxos\Database\Error\{ConnectionException, QueryException};
 use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Orm\{Model, ModelArrayList};
@@ -80,14 +79,14 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     /**
      * Query constructor.
      *
-     * @param Connection $connection
+     * @param ConnectionInterface $connection
      * @param bool $prepared
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function __construct(
-        public readonly Connection $connection,
+        public readonly ConnectionInterface $connection,
         public readonly bool $prepared = true
     )
     {

@@ -73,8 +73,25 @@ abstract readonly class Grammar
      * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
+     * @see Grammar::escapeIdentifier()
      */
     public function escape(string $identifier): string
+    {
+        static $cache = [];
+
+        return $cache[$identifier] ??= $this->escapeIdentifier($identifier);
+    }
+
+    /**
+     * Real implementation of {@see Grammar::escape()}.
+     *
+     * @param string $identifier
+     *
+     * @return string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.2.0
+     */
+    private function escapeIdentifier(string $identifier): string
     {
         if (empty($identifier)) {
             return $identifier;

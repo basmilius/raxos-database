@@ -13,7 +13,7 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Collection\ArrayList;
-use Raxos\Foundation\Util\{ArrayUtil, Stopwatch};
+use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use function array_map;
 use function class_exists;
@@ -92,9 +92,8 @@ class Statement implements StatementInterface
     public final function arrayList(int $fetchMode = PDO::FETCH_ASSOC): ArrayList|ModelArrayList
     {
         $results = $this->array($fetchMode);
-        $allModels = ArrayUtil::every($results, static fn(mixed $result) => $result instanceof Model);
 
-        if ($allModels) {
+        if ($this->modelClass !== null) {
             return new ModelArrayList($results);
         }
 

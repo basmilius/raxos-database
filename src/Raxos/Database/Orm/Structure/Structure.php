@@ -266,13 +266,15 @@ final class Structure
      */
     public function getColumn(string $key): ColumnLiteral
     {
+        static $cache = [];
+
         $property = $this->getProperty($key);
 
         if (!($property instanceof ColumnDefinition)) {
             throw StructureException::invalidColumn($this->class, $key);
         }
 
-        return new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
+        return $cache["{$this->table}:{$key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
     }
 
     /**
@@ -330,13 +332,15 @@ final class Structure
      */
     public function getRelationPrimaryKey(): ColumnLiteral
     {
+        static $cache = [];
+
         $property = $this->primaryKey;
 
         if (is_array($property)) {
             $property = $property[0];
         }
 
-        return new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
+        return $cache["{$this->table}:{$property->key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
     }
 
     /**

@@ -12,7 +12,7 @@ use Raxos\Database\Orm\Contract\{AttributeInterface, CasterInterface, RelationAt
 use Raxos\Database\Orm\Definition\{ClassStructureDefinition, ColumnDefinition, MacroDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Model;
-use Raxos\Foundation\Util\{ArrayUtil, ReflectionUtil};
+use Raxos\Foundation\Util\ReflectionUtil;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
@@ -66,6 +66,8 @@ final class StructureGenerator
 
             if ($parent === null && $parentClassRef->name !== Model::class) {
                 $parent = self::for($parentClassRef->name);
+
+                return self::for($class, $parent);
             }
 
             $model = self::class($classRef, $parent);
@@ -159,10 +161,10 @@ final class StructureGenerator
         }
 
         return new ClassStructureDefinition(
-            connectionId: $connectionId,
-            onDuplicateKeyUpdate: $onDuplicateKeyUpdate,
-            polymorphic: $polymorphic,
-            table: $table
+            $connectionId,
+            $onDuplicateKeyUpdate,
+            $polymorphic,
+            $table
         );
     }
 
@@ -207,17 +209,33 @@ final class StructureGenerator
      */
     private static function property(ReflectionProperty $property): ?PropertyDefinition
     {
-        $attributes = $property->getAttributes(AttributeInterface::class, ReflectionAttribute::IS_INSTANCEOF);
-        $isRelation = ArrayUtil::some($attributes, static fn(ReflectionAttribute $attribute) => is_a($attribute->getName(), RelationAttributeInterface::class, true));
-        $isMacro = ArrayUtil::some($attributes, static fn(ReflectionAttribute $attribute) => is_a($attribute->getName(), Macro::class, true));
-        $isColumn = ArrayUtil::some($attributes, static fn(ReflectionAttribute $attribute) => is_a($attribute->getName(), Column::class, true));
+        static $isColumn = [];
+        static $isMacro = [];
+        static $isRelation = [];
 
-        return match (true) {
-            $isRelation => self::propertyRelation($property, $attributes),
-            $isMacro => self::propertyMacro($property, $attributes),
-            $isColumn => self::propertyColumn($property, $attributes),
-            default => null
-        };
+        $attributes = $property->getAttributes(AttributeInterface::class, ReflectionAttribute::IS_INSTANCEOF);
+
+        foreach ($attributes as $attribute) {
+            $name = $attribute->getName();
+
+            $isRelation[$name] ??= is_a($name, RelationAttributeInterface::class, true);
+            $isMacro[$name] ??= is_a($name, Macro::class, true);
+            $isColumn[$name] ??= is_a($name, Column::class, true);
+
+            if ($isRelation[$name]) {
+                return self::propertyRelation($property, $attributes);
+            }
+
+            if ($isMacro[$name]) {
+                return self::propertyMacro($property, $attributes);
+            }
+
+            if ($isColumn[$name]) {
+                return self::propertyColumn($property, $attributes);
+            }
+        }
+
+        return null;
     }
 
     /**

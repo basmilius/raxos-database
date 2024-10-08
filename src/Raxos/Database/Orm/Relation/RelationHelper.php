@@ -37,10 +37,12 @@ final class RelationHelper
      */
     public static function composeKey(Grammar $grammar, ?string $column, ?string $table, ColumnLiteral $default): ColumnLiteral
     {
+        static $cache = [];
+
         $column ??= $default->column;
         $table ??= $default->table;
 
-        return new ColumnLiteral($grammar, $column, $table);
+        return $cache["{$table}:{$column}"] ??= new ColumnLiteral($grammar, $column, $table);
     }
 
     /**

@@ -36,10 +36,12 @@ trait Queryable
      */
     public static function col(string $key): ColumnLiteral
     {
+        static $cache = [];
+
         $structure = Structure::of(static::class);
 
         if ($key === '*') {
-            return new ColumnLiteral($structure->connection->grammar, $key, $structure->table);
+            return $cache["{$structure->table}:*"] ??= new ColumnLiteral($structure->connection->grammar, $key, $structure->table);
         }
 
         return $structure->getColumn($key);
