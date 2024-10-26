@@ -181,7 +181,7 @@ trait Queryable
 
         foreach ($primaryKeys as $primaryKey) {
             if ($cache->has(static::class, $primaryKey)) {
-                $results = $results->append($cache->get(static::class, $primaryKey));
+                $results->append($cache->get(static::class, $primaryKey));
                 continue;
             }
 
