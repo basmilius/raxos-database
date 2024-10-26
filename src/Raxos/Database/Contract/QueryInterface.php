@@ -294,6 +294,20 @@ interface QueryInterface
     public function totalCount(): int;
 
     /**
+     * Explain the query.
+     *
+     * @return array
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.3.0
+     */
+    public function explain(): array;
+
+    /**
      * Runs the query and returns an array containing all the results.
      *
      * @param int $fetchMode

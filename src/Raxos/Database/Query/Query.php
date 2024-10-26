@@ -29,6 +29,7 @@ use function array_map;
 use function array_shift;
 use function array_splice;
 use function array_unique;
+use function array_unshift;
 use function array_values;
 use function assert;
 use function count;
@@ -540,6 +541,26 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             ->replaceClause('select', static fn(array $piece) => ['select', 'count(*)', null])
             ->statement()
             ->fetchColumn();
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.3.0
+     */
+    public function explain(): array
+    {
+        $explain = clone $this;
+
+        array_unshift($explain->pieces, ['explain', null, null]);
+
+        $result = $explain
+            ->withoutModel()
+            ->single();
+
+        $result['original_sql'] = $this->toSql();
+
+        return $result;
     }
 
     /**
