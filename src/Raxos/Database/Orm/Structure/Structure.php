@@ -9,7 +9,7 @@ use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryExceptio
 use Raxos\Database\Logger\EagerLoadEvent;
 use Raxos\Database\Orm\{Backbone, Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
-use Raxos\Database\Orm\Contract\{CustomRelationAttributeInterface, RelationInterface};
+use Raxos\Database\Orm\Contract\{CustomRelationAttributeInterface, InitializeInterface, RelationInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
@@ -18,6 +18,7 @@ use function array_key_exists;
 use function array_map;
 use function in_array;
 use function is_array;
+use function is_subclass_of;
 use function str_starts_with;
 
 /**
@@ -113,6 +114,10 @@ final class Structure
             $polymorphicStructure = StructureGenerator::for($polymorphicClass);
 
             return $polymorphicStructure->createInstance($result);
+        }
+
+        if (is_subclass_of($this->class, InitializeInterface::class)) {
+            $result = $this->class::onInitialize($result);
         }
 
         $backbone = new Backbone($this->class, $result);
