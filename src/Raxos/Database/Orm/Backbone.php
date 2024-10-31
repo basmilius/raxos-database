@@ -169,6 +169,10 @@ final class Backbone implements AccessInterface, BackboneInterface
             }
 
             if (is_subclass_of($property->types[0], BackedEnum::class)) {
+                if ($value === null && in_array('null', $property->types, true)) {
+                    return null;
+                }
+
                 return $property->types[0]::tryFrom($value);
             }
         }
