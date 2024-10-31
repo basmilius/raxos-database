@@ -10,10 +10,9 @@ use Raxos\Database\Contract\{ConnectionInterface, InternalQueryInterface, QueryI
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Logger\QueryEvent;
 use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Foundation\Collection\Paginated;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Orm\Structure\Structure;
-use Raxos\Foundation\Collection\ArrayList;
+use Raxos\Database\Orm\Structure\StructureGenerator;
+use Raxos\Foundation\Collection\{ArrayList, Paginated};
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use function array_map;
@@ -191,7 +190,7 @@ class Statement implements StatementInterface
             throw QueryException::invalidModel('Cannot create model instance, the assigned model class does not exist.');
         }
 
-        return Structure::of($this->modelClass)
+        return StructureGenerator::for($this->modelClass)
             ->createInstance($result);
     }
 
@@ -249,7 +248,7 @@ class Statement implements StatementInterface
         $results = $this->pdoStatement->fetchAll($fetchMode);
 
         if ($this->modelClass !== null) {
-            $models = array_map(fn(mixed $result) => $this->createModel($result), $results);
+            $models = array_map($this->createModel(...), $results);
 
             $this->loadRelationships($models);
 
@@ -362,7 +361,7 @@ class Statement implements StatementInterface
             return;
         }
 
-        $structure = Structure::of($this->modelClass);
+        $structure = StructureGenerator::for($this->modelClass);
         $structure->eagerLoadRelations($instances, $this->eagerLoad, $this->eagerLoadDisable);
     }
 

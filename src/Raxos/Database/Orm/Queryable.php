@@ -8,7 +8,7 @@ use Raxos\Database\Contract\{QueryInterface, QueryValueInterface};
 use Raxos\Database\Contract\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
-use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
 use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
 use Raxos\Foundation\Contract\ArrayListInterface;
 use Stringable;
@@ -39,7 +39,7 @@ trait Queryable
     {
         static $cache = [];
 
-        $structure = Structure::of(static::class);
+        $structure = StructureGenerator::for(static::class);
 
         if ($key === '*') {
             return $cache["{$structure->table}:*"] ??= new ColumnLiteral($structure->connection->grammar, $key, $structure->table);
@@ -62,7 +62,7 @@ trait Queryable
      */
     public static function query(bool $prepared = true): QueryInterface
     {
-        return Structure::of(static::class)->connection
+        return StructureGenerator::for(static::class)->connection
             ->query($prepared)
             ->withModel(static::class);
     }
@@ -78,7 +78,7 @@ trait Queryable
      */
     public static function table(): string
     {
-        return Structure::of(static::class)->table;
+        return StructureGenerator::for(static::class)->table;
     }
 
     /**
@@ -119,7 +119,7 @@ trait Queryable
      */
     public static function delete(array|string|int $primaryKey): void
     {
-        $cache = Structure::of(static::class)->connection->cache;
+        $cache = StructureGenerator::for(static::class)->connection->cache;
         $cache->unset(static::class, $primaryKey);
 
         self::query()
@@ -143,7 +143,7 @@ trait Queryable
      */
     public static function exists(array|string|int $primaryKey): bool
     {
-        $cache = Structure::of(static::class)->connection->cache;
+        $cache = StructureGenerator::for(static::class)->connection->cache;
 
         if ($cache->has(static::class, $primaryKey)) {
             return true;
@@ -176,7 +176,7 @@ trait Queryable
             return new ModelArrayList();
         }
 
-        $cache = Structure::of(static::class)->connection->cache;
+        $cache = StructureGenerator::for(static::class)->connection->cache;
         $results = new ModelArrayList();
         $missing = [];
 
@@ -217,7 +217,7 @@ trait Queryable
      */
     public static function single(array|string|int $primaryKey): ?static
     {
-        $cache = Structure::of(static::class)->connection->cache;
+        $cache = StructureGenerator::for(static::class)->connection->cache;
 
         if ($cache->has(static::class, $primaryKey)) {
             return $cache->get(static::class, $primaryKey);

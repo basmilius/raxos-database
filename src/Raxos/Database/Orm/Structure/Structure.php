@@ -205,7 +205,7 @@ final class Structure
         }
 
         foreach (StructureHelper::groupInstances($instances, $this->class) as $subModelClass => $subInstances) {
-            $subStructure = self::of($subModelClass);
+            $subStructure = StructureGenerator::for($subModelClass);
             $subRelations = $subStructure->getRelations();
 
             foreach ($subRelations as $subRelation) {
@@ -231,7 +231,7 @@ final class Structure
     public function getProperty(string $key): PropertyDefinition
     {
         foreach ($this->properties as $property) {
-            if ($property->name === $key || ($property instanceof ColumnDefinition && $property->key === $key)) {
+            if ($property->name === $key || $property->alias === $key || ($property instanceof ColumnDefinition && $property->key === $key)) {
                 return $property;
             }
         }
@@ -376,23 +376,6 @@ final class Structure
         }
 
         return $properties;
-    }
-
-    /**
-     * Returns the structure for the given class.
-     *
-     * @template TStructureModel of Model
-     *
-     * @param class-string<TStructureModel> $class
-     *
-     * @return self<TStructureModel>
-     * @throws StructureException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
-     */
-    public static function of(string $class): self
-    {
-        return StructureGenerator::for($class);
     }
 
 }

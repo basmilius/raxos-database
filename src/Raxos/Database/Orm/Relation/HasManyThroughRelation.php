@@ -9,7 +9,7 @@ use Raxos\Database\Orm\Attribute\HasManyThrough;
 use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\StructureException;
-use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
 use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
 use function array_filter;
 use function array_values;
@@ -55,8 +55,8 @@ final readonly class HasManyThroughRelation implements RelationInterface
         public Structure $declaringStructure
     )
     {
-        $this->linkingStructure = Structure::of($this->attribute->linkingModel);
-        $this->referenceStructure = Structure::of($this->attribute->referenceModel);
+        $this->linkingStructure = StructureGenerator::for($this->attribute->linkingModel);
+        $this->referenceStructure = StructureGenerator::for($this->attribute->referenceModel);
 
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
         $linkingPrimaryKey = $this->linkingStructure->getRelationPrimaryKey();

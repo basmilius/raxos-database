@@ -39,10 +39,12 @@ final readonly class ColumnLiteral extends Literal implements DebuggableInterfac
         public ?string $database = null
     )
     {
+        $escape = static fn(string $part): string => $grammar->escapers[0] . $part . $grammar->escapers[1];
+
         $parts = array_filter([
-            $database !== null ? $this->grammar->escape($this->database) : null,
-            $table !== null ? $this->grammar->escape($this->table) : null,
-            $this->grammar->escape($this->column)
+            $database !== null ? $escape($this->database) : null,
+            $table !== null ? $escape($this->table) : null,
+            $this->column !== '*' ? $escape($this->column) : $this->column,
         ]);
 
         parent::__construct(implode('.', $parts));

@@ -14,11 +14,10 @@ use Raxos\Database\Error\{ConnectionException, QueryException};
 use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
-use Raxos\Foundation\Collection\Paginated;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Struct\{ColumnLiteral, ComparatorAwareLiteral, Literal, Select, SubQueryLiteral};
-use Raxos\Foundation\Collection\ArrayList;
+use Raxos\Foundation\Collection\{ArrayList, Paginated};
 use Raxos\Foundation\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
@@ -1333,7 +1332,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $primaryKey = [$primaryKey];
         }
 
-        $structure = Structure::of($modelClass);
+        $structure = StructureGenerator::for($modelClass);
 
         foreach ($structure->primaryKey as $property) {
             if (empty($primaryKey)) {
@@ -1363,7 +1362,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function wherePrimaryKeyIn(string $modelClass, array $primaryKeys): static
     {
-        $structure = Structure::of($modelClass);
+        $structure = StructureGenerator::for($modelClass);
         $properties = $structure->primaryKey;
 
         if (count($properties) === 1) {
@@ -1809,7 +1808,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             throw QueryException::missingModel();
         }
 
-        $structure = Structure::of($this->modelClass);
+        $structure = StructureGenerator::for($this->modelClass);
         $property = $structure->getProperty($relation);
 
         if (!($property instanceof RelationDefinition)) {

@@ -50,13 +50,13 @@ readonly class ComparatorAwareLiteral extends Literal
     /**
      * Returns a `not in ($options)` literal.
      *
-     * @param array $options
+     * @param iterable $options
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function notIn(array $options): self
+    public static function notIn(iterable $options): self
     {
         return new NotInComparatorAwareLiteral($options);
     }

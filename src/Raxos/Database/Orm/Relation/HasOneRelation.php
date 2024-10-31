@@ -9,7 +9,7 @@ use Raxos\Database\Orm\Attribute\HasOne;
 use Raxos\Database\Orm\Contract\{RelationInterface, WritableRelationInterface};
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
 use Raxos\Database\Query\Struct\ColumnLiteral;
 use Raxos\Foundation\Util\ArrayUtil;
 use function assert;
@@ -52,7 +52,7 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
     )
     {
         $referenceModel = $this->property->types[0] ?? throw RelationException::referenceModelMissing($this->property, $this->declaringStructure);
-        $this->referenceStructure = Structure::of($referenceModel);
+        $this->referenceStructure = StructureGenerator::for($referenceModel);
 
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
 

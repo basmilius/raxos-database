@@ -9,7 +9,7 @@ use Raxos\Database\Orm\Attribute\BelongsToThrough;
 use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
 use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
 use Raxos\Foundation\Util\ArrayUtil;
 use function Raxos\Database\Query\in;
@@ -57,8 +57,8 @@ final readonly class BelongsToThroughRelation implements RelationInterface
     {
         $referenceModel = $this->property->types[0] ?? throw RelationException::referenceModelMissing($this->property, $this->declaringStructure);
 
-        $this->linkingStructure = Structure::of($this->attribute->linkingModel);
-        $this->referenceStructure = Structure::of($referenceModel);
+        $this->linkingStructure = StructureGenerator::for($this->attribute->linkingModel);
+        $this->referenceStructure = StructureGenerator::for($referenceModel);
 
         $linkingPrimaryKey = $this->linkingStructure->getRelationPrimaryKey();
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();

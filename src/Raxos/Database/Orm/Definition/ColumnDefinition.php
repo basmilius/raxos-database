@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Definition;
 
+use BackedEnum;
 use JetBrains\PhpStorm\{ArrayShape, Pure};
 use Raxos\Database\Orm\Contract\CasterInterface;
 use Raxos\Foundation\Util\ArrayUtil;
@@ -24,29 +25,33 @@ final readonly class ColumnDefinition extends PropertyDefinition
      *
      * @param class-string<TCaster>|null $caster
      * @param mixed $defaultValue
+     * @param class-string<BackedEnum>|null $enumClass
      * @param bool $isForeignKey
      * @param bool $isPrimaryKey
      * @param bool $isComputed
      * @param bool $isImmutable
-     * @param string[] $types
-     * @param array|null $visibleOnly
      * @param string $key
+     * @param bool $nullable
+     * @param string[] $types
+     * @param string[]|null $visibleOnly
      * @param string $name
      * @param string|null $alias
      * @param bool $isHidden
      * @param bool $isVisible
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 31-10-2024
      */
     public function __construct(
         public ?string $caster,
         public mixed $defaultValue,
+        public ?string $enumClass,
         public bool $isForeignKey,
         public bool $isPrimaryKey,
         public bool $isComputed,
         public bool $isImmutable,
         public string $key,
+        public bool $nullable,
         public array $types,
         public ?array $visibleOnly,
         string $name,

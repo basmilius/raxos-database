@@ -12,7 +12,7 @@ use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryExceptio
 use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, WritableRelationInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
-use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
 use Raxos\Foundation\Util\Singleton;
 use function array_column;
 use function array_map;
@@ -67,7 +67,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         public bool $isNew = false
     )
     {
-        $this->structure = Structure::of($this->class);
+        $this->structure = StructureGenerator::for($this->class);
         $this->connection = $this->structure->connection;
         $this->cache = $this->connection->cache;
 
@@ -168,12 +168,12 @@ final class Backbone implements AccessInterface, BackboneInterface
                 $this->castCache->setValue($property->name, $value);
             }
 
-            if (is_subclass_of($property->types[0], BackedEnum::class)) {
-                if ($value === null && in_array('null', $property->types, true)) {
-                    return null;
-                }
+            if ($value === null && $property->nullable) {
+                return null;
+            }
 
-                return $property->types[0]::tryFrom($value);
+            if ($property->enumClass !== null) {
+                return $property->enumClass::tryFrom($value);
             }
         }
 

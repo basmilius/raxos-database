@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Structure;
 
+use BackedEnum;
 use Generator;
 use Raxos\Database\Db;
 use Raxos\Database\Error\ConnectionException;
@@ -18,11 +19,11 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
 use function array_values;
+use function in_array;
 use function is_a;
 use function is_array;
 use function is_callable;
 use function is_subclass_of;
-use function iterator_to_array;
 
 /**
  * Class StructureGenerator
@@ -72,7 +73,7 @@ final class StructureGenerator
 
             $model = self::class($classRef, $parent);
             $connection = Db::getOrFail($model->connectionId);
-            $properties = iterator_to_array(self::properties($classRef));
+            $properties = [...self::properties($classRef)];
 
             if ($parent !== null) {
                 $properties = [...$parent->properties, ...$properties];
@@ -218,19 +219,15 @@ final class StructureGenerator
         foreach ($attributes as $attribute) {
             $name = $attribute->getName();
 
-            $isRelation[$name] ??= is_a($name, RelationAttributeInterface::class, true);
-            $isMacro[$name] ??= is_a($name, Macro::class, true);
-            $isColumn[$name] ??= is_a($name, Column::class, true);
-
-            if ($isRelation[$name]) {
+            if ($isRelation[$name] ??= is_a($name, RelationAttributeInterface::class, true)) {
                 return self::propertyRelation($property, $attributes);
             }
 
-            if ($isMacro[$name]) {
+            if ($isMacro[$name] ??= is_a($name, Macro::class, true)) {
                 return self::propertyMacro($property, $attributes);
             }
 
-            if ($isColumn[$name]) {
+            if ($isColumn[$name] ??= is_a($name, Column::class, true)) {
                 return self::propertyColumn($property, $attributes);
             }
         }
@@ -263,6 +260,8 @@ final class StructureGenerator
         $isVisible = false;
         $key = $property->name;
         $types = ($type = $property->getType()) !== null ? ReflectionUtil::getTypes($type) ?? [] : [];
+        $enumClass = is_subclass_of($types[0], BackedEnum::class) ? $types[0] : null;
+        $nullable = in_array('null', $types, true);
         $visibleOnly = null;
 
         foreach ($attributes as $attribute) {
@@ -322,11 +321,13 @@ final class StructureGenerator
         return new ColumnDefinition(
             $caster,
             $defaultValue,
+            $enumClass,
             $isForeignKey,
             $isPrimaryKey,
             $isComputed,
             $isImmutable,
             $key,
+            $nullable,
             $types,
             $visibleOnly,
             $property->name,

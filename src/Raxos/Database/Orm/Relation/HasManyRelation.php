@@ -9,7 +9,7 @@ use Raxos\Database\Orm\Attribute\HasMany;
 use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\StructureException;
-use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
 use Raxos\Database\Query\Struct\ColumnLiteral;
 use function array_filter;
 use function array_values;
@@ -51,7 +51,7 @@ final readonly class HasManyRelation implements RelationInterface
         public Structure $declaringStructure
     )
     {
-        $this->referenceStructure = Structure::of($this->attribute->referenceModel);
+        $this->referenceStructure = StructureGenerator::for($this->attribute->referenceModel);
 
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
 
