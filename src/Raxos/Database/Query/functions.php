@@ -87,14 +87,14 @@ function between(
 /**
  * Returns a `in($options)` literal.
  *
- * @param array $options
+ * @param iterable $options
  *
  * @return ComparatorAwareLiteral
  * @author Bas Milius <bas@mili.us>
  * @since 1.0.0
  * @see InComparatorAwareLiteral
  */
-function in(array $options): Literal
+function in(iterable $options): Literal
 {
     return new InComparatorAwareLiteral($options);
 }
@@ -102,14 +102,14 @@ function in(array $options): Literal
 /**
  * Returns a `not in($options)` literal.
  *
- * @param array $options
+ * @param iterable $options
  *
  * @return ComparatorAwareLiteral
  * @author Bas Milius <bas@mili.us>
  * @since 1.0.0
  * @see NotInComparatorAwareLiteral
  */
-function notIn(array $options): Literal
+function notIn(iterable $options): Literal
 {
     return new NotInComparatorAwareLiteral($options);
 }

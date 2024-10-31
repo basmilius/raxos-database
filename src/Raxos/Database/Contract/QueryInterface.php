@@ -8,6 +8,8 @@ use Generator;
 use PDO;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Foundation\Collection\Paginated;
+use Raxos\Foundation\Contract\ArrayListInterface;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Query\Struct\{ColumnLiteral, Literal, Select};
 use Raxos\Foundation\Collection\ArrayList;
@@ -362,6 +364,29 @@ interface QueryInterface
     public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Generator;
 
     /**
+     * Runs the query and returns a paginated response.
+     *
+     * @param int $offset
+     * @param int $limit
+     * @param callable(QueryInterface, int, int):ArrayListInterface|null $itemBuilder
+     * @param callable(QueryInterface, int, int):int|null $totalBuilder
+     * @param int $fetchMode
+     * @param array $options
+     *
+     * @return Paginated<TModel>
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.3.1
+     * @see QueryInterface::arrayList()
+     * @see StatementInterface::paginate()
+     */
+    public function paginate(int $offset, int $limit, ?callable $itemBuilder = null, ?callable $totalBuilder = null, int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Paginated;
+
+    /**
      * Runs the query.
      *
      * @param array $options
@@ -525,14 +550,14 @@ interface QueryInterface
      * Adds a `having $field in ($options)` expression.
      *
      * @param Literal|string $field
-     * @param array $options
+     * @param iterable $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function havingIn(Literal|string $field, array $options): static;
+    public function havingIn(Literal|string $field, iterable $options): static;
 
     /**
      * Adds a `having not exists $query` expression.
@@ -562,14 +587,14 @@ interface QueryInterface
      * Adds a `having $field not in ($options)` expression.
      *
      * @param Literal|string $field
-     * @param array $options
+     * @param iterable $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function havingNotIn(Literal|string $field, array $options): static;
+    public function havingNotIn(Literal|string $field, iterable $options): static;
 
     /**
      * Adds a `having $field is null` expression.
@@ -685,14 +710,14 @@ interface QueryInterface
      * Adds an `or $field in ($options)` expression.
      *
      * @param Literal|string $field
-     * @param array $options
+     * @param iterable $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereIn(Literal|string $field, array $options): static;
+    public function orWhereIn(Literal|string $field, iterable $options): static;
 
     /**
      * Adds an `or not exists $query` expression.
@@ -726,14 +751,14 @@ interface QueryInterface
      * Adds an `or where $field not in ($options)` expression.
      *
      * @param Literal|string $field
-     * @param array $options
+     * @param iterable $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function orWhereNotIn(Literal|string $field, array $options): static;
+    public function orWhereNotIn(Literal|string $field, iterable $options): static;
 
     /**
      * Adds an `or $field is not null` expression.
@@ -928,14 +953,14 @@ interface QueryInterface
      * Adds a `where $field in ($options)` expression.
      *
      * @param Literal|string $field
-     * @param array $options
+     * @param iterable $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereIn(Literal|string $field, array $options): static;
+    public function whereIn(Literal|string $field, iterable $options): static;
 
     /**
      * Adds a `where not exists $query` expression.
@@ -969,14 +994,14 @@ interface QueryInterface
      * Adds a `where $field not in ($options)` expression.
      *
      * @param Literal|string $field
-     * @param array $options
+     * @param iterable $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function whereNotIn(Literal|string $field, array $options): static;
+    public function whereNotIn(Literal|string $field, iterable $options): static;
 
     /**
      * Adds a `where $field is not null` expression.
@@ -1146,7 +1171,7 @@ interface QueryInterface
     /**
      * Adds a `select $fields` expression.
      *
-     * @param Select|array<static|string|int|bool>|string|int $fields
+     * @param Select|Stringable|array<static|string|int|bool>|string|int $fields
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
@@ -1154,12 +1179,12 @@ interface QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function select(Select|array|string|int $fields = []): static;
+    public function select(Select|Stringable|array|string|int $fields = []): static;
 
     /**
      * Adds a `select distinct $fields` expression.
      *
-     * @param Select|string[]|string|int $fields
+     * @param Select|Stringable|string[]|string|int $fields
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
@@ -1167,12 +1192,12 @@ interface QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function selectDistinct(Select|array|string|int $fields = []): static;
+    public function selectDistinct(Select|Stringable|array|string|int $fields = []): static;
 
     /**
      * Adds a `select sql_calc_found_rows $fields` expression.
      *
-     * @param Select|string[]|string|int $fields
+     * @param Select|Stringable|string[]|string|int $fields
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
@@ -1180,13 +1205,13 @@ interface QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function selectFoundRows(Select|array|string|int $fields = []): static;
+    public function selectFoundRows(Select|Stringable|array|string|int $fields = []): static;
 
     /**
      * Adds a `select $suffix $fields` expression.
      *
      * @param string $suffix
-     * @param Select|string[]|string|int $fields
+     * @param Select|Stringable|string[]|string|int $fields
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
@@ -1194,7 +1219,7 @@ interface QueryInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function selectSuffix(string $suffix, Select|array|string|int $fields = []): static;
+    public function selectSuffix(string $suffix, Select|Stringable|array|string|int $fields = []): static;
 
     /**
      * Adds a `full join $table $fn()` expression.

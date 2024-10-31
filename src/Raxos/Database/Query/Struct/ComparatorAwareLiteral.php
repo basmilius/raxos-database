@@ -36,13 +36,13 @@ readonly class ComparatorAwareLiteral extends Literal
     /**
      * Returns a `in ($options)` literal.
      *
-     * @param array $options
+     * @param iterable $options
      *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function in(array $options): self
+    public static function in(iterable $options): self
     {
         return new InComparatorAwareLiteral($options);
     }

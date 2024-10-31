@@ -7,6 +7,8 @@ use Generator;
 use PDO;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Foundation\Collection\Paginated;
+use Raxos\Foundation\Contract\ArrayListInterface;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Foundation\Collection\ArrayList;
 use stdClass;
@@ -68,6 +70,27 @@ interface StatementInterface
      * @since 1.0.0
      */
     public function cursor(int $fetchMode = PDO::FETCH_ASSOC): Generator;
+
+    /**
+     * Executes the statement and returns a paginated response.
+     *
+     * @param int $offset
+     * @param int $limit
+     * @param callable(QueryInterface, int, int):ArrayListInterface|null $itemBuilder
+     * @param callable(QueryInterface, int, int):int|null $totalBuilder
+     * @param int $fetchMode
+     *
+     * @return Paginated
+     * @throws ConnectionException
+     * @throws ExecutionException
+     * @throws QueryException
+     * @throws RelationException
+     * @throws StructureException
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.3.1
+     * @see StatementInterface::arrayList()
+     */
+    public function paginate(int $offset, int $limit, ?callable $itemBuilder = null, ?callable $totalBuilder = null, int $fetchMode = PDO::FETCH_ASSOC): Paginated;
 
     /**
      * Executes the statement.

@@ -14,6 +14,7 @@ use Raxos\Database\Error\{ConnectionException, QueryException};
 use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
+use Raxos\Foundation\Collection\Paginated;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\Struct\{ColumnLiteral, ComparatorAwareLiteral, Literal, Select, SubQueryLiteral};
@@ -601,6 +602,18 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.3.1
+     */
+    public function paginate(int $offset, int $limit, ?callable $itemBuilder = null, ?callable $totalBuilder = null, int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Paginated
+    {
+        return $this
+            ->statement($options)
+            ->paginate($offset, $limit, $itemBuilder, $totalBuilder, $fetchMode);
+    }
+
+    /**
+     * {@inheritdoc}
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
@@ -846,7 +859,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function havingIn(Literal|string $field, array $options): static
+    public function havingIn(Literal|string $field, iterable $options): static
     {
         return $this->having($field, ComparatorAwareLiteral::in($options));
     }
@@ -876,7 +889,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function havingNotIn(Literal|string $field, array $options): static
+    public function havingNotIn(Literal|string $field, iterable $options): static
     {
         return $this->having($field, ComparatorAwareLiteral::notIn($options));
     }
@@ -989,7 +1002,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function orWhereIn(Literal|string $field, array $options): static
+    public function orWhereIn(Literal|string $field, iterable $options): static
     {
         return $this->orWhere($field, ComparatorAwareLiteral::in($options));
     }
@@ -1019,7 +1032,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function orWhereNotIn(Literal|string $field, array $options): static
+    public function orWhereNotIn(Literal|string $field, iterable $options): static
     {
         return $this->orWhere($field, ComparatorAwareLiteral::notIn($options));
     }
@@ -1254,7 +1267,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function whereIn(Literal|string $field, array $options): static
+    public function whereIn(Literal|string $field, iterable $options): static
     {
         return $this->where($field, ComparatorAwareLiteral::in($options));
     }
@@ -1284,7 +1297,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function whereNotIn(Literal|string $field, array $options): static
+    public function whereNotIn(Literal|string $field, iterable $options): static
     {
         return $this->where($field, ComparatorAwareLiteral::notIn($options));
     }
@@ -1492,7 +1505,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function select(Select|array|string|int $fields = []): static
+    public function select(Select|Stringable|array|string|int $fields = []): static
     {
         return $this->baseSelect('select', $fields);
     }
@@ -1502,7 +1515,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function selectDistinct(Select|array|string|int $fields = []): static
+    public function selectDistinct(Select|Stringable|array|string|int $fields = []): static
     {
         return $this->selectSuffix('distinct', $fields);
     }
@@ -1512,7 +1525,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function selectFoundRows(Select|array|string|int $fields = []): static
+    public function selectFoundRows(Select|Stringable|array|string|int $fields = []): static
     {
         return $this->selectSuffix('sql_calc_found_rows', $fields);
     }
@@ -1522,7 +1535,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
-    public function selectSuffix(string $suffix, Select|array|string|int $fields = []): static
+    public function selectSuffix(string $suffix, Select|Stringable|array|string|int $fields = []): static
     {
         return $this->baseSelect("select {$suffix}", $fields);
     }

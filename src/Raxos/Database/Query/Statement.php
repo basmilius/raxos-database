@@ -10,13 +10,16 @@ use Raxos\Database\Contract\{ConnectionInterface, InternalQueryInterface, QueryI
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Logger\QueryEvent;
 use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Foundation\Collection\Paginated;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use function array_map;
+use function ceil;
 use function class_exists;
+use function floor;
 use function is_array;
 use function is_int;
 
@@ -112,6 +115,25 @@ class Statement implements StatementInterface
         while ($result = $this->fetch($fetchMode)) {
             yield $result;
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.3.1
+     */
+    public final function paginate(int $offset, int $limit, ?callable $itemBuilder = null, ?callable $totalBuilder = null, int $fetchMode = PDO::FETCH_ASSOC): Paginated
+    {
+        $itemBuilder ??= static fn(QueryInterface $query, int $offset, int $limit) => $query->limit($limit, $offset)->arrayList();
+        $totalBuilder ??= static fn(QueryInterface $query, int $offset, int $limit) => $query->totalCount();
+
+        $items = $itemBuilder($this->query, $offset, $limit);
+        $total = $totalBuilder($this->query, $offset, $limit);
+
+        $page = (int)floor($offset / $limit) + 1;
+        $pages = (int)ceil($total / $limit);
+
+        return new Paginated($items, $page, $limit, $pages, $total);
     }
 
     /**
