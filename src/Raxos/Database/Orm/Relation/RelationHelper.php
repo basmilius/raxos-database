@@ -17,8 +17,6 @@ use function is_numeric;
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Relation
  * @since 1.1.0
- * @internal
- * @private
  */
 final class RelationHelper
 {

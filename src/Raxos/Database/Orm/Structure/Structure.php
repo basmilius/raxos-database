@@ -251,7 +251,7 @@ final class Structure
     public function hasProperty(string $key): bool
     {
         foreach ($this->properties as $property) {
-            if ($property->name === $key || ($property instanceof ColumnDefinition && $property->key === $key)) {
+            if ($property->name === $key || $property->alias === $key || ($property instanceof ColumnDefinition && $property->key === $key)) {
                 return true;
             }
         }

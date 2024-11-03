@@ -630,8 +630,14 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function runReturning(array|Literal|string $column): array|string|int
     {
+        $sqlColumn = match (true) {
+            is_array($column) => array_map($this->grammar->escape(...), $column),
+            is_string($column) => $this->grammar->escape($column),
+            default => $column
+        };
+
         $statement = $this
-            ->addPiece('returning', $column, $this->grammar->columnSeparator)
+            ->addPiece('returning', $sqlColumn, $this->grammar->columnSeparator)
             ->statement();
 
         $statement->run();

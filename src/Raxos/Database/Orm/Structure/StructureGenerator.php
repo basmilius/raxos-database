@@ -31,8 +31,6 @@ use function is_subclass_of;
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Structure
  * @since 1.0.17
- * @internal
- * @private
  */
 final class StructureGenerator
 {

@@ -23,7 +23,7 @@ use const JSON_THROW_ON_ERROR;
  * @package Raxos\Database\Orm\Caster
  * @since 1.0.17
  */
-final readonly class JsonCaster implements CasterInterface
+readonly class JsonCaster implements CasterInterface
 {
 
     /**
@@ -32,7 +32,7 @@ final readonly class JsonCaster implements CasterInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function decode(float|int|string|null $value, Model $instance): ?array
+    public function decode(float|int|string|null $value, Model $instance): mixed
     {
         if (!is_string($value) || !json_validate($value)) {
             return null;
