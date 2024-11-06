@@ -22,7 +22,6 @@ use Raxos\Foundation\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
 use Stringable;
-use function array_column;
 use function array_is_list;
 use function array_keys;
 use function array_map;
@@ -34,7 +33,6 @@ use function array_values;
 use function assert;
 use function count;
 use function implode;
-use function in_array;
 use function is_array;
 use function is_bool;
 use function is_float;
@@ -219,6 +217,28 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $data = (string)$data;
         }
 
+        if ($clause === 'select' && $this->isClauseDefined('select')) {
+            $index = ArrayUtil::findIndex($this->pieces, static fn(array $piece) => $piece[0] === 'select');
+
+            if (is_array($this->pieces[$index][1]) && is_array($data)) {
+                $this->pieces[$index][1] = [
+                    ...$this->pieces[$index][1],
+                    ...$data
+                ];
+            } elseif (is_array($this->pieces[$index][1])) {
+                $this->pieces[$index][1][] = $data;
+            } elseif (is_array($data)) {
+                $this->pieces[$index][1] = [
+                    $this->pieces[$index][1],
+                    ...$data
+                ];
+            } else {
+                $this->pieces[$index][1] = [$this->pieces[$index][1], $data];
+            }
+
+            return $this;
+        }
+
         if ($this->position !== null) {
             array_splice($this->pieces, $this->position++, 0, [[$clause, $data, $separator]]);
         } else {
@@ -394,9 +414,13 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function isClauseDefined(string $clause): bool
     {
-        $clauses = array_column($this->pieces, 0);
+        foreach ($this->pieces as $piece) {
+            if ($piece[0] === $clause) {
+                return true;
+            }
+        }
 
-        return in_array($clause, $clauses, true);
+        return false;
     }
 
     /**
@@ -482,7 +506,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         foreach ($this->pieces as [$clause, $data, $separator]) {
             if (is_array($data)) {
-                $data = implode($separator ?? ',', $data);
+                $data = implode($separator ?? $this->grammar->columnSeparator, $data);
             }
 
             if (!empty($clause)) {
@@ -1698,7 +1722,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * Base function to create `select` expressions.
      *
      * @param string $clause
-     * @param Select|array|string|int $fields
+     * @param ColumnLiteral|Select|array|string|int $fields
      *
      * @return static<TModel>
      * @throws QueryException
@@ -1706,7 +1730,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseSelect(string $clause, Select|array|string|int $fields): static
+    protected function baseSelect(string $clause, ColumnLiteral|Select|array|string|int $fields): static
     {
         if (empty($fields) || ($fields instanceof Select && $fields->isEmpty)) {
             if ($this->modelClass !== null) {
@@ -1716,7 +1740,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->addPiece($clause, '*');
         }
 
-        if (is_int($fields)) {
+        if (is_int($fields) || $fields instanceof ColumnLiteral) {
             return $this->addPiece($clause, $fields);
         }
 
