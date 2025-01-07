@@ -6,47 +6,66 @@ namespace Raxos\Database\Connection;
 use BackedEnum;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use Raxos\Database\Connector\Connector;
-use Raxos\Database\Contract\ConnectionInterface;
-use Raxos\Database\Contract\QueryInterface;
-use Raxos\Database\Contract\StatementInterface;
+use Raxos\Database\Contract\{ConnectionInterface, QueryInterface, StatementInterface};
 use Raxos\Database\Db;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Contract\CacheInterface;
 use Raxos\Database\Query\Statement;
+use SensitiveParameter;
 use function array_key_exists;
-use function in_array;
 
 /**
  * Class Connection
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Connection
- * @since 1.0.0
+ * @since 1.4.0
  */
 abstract class Connection implements ConnectionInterface
 {
 
-    protected ?array $columnsPerTable = null;
-    protected ?PDO $pdo = null;
+    public protected(set) ?PDO $pdo = null;
+    public private(set) ?array $structure = null;
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public bool $connected {
+        get => $this->pdo !== null;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public bool $inTransaction {
+        get => $this->pdo?->inTransaction() ?? false;
+    }
 
     /**
      * Connection constructor.
      *
-     * @param string $id
+     * @param string $dsn
+     * @param string|null $username
+     * @param string|null $password
+     * @param array|null $options
      * @param CacheInterface $cache
-     * @param Connector $connector
      * @param Grammar $grammar
      * @param Logger $logger
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
     public function __construct(
-        public readonly string $id,
-        public readonly Connector $connector,
+        #[SensitiveParameter] public readonly string $dsn,
+        #[SensitiveParameter] public readonly ?string $username,
+        #[SensitiveParameter] public readonly ?string $password,
+        public readonly ?array $options,
         public readonly CacheInterface $cache,
         public readonly Grammar $grammar,
         public readonly Logger $logger
@@ -55,37 +74,7 @@ abstract class Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function connect(): void
-    {
-        $this->pdo = $this->connector->createInstance();
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function disconnect(): void
-    {
-        $this->pdo = null;
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function isConnected(): bool
-    {
-        return $this->pdo !== null;
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
     public function attribute(int $attribute): mixed
     {
@@ -97,9 +86,9 @@ abstract class Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
-    public function column(QueryInterface|string $query): string|int
+    public function column(string|QueryInterface $query): string|int|false
     {
         if ($query instanceof QueryInterface) {
             $query = $query->toSql();
@@ -120,9 +109,9 @@ abstract class Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
-    public function execute(QueryInterface|string $query): int
+    public function execute(string|QueryInterface $query): int
     {
         if ($query instanceof QueryInterface) {
             $query = $query->toSql();
@@ -141,7 +130,7 @@ abstract class Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
     public function lastInsertId(?string $name = null): string
     {
@@ -151,7 +140,7 @@ abstract class Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
     public function lastInsertIdInteger(?string $name = null): int
     {
@@ -161,9 +150,9 @@ abstract class Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
-    public function prepare(QueryInterface|string $query, array $options = []): StatementInterface
+    public function prepare(string|QueryInterface $query, array $options = []): StatementInterface
     {
         return new Statement($this, $query, $options);
     }
@@ -171,9 +160,12 @@ abstract class Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
-    public function quote(BackedEnum|string|int|float|bool $value, #[ExpectedValues(Db::TYPES)] int $type = PDO::PARAM_STR): string
+    public function quote(
+        BackedEnum|float|bool|int|string $value,
+        #[ExpectedValues(Db::TYPES)] int $type = PDO::PARAM_STR
+    ): string
     {
         $this->ensureConnected();
 
@@ -181,53 +173,27 @@ abstract class Connection implements ConnectionInterface
             $value = $value->value;
         }
 
-        return $this->pdo->quote((string)$value, $type);
+        return $this->pdo->quote($value, $type);
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
-    public function tableColumnExists(string $table, string $column): bool
+    public function disconnect(): void
     {
-        return $this->tableExists($table) && in_array($column, $this->columnsPerTable[$table], true);
+        $this->pdo = null;
     }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function tableColumns(string $table): array
-    {
-        if (!$this->tableExists($table)) {
-            throw SchemaException::invalidTable($table);
-        }
-
-        return $this->columnsPerTable[$table] ?? [];
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function tableExists(string $table): bool
-    {
-        $this->columnsPerTable ??= $this->loadDatabaseSchema();
-
-        return array_key_exists($table, $this->columnsPerTable);
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
     public function commit(): bool
     {
-        if (!$this->pdo->inTransaction()) {
+        if (!$this->inTransaction) {
             throw QueryException::notInTransaction();
         }
 
@@ -237,21 +203,11 @@ abstract class Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public function inTransaction(): bool
-    {
-        return $this->pdo->inTransaction();
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
     public function rollBack(): bool
     {
-        if (!$this->pdo->inTransaction()) {
+        if (!$this->inTransaction) {
             throw QueryException::notInTransaction();
         }
 
@@ -261,40 +217,62 @@ abstract class Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
     public function transaction(): bool
     {
-        return $this->pdo->beginTransaction();
+        return $this->pdo?->beginTransaction() ?? false;
     }
 
     /**
      * {@inheritdoc}
-     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
-    public final function getPdo(): PDO
+    public function tableColumnExists(string $table, string $column): bool
     {
-        $this->ensureConnected();
-
-        return $this->pdo;
+        return $this->tableExists($table) && isset($this->structure[$table][$column]);
     }
 
     /**
-     * Ensures that there is an active connection.
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public function tableColumns(string $table): array
+    {
+        if (!$this->tableExists($table)) {
+            throw SchemaException::invalidTable($table);
+        }
+
+        return $this->structure[$table] ?? [];
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public function tableExists(string $table): bool
+    {
+        $this->structure ??= $this->loadDatabaseSchema();
+
+        return array_key_exists($table, $this->structure);
+    }
+
+    /**
+     * Ensures that a connection is available.
      *
+     * @return void
      * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 1.4.0
      */
     private function ensureConnected(): void
     {
-        if ($this->pdo !== null) {
-            return;
+        if (!$this->connected) {
+            throw ConnectionException::notConnected();
         }
-
-        throw ConnectionException::notConnected();
     }
 
 }

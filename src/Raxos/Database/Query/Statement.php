@@ -60,7 +60,7 @@ class Statement implements StatementInterface
     )
     {
         $this->sql = $query instanceof QueryInterface ? $query->toSql() : $query;
-        $this->pdoStatement = $connection->getPdo()->prepare($this->sql, $options);
+        $this->pdoStatement = $connection->pdo->prepare($this->sql, $options);
     }
 
     /**
@@ -318,7 +318,7 @@ class Statement implements StatementInterface
             throw QueryException::missingModel();
         }
 
-        if ($this->connection->logger->isEnabled()) {
+        if ($this->connection->logger->enabled) {
             $stopwatch = new Stopwatch(__METHOD__);
             $result = $stopwatch->run($this->pdoStatement->execute(...));
 

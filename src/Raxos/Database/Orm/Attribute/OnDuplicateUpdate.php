@@ -9,11 +9,11 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
 /**
  * Class OnDuplicateUpdate
  *
- * ```
+ * <code>
  * #[Table('payment_method')]
  * #[OnDuplicateUpdate(['external_id', 'name', 'maximum_cents', 'minimum_cents'])]
  * class ForeignPaymentMethod extends Model {}
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

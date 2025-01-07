@@ -9,24 +9,24 @@ use Raxos\Database\Orm\Contract\{AttributeInterface, RelationAttributeInterface}
 /**
  * Class HasOne
  *
- * Defines a HasOne relation between two models. For example, a single
+ * Defines a 'Has One' relation between two models. For example, a single
  * user can have a single address. The address belongs to the user.
  *
- * User 1...1 Address
+ * [User] 1...1 [Address]
  *
- * ```
+ * <code>
  * class User extends Model {
  *     #[HasOne]
  *     public Address $address;
  * }
- * ```
+ * </code>
  *
- * ```
+ * <code>
  * class Address extends Model {
  *     #[BelongsTo]
  *     public User $user;
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

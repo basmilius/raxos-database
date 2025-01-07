@@ -10,13 +10,13 @@ use Raxos\Database\Orm\Model;
 /**
  * Class HasOneThrough
  *
- * Defines a HasOne relation between two models that goes through
+ * Defines a 'Has One' relation between two models that goes through
  * another model. For example, an address belongs to an owner but goes
  * through a house.
  *
- * Post 1...1 User 1...1 Country
+ * [Post] 1...1 [User] 1...1 [Country]
  *
- * ```
+ * <code>
  * class Post extends Model {
  *     #[BelongsTo]
  *     public User $user;
@@ -24,9 +24,9 @@ use Raxos\Database\Orm\Model;
  *     #[BelongsToThrough(User::class)]
  *     public Country $country;
  * }
- * ```
+ * </code>
  *
- * ```
+ * <code>
  * class User extends Model {
  *     #[BelongsTo]
  *     public Country $country;
@@ -34,9 +34,9 @@ use Raxos\Database\Orm\Model;
  *     #[HasMany(Post::class)]
  *     public ModelArrayList $posts;
  * }
- * ```
+ * </code>
  *
- * ```
+ * <code>
  * class Country extends Model {
  *     #[MasMany(User::class)]
  *     public ModelArrayList $users;
@@ -44,7 +44,7 @@ use Raxos\Database\Orm\Model;
  *     #[HasOneThrough(Post::class, User::class)]
  *     public Post $firstPost;
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

@@ -154,7 +154,7 @@ final class InstanceException extends OrmException
     }
 
     /**
-     * Returns a write failed exception.
+     * Returns a write-failed exception.
      *
      * @param string $modelClass
      * @param string $propertyName

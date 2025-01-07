@@ -16,17 +16,120 @@ use Raxos\Database\Orm\Error\StructureException;
 /**
  * Interface ConnectionInterface
  *
- * @property-read CacheInterface $cache
- * @property-read Grammar $grammar
- * @property-read string $id
- * @property-read Logger $logger
- *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Contract
  * @since 1.0.16
  */
 interface ConnectionInterface
 {
+
+    /**
+     * Returns the cache instance.
+     *
+     * @var CacheInterface
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public CacheInterface $cache {
+        get;
+    }
+
+    /**
+     * Returns TRUE if the connection is open.
+     *
+     * @var bool
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public bool $connected {
+        get;
+    }
+
+    /**
+     * Returns the DSN.
+     *
+     * @var string
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public string $dsn {
+        get;
+    }
+
+    /**
+     * Returns the used grammar of the connection.
+     *
+     * @var Grammar
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public Grammar $grammar {
+        get;
+    }
+
+    /**
+     * Returns TRUE if a transaction is active.
+     *
+     * @var bool
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public bool $inTransaction {
+        get;
+    }
+
+    /**
+     * Returns the logger.
+     *
+     * @var Logger
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public Logger $logger {
+        get;
+    }
+
+    /**
+     * Returns the password for the connection.
+     *
+     * @var string|null
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public ?string $password {
+        get;
+    }
+
+    /**
+     * Returns the PDO instance.
+     *
+     * @var PDO|null
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public ?PDO $pdo {
+        get;
+    }
+
+    /**
+     * Returns the username for the connection.
+     *
+     * @var string|null
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public ?string $username {
+        get;
+    }
 
     /**
      * Connect to the database.
@@ -47,15 +150,6 @@ interface ConnectionInterface
      * @since 1.0.16
      */
     public function disconnect(): void;
-
-    /**
-     * Returns TRUE if the connection is open.
-     *
-     * @return bool
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
-     */
-    public function isConnected(): bool;
 
     /**
      * Returns the given connection attribute.
@@ -187,16 +281,6 @@ interface ConnectionInterface
     public function commit(): bool;
 
     /**
-     * Returns TRUE if there is an active transaction.
-     *
-     * @return bool
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
-     * @see PDO::inTransaction()
-     */
-    public function inTransaction(): bool;
-
-    /**
      * Rolls the active transaction back.
      *
      * @return bool
@@ -263,14 +347,5 @@ interface ConnectionInterface
      * @since 1.0.16
      */
     public function tableExists(string $table): bool;
-
-    /**
-     * Gets the PDO instance.
-     *
-     * @return PDO
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
-     */
-    public function getPdo(): PDO;
 
 }

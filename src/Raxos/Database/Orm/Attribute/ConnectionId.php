@@ -11,10 +11,10 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
  *
  * Defines the default connection id the model should use.
  *
- * ```
+ * <code>
  * #[ConnectionId('crm')]
  * class Person extends Model {}
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

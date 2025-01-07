@@ -9,25 +9,25 @@ use Raxos\Database\Orm\Contract\{AttributeInterface, RelationAttributeInterface}
 /**
  * Class BelongsTo
  *
- * Defines a BelongsTo relation between two models. For example, multiple user
+ * Defines a 'Belongs To' relation between two models. For example, multiple user
  * tokens belong to a single user. The user, on the other hand, can have multiple
  * user tokens. Which is a 'has many' relation.
  *
- * UserToken ∞...1 User
+ * [UserToken] ∞...1 [User]
  *
- * ```
+ * <code>
  * class UserToken extends Model {
  *     #[BelongsTo]
  *     public User $user;
  * }
- * ```
+ * </code>
  *
- * ```
+ * <code>
  * class User extends Model {
  *     #[HasMany(UserToken::class)]
  *     public ModelArrayList $tokens;
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

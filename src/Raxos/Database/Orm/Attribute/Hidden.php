@@ -11,13 +11,13 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
  *
  * Marks the column, marco or relation as hidden.
  *
- * ```
+ * <code>
  * class User extends Model {
  *     #[Column]
  *     #[Hidden]
  *     public string $password;
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

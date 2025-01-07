@@ -13,7 +13,7 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
  * result is used as a generated value. This makes sure that the column
  * isn't automatically added to insert and update queries.
  *
- * ```
+ * <code>
  * class Post extends Model {
  *     #[Column]
  *     #[Computed]
@@ -27,7 +27,7 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
  *         );
  *     }
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

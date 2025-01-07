@@ -174,7 +174,7 @@ final class StructureException extends OrmException
     }
 
     /**
-     * Returns a not a model exception.
+     * Returns a not-a-model exception.
      *
      * @param string $className
      *

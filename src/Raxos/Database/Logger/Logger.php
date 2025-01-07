@@ -20,7 +20,7 @@ use function implode;
 final class Logger
 {
 
-    private bool $enabled = false;
+    public private(set) bool $enabled = false;
 
     /** @var Event[] */
     private array $events = [];
@@ -59,18 +59,6 @@ final class Logger
     public function disable(): void
     {
         $this->enabled = false;
-    }
-
-    /**
-     * Returns TRUE if the logger is enabled.
-     *
-     * @return bool
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
-     */
-    public function isEnabled(): bool
-    {
-        return $this->enabled;
     }
 
     /**

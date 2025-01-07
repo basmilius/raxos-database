@@ -56,6 +56,25 @@ final class ConnectionException extends DatabaseException
     }
 
     /**
+     * Returns an invalid option exception.
+     *
+     * @param string $option
+     * @param string $message
+     *
+     * @return self
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
+    public static function invalidOption(string $option, string $message): self
+    {
+        return new self(
+            ExceptionId::for(__METHOD__),
+            'db_invalid_option',
+            sprintf('Invalid option "%s": %s.', $option, $message)
+        );
+    }
+
+    /**
      * Returns a missing option exception.
      *
      * @param string $option

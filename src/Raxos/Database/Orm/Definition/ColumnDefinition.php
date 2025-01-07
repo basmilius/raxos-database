@@ -40,7 +40,7 @@ final readonly class ColumnDefinition extends PropertyDefinition
      * @param bool $isVisible
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 31-10-2024
+     * @since 1.0.17
      */
     public function __construct(
         public ?string $caster,

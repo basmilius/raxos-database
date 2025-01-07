@@ -5,6 +5,7 @@ namespace Raxos\Database\Orm\Structure;
 
 use Generator;
 use Raxos\Database\Contract\ConnectionInterface;
+use Raxos\Database\Db;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Logger\EagerLoadEvent;
 use Raxos\Database\Orm\{Backbone, Model, ModelArrayList};
@@ -14,6 +15,7 @@ use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, Prop
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
 use Raxos\Database\Query\Struct\ColumnLiteral;
+use function array_any;
 use function array_key_exists;
 use function array_map;
 use function in_array;
@@ -33,6 +35,8 @@ use function str_starts_with;
 final class Structure
 {
 
+    public private(set) ConnectionInterface $connection;
+
     /** @var ColumnDefinition[]|null */
     public readonly array|null $primaryKey;
 
@@ -43,19 +47,20 @@ final class Structure
      * Structure constructor.
      *
      * @param class-string<Model> $class
-     * @param ConnectionInterface $connection
+     * @param string $connectionId
      * @param string[]|null $onDuplicateKeyUpdate
      * @param PolymorphicDefinition|null $polymorphic
      * @param PropertyDefinition[] $properties
      * @param string $table
      * @param self|null $parent
      *
+     * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
     public function __construct(
         public readonly string $class,
-        public readonly ConnectionInterface $connection,
+        public readonly string $connectionId,
         public readonly ?array $onDuplicateKeyUpdate,
         public readonly ?PolymorphicDefinition $polymorphic,
         public readonly array $properties,
@@ -63,6 +68,7 @@ final class Structure
         public readonly ?self $parent = null
     )
     {
+        $this->connection = Db::getOrFail($this->connectionId);
         $this->primaryKey = $this->getPrimaryKey();
     }
 
@@ -154,7 +160,7 @@ final class Structure
             return;
         }
 
-        if ($this->connection->logger->isEnabled()) {
+        if ($this->connection->logger->enabled) {
             $deferred = $this->connection->logger->deferred();
             $relation->eagerLoad($instances);
             $deferred->commit(new EagerLoadEvent($relation, $this->connection->logger->count() - ($deferred->index + 1)));
@@ -250,13 +256,7 @@ final class Structure
      */
     public function hasProperty(string $key): bool
     {
-        foreach ($this->properties as $property) {
-            if ($property->name === $key || $property->alias === $key || ($property instanceof ColumnDefinition && $property->key === $key)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($this->properties, static fn(PropertyDefinition $property) => $property->name === $key || $property->alias === $key || ($property instanceof ColumnDefinition && $property->key === $key));
     }
 
     /**

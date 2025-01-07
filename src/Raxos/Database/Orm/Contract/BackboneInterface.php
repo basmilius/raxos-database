@@ -16,16 +16,24 @@ use Raxos\Database\Orm\Structure\Structure;
  *
  * @template TModel
  *
- * @property-read CacheInterface $cache
- * @property-read ConnectionInterface $connection
- * @property-read Structure $structure
- *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Contract
  * @since 1.0.17
  */
 interface BackboneInterface
 {
+
+    public CacheInterface $cache {
+        get;
+    }
+
+    public ConnectionInterface $connection {
+        get;
+    }
+
+    public Structure $structure {
+        get;
+    }
 
     /**
      * Adds the given model instance.

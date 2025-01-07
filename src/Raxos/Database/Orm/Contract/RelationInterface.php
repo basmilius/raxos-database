@@ -15,15 +15,20 @@ use Raxos\Database\Orm\Error\{RelationException, StructureException};
  * @template TDeclaringModel of Model
  * @template TReferenceModel of Model
  *
- * @property RelationAttributeInterface $attribute
- * @property RelationDefinition $property
- *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Contract
  * @since 1.0.17
  */
 interface RelationInterface
 {
+
+    public RelationAttributeInterface $attribute {
+        get;
+    }
+
+    public RelationDefinition $property {
+        get;
+    }
 
     /**
      * Fetches the result of the relation.

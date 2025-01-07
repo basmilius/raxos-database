@@ -10,12 +10,12 @@ use Attribute;
  *
  * Defines a foreign key database column.
  *
- * ```
+ * <code>
  * class Post extends Model {
  *     #[ForeignKey]
  *     public string $creatorId;
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

@@ -12,12 +12,12 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
  * Defines a database column. When {@see Column::$key} is given,
  * that key will be used in communication with the database.
  *
- * ```
+ * <code>
  * class User extends Model {
  *     #[Column]
  *     public string $name;
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

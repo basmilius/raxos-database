@@ -12,15 +12,15 @@ use Raxos\Foundation\Contract\ArrayableInterface;
  *
  * Defines an alias for the column. Used within exports such as
  * {@see ArrayableInterface::toArray()} and {@see JsonSerializable::jsonSerialize()}.
- * If alias is used without a value, the key of the property is used.
+ * If `#[Alias]` is used without a value, the key of the property is used.
  *
- * ```
+ * <code>
  * class Post extends Model {
  *     #[ForeignKey]
  *     #[Alias('user_id')]
  *     public string $userId;
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

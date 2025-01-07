@@ -16,7 +16,7 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
  * Macros are hidden by default and should be marked with {@see Visible}
  * to show them in responses.
  *
- * ```
+ * <code>
  * class User extends Model {
  *     #[Column]
  *     public string $firstName;
@@ -27,15 +27,15 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
  *     #[Macro([UserMacro::class, 'getFullName'])]
  *     public string $fullName;
  * }
- * ```
+ * </code>
  *
- * ```
+ * <code>
  * class UserMacro {
  *     public static function getFullName(User $user): string {
  *         return "{$user->firstName} {$user->lastName}";
  *     }
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

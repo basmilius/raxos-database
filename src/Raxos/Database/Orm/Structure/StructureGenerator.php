@@ -5,7 +5,6 @@ namespace Raxos\Database\Orm\Structure;
 
 use BackedEnum;
 use Generator;
-use Raxos\Database\Db;
 use Raxos\Database\Error\ConnectionException;
 use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, Table, Visible};
 use Raxos\Database\Orm\Caster\BooleanCaster;
@@ -70,7 +69,6 @@ final class StructureGenerator
             }
 
             $model = self::class($classRef, $parent);
-            $connection = Db::getOrFail($model->connectionId);
             $properties = [...self::properties($classRef)];
 
             if ($parent !== null) {
@@ -79,7 +77,7 @@ final class StructureGenerator
 
             $structure = self::$structures[$classRef->name] = new Structure(
                 $classRef->name,
-                $connection,
+                $model->connectionId,
                 $model->onDuplicateKeyUpdate,
                 $model->polymorphic,
                 $properties,

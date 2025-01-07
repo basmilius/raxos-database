@@ -11,10 +11,10 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
  *
  * Defines the database table of the model.
  *
- * ```
+ * <code>
  * #[Table('posts')]
  * class Post extends Model {}
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

@@ -10,12 +10,12 @@ use Attribute;
  *
  * Defines the primary key of a model.
  *
- * ```
+ * <code>
  * class Post extends Model {
  *     #[PrimaryKey]
  *     public string $id;
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

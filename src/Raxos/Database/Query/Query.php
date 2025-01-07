@@ -19,9 +19,10 @@ use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Struct\{ColumnLiteral, ComparatorAwareLiteral, Literal, Select, SubQueryLiteral};
 use Raxos\Foundation\Collection\{ArrayList, Paginated};
 use Raxos\Foundation\Contract\DebuggableInterface;
-use Raxos\Foundation\Util\ArrayUtil;
 use stdClass;
 use Stringable;
+use function array_any;
+use function array_find_key;
 use function array_is_list;
 use function array_keys;
 use function array_map;
@@ -218,7 +219,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         }
 
         if ($clause === 'select' && $this->isClauseDefined('select')) {
-            $index = ArrayUtil::findIndex($this->pieces, static fn(array $piece) => $piece[0] === 'select');
+            $index = array_find_key($this->pieces, static fn(array $piece) => $piece[0] === 'select');
 
             if (is_array($this->pieces[$index][1]) && is_array($data)) {
                 $this->pieces[$index][1] = [
@@ -414,13 +415,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function isClauseDefined(string $clause): bool
     {
-        foreach ($this->pieces as $piece) {
-            if ($piece[0] === $clause) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($this->pieces, static fn(array $piece) => $piece[0] === $clause);
     }
 
     /**
@@ -440,7 +435,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function removeClause(string $clause): static
     {
-        $index = ArrayUtil::findIndex($this->pieces, static fn(array $piece) => $piece[0] === $clause);
+        $index = array_find_key($this->pieces, static fn(array $piece) => $piece[0] === $clause);
 
         if ($index !== null) {
             array_splice($this->pieces, $index, 1);
@@ -460,7 +455,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function replaceClause(string $clause, callable $fn): static
     {
-        $index = ArrayUtil::findIndex($this->pieces, static fn(array $piece) => $piece[0] === $clause);
+        $index = array_find_key($this->pieces, static fn(array $piece) => $piece[0] === $clause);
 
         if ($index === null) {
             throw QueryException::missingClause($clause);

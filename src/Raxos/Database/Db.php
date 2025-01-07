@@ -5,10 +5,8 @@ namespace Raxos\Database;
 
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use Raxos\Database\Connector\Connector;
 use Raxos\Database\Contract\{ConnectionInterface, QueryInterface, StatementInterface};
 use Raxos\Database\Error\{ConnectionException, DatabaseException};
-use function is_subclass_of;
 
 /**
  * Class Db
@@ -49,40 +47,6 @@ class Db
     private static array $connected = [];
 
     /**
-     * Creates and registers a new connection instance.
-     *
-     * @param class-string<ConnectionInterface> $connectionClass
-     * @param Connector $connector
-     * @param string $id
-     * @param bool $connectImmediately
-     *
-     * @return ConnectionInterface
-     * @throws DatabaseException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
-     */
-    public static function create(string $connectionClass, Connector $connector, string $id = 'default', bool $connectImmediately = true): ConnectionInterface
-    {
-        if (!is_subclass_of($connectionClass, ConnectionInterface::class)) {
-            throw ConnectionException::invalidImplementation();
-        }
-
-        /** @var ConnectionInterface $connection */
-        $connection = new $connectionClass($id, $connector);
-
-        if ($connectImmediately) {
-            self::$connected[$id] = true;
-            $connection->connect();
-        } else {
-            self::$connected[$id] = false;
-        }
-
-        static::register($connection);
-
-        return $connection;
-    }
-
-    /**
      * Gets a connection by the given ID, or the default one when the ID
      * was omitted.
      *
@@ -102,7 +66,7 @@ class Db
             return null;
         }
 
-        if (!self::$connected[$id] && !$connection->isConnected()) {
+        if (!self::$connected[$id] && !$connection->connected) {
             self::$connected[$id] = true;
             $connection->connect();
         }
@@ -132,30 +96,26 @@ class Db
      * Registers the given connection with the given ID.
      *
      * @param ConnectionInterface $connection
+     * @param string|null $id
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function register(ConnectionInterface $connection): void
+    public static function register(ConnectionInterface $connection, ?string $id = null): void
     {
-        self::$connections[$connection->id] = $connection;
+        self::$connections[$id ??= self::$connectionId] = $connection;
+        self::$connected[$id] = false;
     }
 
     /**
      * Unregisters the given connection or connection with the given ID.
      *
-     * @param ConnectionInterface|string $idOrConnection
-     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function unregister(ConnectionInterface|string $idOrConnection): void
+    public static function unregister(string $id): void
     {
-        if ($idOrConnection instanceof ConnectionInterface) {
-            $idOrConnection = $idOrConnection->id;
-        }
-
-        unset(self::$connections[$idOrConnection]);
+        unset(self::$connections[$id]);
     }
 
     /**
@@ -394,7 +354,7 @@ class Db
      */
     public static function inTransaction(?string $id = null): bool
     {
-        return static::getOrFail($id)->inTransaction();
+        return static::getOrFail($id)->inTransaction;
     }
 
     /**

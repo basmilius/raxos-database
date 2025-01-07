@@ -12,13 +12,13 @@ use Raxos\Database\Orm\Contract\{AttributeInterface, CasterInterface};
  * Defines a caster for the field. For example, a datetime within the
  * database can be 'cast' to a DateTime instance on php's side.
  *
- * ```
+ * <code>
  * class Post extends Model {
  *     #[Column]
  *     #[Caster(DateTimeCast::class)
  *     public DateTime $publishedOn;
  * }
- * ```
+ * </code>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Attribute

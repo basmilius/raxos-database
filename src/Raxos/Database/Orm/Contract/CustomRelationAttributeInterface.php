@@ -10,7 +10,7 @@ use Raxos\Database\Orm\Structure\Structure;
 /**
  * Interface CustomRelationAttributeInterface
  *
- * ```
+ * <code>
  * #[Attribute(Attribute::TARGET_PROPERTY)]
  * class Friends implements CustomRelationAttributeInterface
  * {
@@ -19,7 +19,7 @@ use Raxos\Database\Orm\Structure\Structure;
  *         return new FriendsRelation($this, $property, $declaringStructure);
  *     }
  * }
- * ```
+ * </code>
  *
  * @template TDeclaringModel of Model
  * @template TReferenceModel of Model
