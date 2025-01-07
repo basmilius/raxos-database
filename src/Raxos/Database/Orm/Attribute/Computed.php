@@ -21,7 +21,7 @@ use Raxos\Database\Orm\Contract\AttributeInterface;
  *
  *     public static function getQueryableColumns(Select $select): Select {
  *         return $select->add(
- *             self::column('*'),
+ *             self::col('*'),
  *
  *             claims: (((sub query)))
  *         );
