@@ -54,7 +54,7 @@
             "dist": {
                 "type": "path",
                 "url": "../foundation",
-                "reference": "35a6ba52ca843a1f1ddb893094f7bdf576ca8409"
+                "reference": "e16bc864d6d3405874bdbacd2a21ef78720000cc"
             },
             "require": {
                 "ext-dom": "*",
