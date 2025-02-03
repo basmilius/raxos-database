@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Grammar;
 
-use Raxos\Database\Contract\QueryInterface;
+use Raxos\Database\Contract\GrammarInterface;
+use Raxos\Database\Error\UnsupportedException;
 use function array_map;
 use function explode;
 use function implode;
@@ -16,7 +17,7 @@ use function str_contains;
  * @package Raxos\Database\Grammar
  * @since 1.1.0
  */
-abstract readonly class Grammar
+abstract readonly class Grammar implements GrammarInterface
 {
 
     /**
@@ -36,90 +37,80 @@ abstract readonly class Grammar
     ) {}
 
     /**
-     * Composes an optimize table query.
-     *
-     * @param QueryInterface $query
-     * @param string $table
-     *
-     * @return QueryInterface
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
+     * @since 21-01-2025
      */
-    public function composeOptimizeTable(QueryInterface $query, string $table): QueryInterface
+    public function compileOptimizeTable(string $table): string
     {
-        return $query->addPiece('optimize table', $this->escape($table));
+        throw UnsupportedException::optimizeTable();
     }
 
     /**
-     * Composes a truncate table query.
-     *
-     * @param QueryInterface $query
-     * @param string $table
-     *
-     * @return QueryInterface
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
+     * @since 21-01-2025
      */
-    public function composeTruncateTable(QueryInterface $query, string $table): QueryInterface
+    public function compileTruncateTable(string $table): string
     {
-        return $query->addPiece('truncate table', $this->escape($table));
+        throw UnsupportedException::truncateTable();
     }
 
     /**
      * Escapes the column.
      *
-     * @param string $identifier
+     * @param string $value
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
-     * @see Grammar::escapeIdentifier()
+     * @see Grammar::realEscape()
      */
-    public function escape(string $identifier): string
+    public function escape(string $value): string
     {
         static $cache = [];
 
-        return $cache[$identifier] ??= $this->escapeIdentifier($identifier);
+        return $cache[$value] ??= $this->realEscape($value);
     }
 
     /**
      * Real implementation of {@see Grammar::escape()}.
      *
-     * @param string $identifier
+     * @param string $value
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.2.0
      */
-    private function escapeIdentifier(string $identifier): string
+    private function realEscape(string $value): string
     {
-        if (empty($identifier)) {
-            return $identifier;
+        if (empty($value)) {
+            return $value;
         }
 
-        if (str_contains($identifier, '(')) {
-            return $identifier;
+        if (str_contains($value, '(')) {
+            return $value;
         }
 
-        if (str_contains($identifier, '.')) {
-            $identifier = explode('.', $identifier);
-            $identifier = array_map($this->escape(...), $identifier);
+        if (str_contains($value, '.')) {
+            $value = explode('.', $value);
+            $value = array_map($this->escape(...), $value);
 
-            return implode('.', $identifier);
+            return implode('.', $value);
         }
 
-        if (str_contains($identifier, ' ')) {
-            $identifier = explode(' ', $identifier);
-            $identifier[0] = $this->escape($identifier[0]);
+        if (str_contains($value, ' ')) {
+            $value = explode(' ', $value);
+            $value[0] = $this->escape($value[0]);
 
-            return implode(' ', $identifier);
+            return implode(' ', $value);
         }
 
-        if ($identifier === '*' || str_contains($identifier, $this->escapers[0])) {
-            return $identifier;
+        if ($value === '*' || str_contains($value, $this->escapers[0])) {
+            return $value;
         }
 
-        return $this->escapers[0] . $identifier . $this->escapers[1];
+        return $this->escapers[0] . $value . $this->escapers[1];
     }
 
 }

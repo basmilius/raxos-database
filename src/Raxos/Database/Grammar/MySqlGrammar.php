@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Grammar;
 
+use function sprintf;
+
 /**
  * Class MySqlGrammar
  *
@@ -23,6 +25,32 @@ readonly class MySqlGrammar extends Grammar
     {
         parent::__construct(
             escapers: ['`', '`']
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 21-01-2025
+     */
+    public function compileOptimizeTable(string $table): string
+    {
+        return sprintf(
+            'optimize table %s;',
+            $this->escape($table)
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 21-01-2025
+     */
+    public function compileTruncateTable(string $table): string
+    {
+        return sprintf(
+            'truncate table %s;',
+            $this->escape($table)
         );
     }
 
