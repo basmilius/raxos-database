@@ -47,7 +47,7 @@ readonly class InComparatorAwareLiteral extends ComparatorAwareLiteral
 
         if ($options instanceof ArrayableInterface) {
             $options = $options->toArray();
-        } else if ($options instanceof Traversable) {
+        } elseif ($options instanceof Traversable) {
             $options = iterator_to_array($options);
         }
 

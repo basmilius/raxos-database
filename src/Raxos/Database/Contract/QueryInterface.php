@@ -8,11 +8,10 @@ use Generator;
 use PDO;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Foundation\Collection\Paginated;
-use Raxos\Foundation\Contract\ArrayListInterface;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Query\Struct\{ColumnLiteral, Literal, Select};
-use Raxos\Foundation\Collection\ArrayList;
+use Raxos\Foundation\Collection\{ArrayList, Paginated};
+use Raxos\Foundation\Contract\ArrayListInterface;
 use stdClass;
 use Stringable;
 
