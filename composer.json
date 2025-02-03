@@ -1,29 +1,29 @@
 {
-	"name": "raxos/database",
-	"description": "Database ORM and Query Builder.",
-	"license": "mit",
+    "name": "raxos/database",
+    "description": "Database ORM and Query Builder.",
+    "license": "mit",
     "minimum-stability": "dev",
-    "prefer-stable" : true,
-	"type": "library",
-	"authors": [
-		{
-			"name": "Bas Milius",
-			"email": "bas@mili.us"
-		}
-	],
-	"autoload": {
+    "prefer-stable": true,
+    "type": "library",
+    "authors": [
+        {
+            "name": "Bas Milius",
+            "email": "bas@mili.us"
+        }
+    ],
+    "autoload": {
         "files": [
             "src/Raxos/Database/Query/functions.php"
         ],
-		"psr-4": {
-			"Raxos\\Database\\": "src/Raxos/Database"
-		}
-	},
-	"config": {
-		"platform": {
-			"php": "8.4"
-		}
-	},
+        "psr-4": {
+            "Raxos\\Database\\": "src/Raxos/Database"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "8.4"
+        }
+    },
     "repositories": [
         {
             "type": "path",
@@ -31,9 +31,9 @@
             "symlink": true
         }
     ],
-	"require": {
-        "ext-pdo" : "*",
-		"jetbrains/phpstorm-attributes": "^1.2",
+    "require": {
+        "ext-pdo": "*",
+        "jetbrains/phpstorm-attributes": "^1.2",
         "raxos/foundation": "*"
-	}
+    }
 }
