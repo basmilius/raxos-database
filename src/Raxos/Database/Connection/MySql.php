@@ -6,12 +6,12 @@ namespace Raxos\Database\Connection;
 use Pdo;
 use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
-use Raxos\Database\Grammar\MariaDbGrammar;
+use Raxos\Database\Grammar\MySqlGrammar;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
 use Raxos\Database\Orm\Contract\CacheInterface;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Query\MariaDbQuery;
+use Raxos\Database\Query\MySqlQuery;
 use SensitiveParameter;
 use function Raxos\Database\Query\literal;
 
@@ -51,7 +51,7 @@ final class MySql extends Connection
             PDO::ATTR_EMULATE_PREPARES => false
         ];
 
-        parent::__construct($dsn, $username, $password, $options, $cache, new MariaDbGrammar(), $logger);
+        parent::__construct($dsn, $username, $password, $options, $cache, new MySqlGrammar(), $logger);
     }
 
     /**
@@ -118,7 +118,7 @@ final class MySql extends Connection
      */
     public function query(bool $prepared = true): QueryInterface
     {
-        return new MariaDbQuery($this, $prepared);
+        return new MySqlQuery($this, $prepared);
     }
 
     /**
