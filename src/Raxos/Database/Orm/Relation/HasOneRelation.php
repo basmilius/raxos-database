@@ -106,7 +106,9 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
      */
     public function query(Model $instance): QueryInterface
     {
-        return $this->referenceStructure->class::where($this->referenceKey, $instance->{$this->declaringKey->column});
+        return $this->referenceStructure->class::where($this->referenceKey, $instance->{$this->declaringKey->column})
+            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->attribute->orderBy));
     }
 
     /**
@@ -117,7 +119,9 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
     public function rawQuery(): QueryInterface
     {
         return $this->referenceStructure->class::select(prepared: false)
-            ->where($this->referenceKey, $this->declaringKey);
+            ->where($this->referenceKey, $this->declaringKey)
+            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->attribute->orderBy));
     }
 
     /**
@@ -140,6 +144,8 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
 
         $this->referenceStructure->class::select()
             ->whereIn($this->referenceKey, $values->toArray())
+            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                ->orderBy($this->attribute->orderBy))
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
             ->array();
     }
