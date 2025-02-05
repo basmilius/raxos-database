@@ -49,7 +49,7 @@ final class Struct
      */
     public static function coalesce(QueryInterface|QueryLiteralInterface|Stringable|string|float|int ...$values): QueryStructInterface
     {
-        return new CoalesceStruct(...$values);
+        return new CoalesceStruct($values);
     }
 
     /**
