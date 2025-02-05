@@ -10,7 +10,7 @@ use Raxos\Database\Error\UnsupportedException;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Contract
- * @since 21-01-2025
+ * @since 1.5.0
  */
 interface GrammarInterface
 {
@@ -26,7 +26,7 @@ interface GrammarInterface
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
-     * @since 21-01-2025
+     * @since 1.5.0
      */
     public function escape(string $value): string;
 
@@ -38,7 +38,7 @@ interface GrammarInterface
      * @return string
      * @throws UnsupportedException
      * @author Bas Milius <bas@mili.us>
-     * @since 21-01-2025
+     * @since 1.5.0
      */
     public function compileOptimizeTable(string $table): string;
 
@@ -50,7 +50,7 @@ interface GrammarInterface
      * @return string
      * @throws UnsupportedException
      * @author Bas Milius <bas@mili.us>
-     * @since 21-01-2025
+     * @since 1.5.0
      */
     public function compileTruncateTable(string $table): string;
 

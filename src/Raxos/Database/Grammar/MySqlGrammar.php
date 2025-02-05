@@ -31,7 +31,7 @@ readonly class MySqlGrammar extends Grammar
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 21-01-2025
+     * @since 1.5.0
      */
     public function compileOptimizeTable(string $table): string
     {
@@ -44,7 +44,7 @@ readonly class MySqlGrammar extends Grammar
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 21-01-2025
+     * @since 1.5.0
      */
     public function compileTruncateTable(string $table): string
     {

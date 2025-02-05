@@ -9,11 +9,12 @@ use Raxos\Database\Orm\Attribute\HasManyThrough;
 use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Query\Struct;
 use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
-use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
+use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Select;
 use function array_filter;
 use function array_values;
-use function Raxos\Database\Query\in;
 
 /**
  * Class HasManyThroughRelation
@@ -148,7 +149,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
             return;
         }
 
-        $select = Select::new()->add(
+        $select = new Select()->add(
             $this->referenceStructure->class::col('*'),
             __local_linking_key: $this->declaringLinkingKey
         );
@@ -156,7 +157,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
         $this->referenceStructure->class::select($select)
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceKey, $this->referenceLinkingKey))
-            ->where($this->declaringLinkingKey, in($values->toArray()))
+            ->where($this->declaringLinkingKey, Struct::in($values->toArray()))
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))

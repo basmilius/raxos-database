@@ -10,7 +10,7 @@ use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, QueryableIn
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
 use Raxos\Database\Orm\Structure\StructureHelper;
-use Raxos\Database\Query\Struct\Select;
+use Raxos\Database\Query\Select;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
 use Raxos\Foundation\Contract\{ArrayableInterface, DebuggableInterface};
 use Stringable;

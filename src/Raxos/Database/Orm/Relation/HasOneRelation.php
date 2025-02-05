@@ -10,7 +10,7 @@ use Raxos\Database\Orm\Contract\{RelationInterface, WritableRelationInterface};
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
-use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Database\Query\Literal\ColumnLiteral;
 use Raxos\Foundation\Util\ArrayUtil;
 use function assert;
 

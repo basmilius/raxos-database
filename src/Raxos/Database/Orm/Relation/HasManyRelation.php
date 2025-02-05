@@ -9,11 +9,11 @@ use Raxos\Database\Orm\Attribute\HasMany;
 use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Query\Struct;
 use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
-use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Database\Query\Literal\ColumnLiteral;
 use function array_filter;
 use function array_values;
-use function Raxos\Database\Query\in;
 
 /**
  * Class HasManyRelation
@@ -124,7 +124,7 @@ final readonly class HasManyRelation implements RelationInterface
         }
 
         $this->referenceStructure->class::select()
-            ->where($this->referenceKey, in($values->toArray()))
+            ->where($this->referenceKey, Struct::in($values->toArray()))
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))

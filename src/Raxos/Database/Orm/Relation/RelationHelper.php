@@ -8,7 +8,7 @@ use Raxos\Database\Contract\{InternalQueryInterface, QueryInterface};
 use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Structure\Structure;
-use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Database\Query\Literal\ColumnLiteral;
 use function is_numeric;
 
 /**

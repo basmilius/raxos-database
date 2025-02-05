@@ -235,6 +235,7 @@ interface ConnectionInterface
      * @param array $options
      *
      * @return StatementInterface
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */

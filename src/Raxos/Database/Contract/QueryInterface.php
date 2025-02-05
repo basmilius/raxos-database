@@ -9,9 +9,10 @@ use PDO;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
-use Raxos\Database\Query\Struct\{ColumnLiteral, Literal, Select};
+use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Select;
 use Raxos\Foundation\Collection\{ArrayList, Paginated};
-use Raxos\Foundation\Contract\ArrayListInterface;
+use Raxos\Foundation\Contract\{ArrayableInterface, ArrayListInterface};
 use stdClass;
 use Stringable;
 
@@ -165,8 +166,8 @@ interface QueryInterface
     /**
      * Opens a parenthesis group.
      *
-     * @param string|null $lhs
-     * @param string|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
@@ -175,8 +176,8 @@ interface QueryInterface
      * @since 1.0.0
      */
     public function parenthesisOpen(
-        ?string $lhs = null,
-        ?string $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
         BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static;
 
@@ -401,7 +402,7 @@ interface QueryInterface
     /**
      * Returns a query that returns a value. Useful for insert queries.
      *
-     * @param Literal|Literal[]|string|string[] $column
+     * @param QueryLiteralInterface|QueryLiteralInterface[]|string|string[] $column
      *
      * @return string[]|int[]|string|int
      * @throws ExecutionException
@@ -409,7 +410,7 @@ interface QueryInterface
      * @since 1.0.16
      * @author Bas Milius <bas@mili.us>
      */
-    public function runReturning(array|Literal|string $column): array|string|int;
+    public function runReturning(QueryLiteralInterface|array|string $column): array|string|int;
 
     /**
      * Executes the query and returns the first row. When no result is found,
@@ -453,6 +454,7 @@ interface QueryInterface
      * @param array $options
      *
      * @return StatementInterface
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -507,13 +509,13 @@ interface QueryInterface
     /**
      * Adds a `group by $fields` expression.
      *
-     * @param Literal|Literal[]|string[]|string $fields
+     * @param QueryLiteralInterface|QueryLiteralInterface[]|string[]|string $fields
      *
      * @return QueryInterface<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function groupBy(Literal|array|string $fields): static;
+    public function groupBy(QueryLiteralInterface|array|string $fields): static;
 
     /**
      * Adds a `having $field $comparator $value` expression.
@@ -548,15 +550,15 @@ interface QueryInterface
     /**
      * Adds a `having $field in ($options)` expression.
      *
-     * @param Literal|string $field
-     * @param iterable $options
+     * @param QueryLiteralInterface|string $field
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function havingIn(Literal|string $field, iterable $options): static;
+    public function havingIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static;
 
     /**
      * Adds a `having not exists $query` expression.
@@ -573,39 +575,39 @@ interface QueryInterface
     /**
      * Adds a `having $field is not null` expression.
      *
-     * @param Literal|string $field
+     * @param QueryLiteralInterface|string $field
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function havingNotNull(Literal|string $field): static;
+    public function havingNotNull(QueryLiteralInterface|string $field): static;
 
     /**
      * Adds a `having $field not in ($options)` expression.
      *
-     * @param Literal|string $field
-     * @param iterable $options
+     * @param QueryLiteralInterface|string $field
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function havingNotIn(Literal|string $field, iterable $options): static;
+    public function havingNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static;
 
     /**
      * Adds a `having $field is null` expression.
      *
-     * @param Literal|string $field
+     * @param QueryLiteralInterface|string $field
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function havingNull(Literal|string $field): static;
+    public function havingNull(QueryLiteralInterface|string $field): static;
 
     /**
      * Adds a `limit $limit offset $offset` expression.
@@ -633,8 +635,8 @@ interface QueryInterface
     /**
      * Adds a `on $left $comparator $right` expression.
      *
-     * @param Stringable|QueryValueInterface|string|int|float|bool $lhs
-     * @param Stringable|QueryValueInterface|string|int|float|bool $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<TModel>
@@ -643,7 +645,7 @@ interface QueryInterface
      * @since 1.0.0
      */
     public function on(
-        Stringable|QueryValueInterface|string|int|float|bool $lhs,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs,
         BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
         BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static;
@@ -651,7 +653,7 @@ interface QueryInterface
     /**
      * Adds an `on duplicate key update $fields` expression.
      *
-     * @param string[]|string $fields
+     * @param ColumnLiteral[]|string[]|string $fields
      *
      * @return QueryInterface<TModel>
      * @author Bas Milius <bas@mili.us>
@@ -708,15 +710,15 @@ interface QueryInterface
     /**
      * Adds an `or $field in ($options)` expression.
      *
-     * @param Literal|string $field
-     * @param iterable $options
+     * @param QueryLiteralInterface|string $field
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereIn(Literal|string $field, iterable $options): static;
+    public function orWhereIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static;
 
     /**
      * Adds an `or not exists $query` expression.
@@ -749,39 +751,39 @@ interface QueryInterface
     /**
      * Adds an `or where $field not in ($options)` expression.
      *
-     * @param Literal|string $field
-     * @param iterable $options
+     * @param QueryLiteralInterface|string $field
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function orWhereNotIn(Literal|string $field, iterable $options): static;
+    public function orWhereNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static;
 
     /**
      * Adds an `or $field is not null` expression.
      *
-     * @param Literal|string $field
+     * @param QueryLiteralInterface|string $field
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereNotNull(Literal|string $field): static;
+    public function orWhereNotNull(QueryLiteralInterface|string $field): static;
 
     /**
      * Adds an `or $field is null` expression.
      *
-     * @param Literal|string $field
+     * @param QueryLiteralInterface|string $field
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereNull(Literal|string $field): static;
+    public function orWhereNull(QueryLiteralInterface|string $field): static;
 
     /**
      * Queries the given relation based on one condition.
@@ -809,35 +811,35 @@ interface QueryInterface
     /**
      * Adds an `order by $fields` expression.
      *
-     * @param Literal[]|string[]|Literal|string $fields
+     * @param QueryLiteralInterface[]|string[]|QueryLiteralInterface|string $fields
      *
      * @return QueryInterface<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orderBy(Literal|array|string $fields): static;
+    public function orderBy(QueryLiteralInterface|array|string $fields): static;
 
     /**
      * Adds an `order by $field asc` expression.
      *
-     * @param Literal|string $field
+     * @param QueryLiteralInterface|string $field
      *
      * @return QueryInterface<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orderByAsc(Literal|string $field): static;
+    public function orderByAsc(QueryLiteralInterface|string $field): static;
 
     /**
      * Adds an `order by $field desc` expression.
      *
-     * @param Literal|string $field
+     * @param QueryLiteralInterface|string $field
      *
      * @return QueryInterface<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orderByDesc(Literal|string $field): static;
+    public function orderByDesc(QueryLiteralInterface|string $field): static;
 
     /**
      * Adds a `set $field = $value` expression.
@@ -951,15 +953,15 @@ interface QueryInterface
     /**
      * Adds a `where $field in ($options)` expression.
      *
-     * @param Literal|string $field
-     * @param iterable $options
+     * @param QueryLiteralInterface|string $field
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereIn(Literal|string $field, iterable $options): static;
+    public function whereIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static;
 
     /**
      * Adds a `where not exists $query` expression.
@@ -992,39 +994,39 @@ interface QueryInterface
     /**
      * Adds a `where $field not in ($options)` expression.
      *
-     * @param Literal|string $field
-     * @param iterable $options
+     * @param QueryLiteralInterface|string $field
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function whereNotIn(Literal|string $field, iterable $options): static;
+    public function whereNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static;
 
     /**
      * Adds a `where $field is not null` expression.
      *
-     * @param Literal|string $field
+     * @param QueryLiteralInterface|string $field
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereNotNull(Literal|string $field): static;
+    public function whereNotNull(QueryLiteralInterface|string $field): static;
 
     /**
      * Adds a `where $field is null` expression.
      *
-     * @param Literal|string $field
+     * @param QueryLiteralInterface|string $field
      *
      * @return QueryInterface<TModel>
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereNull(Literal|string $field): static;
+    public function whereNull(QueryLiteralInterface|string $field): static;
 
     /**
      * Adds a set of where expressions for the primary key of the given

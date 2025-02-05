@@ -6,14 +6,14 @@ namespace Raxos\Database\Orm\Relation;
 use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsTo;
+use Raxos\Database\Query\Struct;
 use Raxos\Database\Orm\Contract\{RelationInterface, WritableRelationInterface};
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
-use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Database\Query\Literal\ColumnLiteral;
 use Raxos\Foundation\Util\ArrayUtil;
 use function assert;
-use function Raxos\Database\Query\in;
 
 /**
  * Class BelongsToRelation
@@ -140,7 +140,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         }
 
         $this->referenceStructure->class::select()
-            ->where($this->referenceKey, in($values->toArray()))
+            ->where($this->referenceKey, Struct::in($values->toArray()))
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
             ->array();
     }

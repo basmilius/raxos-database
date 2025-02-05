@@ -10,7 +10,7 @@ use Raxos\Foundation\Error\ExceptionId;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Error
- * @since 21-01-2025
+ * @since 1.5.0
  */
 final class UnsupportedException extends DatabaseException
 {
@@ -20,7 +20,7 @@ final class UnsupportedException extends DatabaseException
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
-     * @since 21-01-2025
+     * @since 1.5.0
      */
     public static function optimizeTable(): self
     {
@@ -36,7 +36,7 @@ final class UnsupportedException extends DatabaseException
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
-     * @since 21-01-2025
+     * @since 1.5.0
      */
     public static function truncateTable(): self
     {

@@ -8,11 +8,12 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsToThrough;
 use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Query\Struct;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
-use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
+use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Select;
 use Raxos\Foundation\Util\ArrayUtil;
-use function Raxos\Database\Query\in;
 
 /**
  * Class BelongsToThroughRelation
@@ -146,7 +147,7 @@ final readonly class BelongsToThroughRelation implements RelationInterface
             return;
         }
 
-        $select = Select::new()->add(
+        $select = new Select()->add(
             $this->referenceStructure->class::col('*'),
             __local_linking_key: $this->declaringLinkingKey
         );
@@ -154,7 +155,7 @@ final readonly class BelongsToThroughRelation implements RelationInterface
         $this->referenceStructure->class::select($select)
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
-            ->where($this->declaringLinkingKey, in($values->toArray()))
+            ->where($this->declaringLinkingKey, Struct::in($values->toArray()))
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
             ->array();
     }

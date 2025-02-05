@@ -5,6 +5,7 @@ namespace Raxos\Database\Query;
 
 use Generator;
 use PDO;
+use PDOException;
 use PDOStatement;
 use Raxos\Database\Contract\{ConnectionInterface, InternalQueryInterface, QueryInterface, StatementInterface};
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
@@ -50,6 +51,7 @@ class Statement implements StatementInterface
      * @param QueryInterface|string $query
      * @param array $options
      *
+     * @throws QueryException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -60,7 +62,16 @@ class Statement implements StatementInterface
     )
     {
         $this->sql = $query instanceof QueryInterface ? $query->toSql() : $query;
-        $this->pdoStatement = $connection->pdo->prepare($this->sql, $options);
+
+        try {
+            $this->pdoStatement = $connection->pdo->prepare($this->sql, $options);
+        } catch (PDOException $err) {
+            if ($err->getCode() !== '42000') {
+                throw $err;
+            }
+
+            throw QueryException::syntaxError($this->sql, $err);
+        }
     }
 
     /**

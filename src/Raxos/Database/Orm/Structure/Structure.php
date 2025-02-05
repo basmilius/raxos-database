@@ -14,7 +14,7 @@ use Raxos\Database\Orm\Contract\{CustomRelationAttributeInterface, InitializeInt
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
-use Raxos\Database\Query\Struct\ColumnLiteral;
+use Raxos\Database\Query\Literal\ColumnLiteral;
 use function array_any;
 use function array_key_exists;
 use function array_map;

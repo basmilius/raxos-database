@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Error;
 
+use PDOException;
 use Raxos\Foundation\Error\ExceptionId;
 use function sprintf;
 
@@ -84,6 +85,22 @@ final class QueryException extends DatabaseException
             ExceptionId::for(__METHOD__),
             'db_query_invalid_model',
             $message
+        );
+    }
+
+    /**
+     * Returns a missing alias exception.
+     *
+     * @return self
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
+    public static function missingAlias(): self
+    {
+        return new self(
+            ExceptionId::for(__METHOD__),
+            'db_query_missing_alias',
+            'The query performs a select that requires an alias.'
         );
     }
 
@@ -186,6 +203,26 @@ final class QueryException extends DatabaseException
             ExceptionId::for(__METHOD__),
             'db_query_primary_key_mismatch',
             sprintf('Too many primary key values for model "%s".', $modelClass)
+        );
+    }
+
+    /**
+     * Returns the exception for when a syntax error is found in a query.
+     *
+     * @param string $sql
+     * @param PDOException $err
+     *
+     * @return self
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.5.0
+     */
+    public static function syntaxError(string $sql, PDOException $err): self
+    {
+        return new self(
+            ExceptionId::for(__METHOD__),
+            'db_query_syntax_error',
+            sprintf('Syntax error in query: %s.', $sql),
+            $err
         );
     }
 

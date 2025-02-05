@@ -4,12 +4,14 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use BackedEnum;
-use Raxos\Database\Contract\{QueryInterface, QueryValueInterface};
+use Raxos\Database\Contract\{QueryInterface, QueryLiteralInterface, QueryValueInterface};
 use Raxos\Database\Contract\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
 use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
-use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
+use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Select;
+use Raxos\Foundation\Contract\ArrayableInterface;
 use Raxos\Foundation\Contract\ArrayListInterface;
 use Stringable;
 use function is_array;
@@ -321,7 +323,7 @@ trait Queryable
      * Returns a `having $column in ($options)` query for the model.
      *
      * @param ColumnLiteral $column
-     * @param iterable $options
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
      * @throws ConnectionException
@@ -331,7 +333,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingIn()
      */
-    public static function havingIn(ColumnLiteral $column, iterable $options): QueryInterface
+    public static function havingIn(ColumnLiteral $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->havingIn($column, $options);
@@ -360,7 +362,7 @@ trait Queryable
      * Returns a `having $column not in ($options)` query for the model.
      *
      * @param ColumnLiteral $column
-     * @param iterable $options
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
      * @throws ConnectionException
@@ -370,7 +372,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingNotIn()
      */
-    public static function havingNotIn(ColumnLiteral $column, iterable $options): QueryInterface
+    public static function havingNotIn(ColumnLiteral $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->havingNotIn($column, $options);
@@ -417,7 +419,7 @@ trait Queryable
     /**
      * Returns a new select query for the model.
      *
-     * @param Select|Stringable|array|string|int $keys
+     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
      * @return QueryInterface<static>
@@ -428,7 +430,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::select()
      */
-    public static function select(Select|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function select(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
         return self::baseSelect(self::query($prepared)->select(...), $keys);
     }
@@ -436,7 +438,7 @@ trait Queryable
     /**
      * Returns a new select distinct query for the model.
      *
-     * @param Select|Stringable|array|string|int $keys
+     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
      * @return QueryInterface<static>
@@ -447,7 +449,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectDistinct()
      */
-    public static function selectDistinct(Select|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function selectDistinct(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
         return self::baseSelect(self::query($prepared)->selectDistinct(...), $keys);
     }
@@ -455,7 +457,7 @@ trait Queryable
     /**
      * Returns a new select found rows query for the model.
      *
-     * @param Select|Stringable|array|string|int $keys
+     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
      * @return QueryInterface<static>
@@ -466,7 +468,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectFoundRows()
      */
-    public static function selectFoundRows(Select|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function selectFoundRows(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
         return self::baseSelect(self::query($prepared)->selectFoundRows(...), $keys);
     }
@@ -475,7 +477,7 @@ trait Queryable
      * Returns a new select suffix query for the model.
      *
      * @param string $suffix
-     * @param Select|Stringable|array|string|int $keys
+     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
      * @return QueryInterface<static>
@@ -486,7 +488,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectSuffix()
      */
-    public static function selectSuffix(string $suffix, Select|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function selectSuffix(string $suffix, Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
         return self::baseSelect(static fn(array|string|int $keys) => self::query($prepared)->selectSuffix($suffix, $keys), $keys);
     }
@@ -539,7 +541,7 @@ trait Queryable
      * Returns a `where $column in ($options)` query for the model.
      *
      * @param ColumnLiteral $column
-     * @param iterable $options
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
      * @throws ConnectionException
@@ -549,7 +551,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereIn()
      */
-    public static function whereIn(ColumnLiteral $column, iterable $options): QueryInterface
+    public static function whereIn(ColumnLiteral $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->whereIn($column, $options);
@@ -578,7 +580,7 @@ trait Queryable
      * Returns a `where $column not in ($options)` query for the model.
      *
      * @param ColumnLiteral $column
-     * @param iterable $options
+     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
      * @throws ConnectionException
@@ -588,7 +590,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereNotIn()
      */
-    public static function whereNotIn(ColumnLiteral $column, iterable $options): QueryInterface
+    public static function whereNotIn(ColumnLiteral $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->whereNotIn($column, $options);
@@ -636,7 +638,7 @@ trait Queryable
      * Returns a new select query for the model.
      *
      * @param callable(Select):QueryInterface<static> $compose
-     * @param Select|Stringable|array|string|int $keys
+     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      *
      * @return QueryInterface<static>
      * @throws ConnectionException
@@ -645,7 +647,7 @@ trait Queryable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    private static function baseSelect(callable $compose, Select|Stringable|array|string|int $keys): QueryInterface
+    private static function baseSelect(callable $compose, Select|QueryValueInterface|Stringable|array|string|int $keys): QueryInterface
     {
         if (!($keys instanceof Select)) {
             if (!is_array($keys)) {

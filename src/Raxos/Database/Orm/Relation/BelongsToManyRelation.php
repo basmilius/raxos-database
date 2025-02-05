@@ -10,11 +10,12 @@ use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
-use Raxos\Database\Query\Struct\{ColumnLiteral, Select};
+use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Select;
+use Raxos\Database\Query\Struct;
 use function array_filter;
 use function array_values;
 use function implode;
-use function Raxos\Database\Query\in;
 use function sort;
 
 /**
@@ -158,7 +159,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
             return;
         }
 
-        $select = Select::new()->add(
+        $select = new Select()->add(
             $this->referenceStructure->class::col('*'),
             __local_linking_key: $this->declaringLinkingKey
         );
@@ -166,7 +167,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
         $this->referenceStructure->class::select($select)
             ->join($this->declaringLinkingKey->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
-            ->where($this->declaringLinkingKey, in($values->toArray()))
+            ->where($this->declaringLinkingKey, Struct::in($values->toArray()))
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
