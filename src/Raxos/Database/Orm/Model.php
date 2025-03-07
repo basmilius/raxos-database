@@ -25,6 +25,8 @@ use function sprintf;
  *
  * @mixin Queryable<static>
  *
+ * @property BackboneInterface<static> $backbone
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.0
@@ -44,7 +46,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     /**
      * Model constructor.
      *
-     * @param BackboneInterface|null $backbone
+     * @param BackboneInterface<static>|null $backbone
      *
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>

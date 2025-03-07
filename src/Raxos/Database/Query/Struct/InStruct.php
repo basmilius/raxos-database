@@ -11,6 +11,7 @@ use Raxos\Foundation\Contract\ArrayableInterface;
 use Stringable;
 use function array_map;
 use function is_int;
+use function is_string;
 
 /**
  * Class InStruct
@@ -71,7 +72,7 @@ final readonly class InStruct implements QueryStructInterface
         }
 
         if ($value instanceof BackedEnum) {
-            return $value->value;
+            return is_string($value->value) ? "'{$value->value}'" : $value->value;
         }
 
         try {

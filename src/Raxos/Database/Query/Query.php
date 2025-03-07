@@ -118,9 +118,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         $this->addPiece($clause);
 
-        $lhs && $this->unwrapValue($lhs);
-        $cmp && $this->addPiece($cmp);
-        $rhs && $this->unwrapValue($rhs);
+        $lhs !== null && $this->unwrapValue($lhs);
+        $cmp !== null && $this->addPiece($cmp);
+        $rhs !== null && $this->unwrapValue($rhs);
 
         return $this;
     }
@@ -364,7 +364,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function raw(string $expression): static
     {
-        return $this->addPiece($expression);
+        $this->pieces[] = [$expression, null, null];
+
+        return $this;
     }
 
     /**
@@ -463,9 +465,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $data = implode($separator ?? $this->grammar->columnSeparator, $data);
             }
 
-            if (!empty($clause)) {
-                $pieces[] = $clause;
-            }
+            $pieces[] = $clause;
 
             if (!empty($data)) {
                 $pieces[] = $data;
@@ -1072,9 +1072,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     public function orderBy(QueryLiteralInterface|array|string $fields): static
     {
         if ($fields instanceof QueryLiteralInterface) {
-            $fields = [
-                (string)$fields
-            ];
+            $fields = [(string)$fields];
         }
 
         if (is_string($fields)) {
@@ -1906,6 +1904,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $value instanceof QueryLiteralInterface => $this->raw((string)$value),
 
             $value instanceof Stringable => $this->raw((string)stringLiteral($value)),
+
+            is_bool($value) => $this->raw($value ? '1' : '0'),
 
             default => $this->raw((string)$this->addParam($value))
         };

@@ -10,7 +10,7 @@ use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryExceptio
 use Raxos\Database\Logger\EagerLoadEvent;
 use Raxos\Database\Orm\{Backbone, Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
-use Raxos\Database\Orm\Contract\{CustomRelationAttributeInterface, InitializeInterface, RelationInterface};
+use Raxos\Database\Orm\Contract\{BackboneInitializedInterface, CustomRelationAttributeInterface, InitializeInterface, RelationInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
@@ -127,6 +127,11 @@ final class Structure
         }
 
         $backbone = new Backbone($this->class, $result);
+
+        if (is_subclass_of($this->class, BackboneInitializedInterface::class)) {
+            $this->class::onBackboneInitialized($backbone, $result);
+        }
+
         $instance = $backbone->createInstance();
 
         $cache->set($this->parent?->class ?? $this->class, $primaryKeyValue, $instance);

@@ -49,7 +49,7 @@ interface BackboneInterface
     /**
      * Returns a new instance.
      *
-     * @return Model
+     * @return TModel&Model
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
