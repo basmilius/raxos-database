@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Contract;
 
 use Raxos\Database\Orm\Error\StructureException;
-use Raxos\Database\Orm\Model;
 
 /**
  * Interface BackboneInitializedInterface
