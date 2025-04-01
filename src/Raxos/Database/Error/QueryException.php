@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Error;
 
 use PDOException;
+use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Foundation\Error\ExceptionId;
 use function sprintf;
 
@@ -203,6 +204,26 @@ final class QueryException extends DatabaseException
             ExceptionId::for(__METHOD__),
             'db_query_primary_key_mismatch',
             sprintf('Too many primary key values for model "%s".', $modelClass)
+        );
+    }
+
+    /**
+     * Returns a structure exception.
+     *
+     * @param string $modelClass
+     * @param StructureException $err
+     *
+     * @return self
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.6.1
+     */
+    public static function structure(string $modelClass, StructureException $err): self
+    {
+        return new self(
+            ExceptionId::for(__METHOD__),
+            'db_query_structure',
+            sprintf('Something went wrong during the structure generation process for model "%s".', $modelClass),
+            $err
         );
     }
 

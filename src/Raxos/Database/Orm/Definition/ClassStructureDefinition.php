@@ -22,6 +22,7 @@ final readonly class ClassStructureDefinition implements JsonSerializable
      * @param string $connectionId
      * @param string[]|null $onDuplicateKeyUpdate
      * @param PolymorphicDefinition|null $polymorphic
+     * @param string|null $softDeleteColumn
      * @param string $table
      *
      * @author Bas Milius <bas@mili.us>
@@ -31,6 +32,7 @@ final readonly class ClassStructureDefinition implements JsonSerializable
         public string $connectionId,
         public ?array $onDuplicateKeyUpdate,
         public ?PolymorphicDefinition $polymorphic,
+        public ?string $softDeleteColumn,
         public string $table
     ) {}
 
@@ -43,6 +45,7 @@ final readonly class ClassStructureDefinition implements JsonSerializable
         'connection_id' => 'string',
         'on_duplicate_key_update' => 'string[]|null',
         'polymorphic' => 'Raxos\Database\Orm\Definition\PolymorphicDefinition|null',
+        'soft_delete_column' => 'string|null',
         'table' => 'string'
     ])]
     public function jsonSerialize(): array
@@ -51,6 +54,7 @@ final readonly class ClassStructureDefinition implements JsonSerializable
             'connection_id' => $this->connectionId,
             'on_duplicate_key_update' => $this->onDuplicateKeyUpdate,
             'polymorphic' => $this->polymorphic,
+            'soft_delete_column' => $this->softDeleteColumn,
             'table' => $this->table
         ];
     }

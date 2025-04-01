@@ -51,6 +51,7 @@ final class Structure
      * @param string[]|null $onDuplicateKeyUpdate
      * @param PolymorphicDefinition|null $polymorphic
      * @param PropertyDefinition[] $properties
+     * @param string|null $softDeleteColumn
      * @param string $table
      * @param self|null $parent
      *
@@ -64,6 +65,7 @@ final class Structure
         public readonly ?array $onDuplicateKeyUpdate,
         public readonly ?PolymorphicDefinition $polymorphic,
         public readonly array $properties,
+        public readonly ?string $softDeleteColumn,
         public readonly string $table,
         public readonly ?self $parent = null
     )
@@ -334,7 +336,7 @@ final class Structure
     }
 
     /**
-     * Returns the first primary key as column literal for use in relations.
+     * Returns the first primary key as a column literal for use in relations.
      *
      * @return ColumnLiteral
      * @author Bas Milius <bas@mili.us>

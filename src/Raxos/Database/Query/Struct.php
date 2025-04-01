@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use Raxos\Database\Contract\{QueryInterface, QueryLiteralInterface, QueryStructInterface};
-use Raxos\Database\Query\Struct\{BetweenStruct, CoalesceStruct, ExistsStruct, GroupConcatStruct, InStruct, LiteralStruct, NotStruct, SubQueryStruct, VariableStruct};
+use Raxos\Database\Query\Struct\{BetweenStruct, CoalesceStruct, ExistsStruct, GroupConcatStruct, IfStruct, InStruct, LiteralStruct, NotStruct, SubQueryStruct, VariableStruct};
 use Raxos\Foundation\Contract\ArrayableInterface;
 use Stringable;
 
@@ -92,6 +92,26 @@ final class Struct
     ): QueryStructInterface
     {
         return new GroupConcatStruct($expression, $distinct, $orderBy, $separator, $limit, $offset);
+    }
+
+    /**
+     * Returns an `if($expression, $then, $else)` struct.
+     *
+     * @param QueryInterface|QueryLiteralInterface|Stringable|string|float|int $expression
+     * @param QueryInterface|QueryLiteralInterface|Stringable|string|float|int $then
+     * @param QueryInterface|QueryLiteralInterface|Stringable|string|float|int $else
+     *
+     * @return QueryStructInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.6.1
+     */
+    public static function if(
+        QueryInterface|QueryLiteralInterface|Stringable|string|float|int $expression,
+        QueryInterface|QueryLiteralInterface|Stringable|string|float|int $then,
+        QueryInterface|QueryLiteralInterface|Stringable|string|float|int $else
+    ): QueryStructInterface
+    {
+        return new IfStruct($expression, $then, $else);
     }
 
     /**

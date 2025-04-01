@@ -238,6 +238,15 @@ interface QueryInterface
     public function replaceClause(string $clause, callable $fn): static;
 
     /**
+     * Include soft deleted results.
+     *
+     * @return $this
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.6.1
+     */
+    public function withDeleted(): static;
+
+    /**
      * Associates a model.
      *
      * @param string $class

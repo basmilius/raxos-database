@@ -6,7 +6,7 @@ namespace Raxos\Database\Orm\Structure;
 use BackedEnum;
 use Generator;
 use Raxos\Database\Error\ConnectionException;
-use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, Table, Visible};
+use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, SoftDelete, Table, Visible};
 use Raxos\Database\Orm\Caster\BooleanCaster;
 use Raxos\Database\Orm\Contract\{AttributeInterface, CasterInterface, RelationAttributeInterface};
 use Raxos\Database\Orm\Definition\{ClassStructureDefinition, ColumnDefinition, MacroDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
@@ -81,6 +81,7 @@ final class StructureGenerator
                 $model->onDuplicateKeyUpdate,
                 $model->polymorphic,
                 $properties,
+                $model->softDeleteColumn,
                 $model->table,
                 $parent
             );
@@ -119,6 +120,7 @@ final class StructureGenerator
         $connectionId = $parent?->connection->id ?? 'default';
         $onDuplicateKeyUpdate = null;
         $polymorphic = null;
+        $softDeleteColumn = $parent?->softDeleteColumn;
         $table = $parent?->table;
 
         $attributes = $class->getAttributes(AttributeInterface::class, ReflectionAttribute::IS_INSTANCEOF);
@@ -147,6 +149,10 @@ final class StructureGenerator
                     $polymorphic = new PolymorphicDefinition($attr->column, $attr->map);
                     break;
 
+                case $attr instanceof SoftDelete:
+                    $softDeleteColumn = $attr->column;
+                    break;
+
                 case $attr instanceof Table:
                     $table = $attr->name;
                     break;
@@ -161,6 +167,7 @@ final class StructureGenerator
             $connectionId,
             $onDuplicateKeyUpdate,
             $polymorphic,
+            $softDeleteColumn,
             $table
         );
     }

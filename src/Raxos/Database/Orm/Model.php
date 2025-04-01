@@ -18,6 +18,7 @@ use function array_diff_key;
 use function array_key_exists;
 use function array_merge_recursive;
 use function implode;
+use function Raxos\Database\Query\literal;
 use function sprintf;
 
 /**
@@ -87,7 +88,13 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
         $cache = $this->backbone->cache;
         $cache->unset(static::class, $primaryKey);
 
-        self::delete($primaryKey);
+        if ($this->backbone->structure->softDeleteColumn !== null) {
+            self::update($primaryKey, [
+                $this->backbone->structure->softDeleteColumn => literal('now()')
+            ]);
+        } else {
+            self::delete($primaryKey);
+        }
     }
 
     /**

@@ -11,7 +11,7 @@ use Raxos\Foundation\Collection\ArrayList;
  *
  * @template TKey of array-key
  * @template TValue of Model
- * @template ArrayList<TKey, TValue>
+ * @extends ArrayList<TKey, TValue>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm

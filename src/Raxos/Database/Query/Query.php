@@ -17,6 +17,7 @@ use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Literal\Literal;
 use Raxos\Foundation\Collection\{ArrayList, Paginated};
 use Raxos\Foundation\Contract\{ArrayableInterface, DebuggableInterface};
 use stdClass;
@@ -69,6 +70,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     private ?string $modelClass = null;
     private array $pieces = [];
     private ?int $position = null;
+    private bool $withDeleted = false;
 
     private array $eagerLoad = [];
     private array $eagerLoadDisable = [];
@@ -364,7 +366,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function raw(string $expression): static
     {
-        $this->pieces[] = [$expression, null, null];
+        if ($this->position !== null) {
+            array_splice($this->pieces, $this->position++, 0, [[$expression, null, null]]);
+        } else {
+            $this->pieces[] = [$expression, null, null];
+        }
 
         return $this;
     }
@@ -429,6 +435,18 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.6.1
+     */
+    public function withDeleted(): static
+    {
+        $this->withDeleted = true;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
      * @author Bas Milius <bas@glybe.nl>
      * @since 1.0.0
      */
@@ -447,6 +465,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     public function withoutModel(): static
     {
         $this->modelClass = null;
+        $this->eagerLoad = [];
 
         return $this;
     }
@@ -490,6 +509,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $query->params = $this->params;
 
         return (int)$query
+            ->withoutModel()
             ->statement()
             ->fetchColumn();
     }
@@ -517,6 +537,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         return (int)$original
             ->replaceClause('select', static fn(array $piece) => ['select', 'count(*)', null])
+            ->withoutModel()
             ->statement()
             ->fetchColumn();
     }
@@ -673,10 +694,32 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function statement(array $options = []): StatementInterface
     {
-        $statement = new Statement($this->connection, $this, $options);
-
         if ($this->modelClass !== null) {
-            $statement->withModel($this->modelClass);
+            try {
+                $structure = StructureGenerator::for($this->modelClass);
+
+                if (!$this->withDeleted && $structure->softDeleteColumn !== null && $this->isClauseDefined('select')) {
+                    if ($this->isClauseDefined('where')) {
+                        $this->replaceClause('where', static function (array $piece) use ($structure): array {
+                            $softDeleteColumn = $structure->getColumn($structure->softDeleteColumn);
+
+                            $piece[0] = "where";
+                            $piece[1] = "{$softDeleteColumn} is null and";
+
+                            return $piece;
+                        });
+                    } else {
+                        $this->whereNull($structure->getColumn($structure->softDeleteColumn));
+                    }
+                }
+
+                $statement = new Statement($this->connection, $this, $options);
+                $statement->withModel($this->modelClass);
+            } catch (StructureException $err) {
+                throw QueryException::structure($this->modelClass, $err);
+            }
+        } else {
+            $statement = new Statement($this->connection, $this, $options);
         }
 
         $statement->eagerLoad($this->eagerLoad);
@@ -1685,7 +1728,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * Base function to create `select` expressions.
      *
      * @param string $clause
-     * @param ColumnLiteral|Select|array|string|int $fields
+     * @param ColumnLiteral|Literal|Select|array|string|int $fields
      *
      * @return static<TModel>
      * @throws QueryException
@@ -1693,7 +1736,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseSelect(string $clause, ColumnLiteral|Select|array|string|int $fields): static
+    protected function baseSelect(string $clause, ColumnLiteral|Literal|Select|array|string|int $fields): static
     {
         if (empty($fields) || ($fields instanceof Select && $fields->isEmpty)) {
             if ($this->modelClass !== null) {
@@ -1705,6 +1748,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         if (is_int($fields) || $fields instanceof ColumnLiteral) {
             return $this->addPiece($clause, $fields);
+        }
+
+        if ($fields instanceof Literal) {
+            return $this->addPiece($clause, (string)$fields);
         }
 
         if (is_string($fields)) {
