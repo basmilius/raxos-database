@@ -15,6 +15,7 @@ use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureExc
 use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
 use Raxos\Foundation\Util\Singleton;
 use function array_column;
+use function array_find_key;
 use function array_map;
 use function array_search;
 use function array_shift;
@@ -502,6 +503,14 @@ final class Backbone implements AccessInterface, BackboneInterface
 
             yield $property->key => $value;
         }
+
+        $polymorphic = $this->structure->parent?->polymorphic ?? $this->structure->polymorphic;
+
+        if ($polymorphic === null || $this->data->hasValue($polymorphic->column)) {
+            return;
+        }
+
+        yield $polymorphic->column => array_find_key($polymorphic->map, fn(string $class) => $this->class);
     }
 
 }
