@@ -501,14 +501,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function resultCount(): int
     {
-        $query = $this->connection
-            ->query()
-            ->select('count(*)')
-            ->from($this, '__n__');
-
-        $query->params = $this->params;
-
-        return (int)$query
+        return (int)$this
+            ->replaceClause('select', static fn(array $piece) => ['select', 'count(*)', null])
             ->withoutModel()
             ->statement()
             ->fetchColumn();
