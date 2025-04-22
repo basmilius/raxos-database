@@ -229,6 +229,15 @@ interface ConnectionInterface
     public function lastInsertIdInteger(?string $name = null): int;
 
     /**
+     * Ping the mysql server.
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.8.0
+     */
+    public function ping(): bool;
+
+    /**
      * Returns a new prepared statement.
      *
      * @param QueryInterface|string $query

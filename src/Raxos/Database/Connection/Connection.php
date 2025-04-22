@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use BackedEnum;
+use Exception;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
 use Raxos\Database\Contract\{ConnectionInterface, QueryInterface, StatementInterface};
@@ -145,6 +146,22 @@ abstract class Connection implements ConnectionInterface
     public function lastInsertIdInteger(?string $name = null): int
     {
         return (int)$this->pdo->lastInsertId($name);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.8.0
+     */
+    public function ping(): bool
+    {
+        try {
+            $this->execute('DO 1');
+
+            return true;
+        } catch (Exception) {
+            return false;
+        }
     }
 
     /**
