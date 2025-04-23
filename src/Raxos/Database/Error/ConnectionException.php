@@ -95,16 +95,19 @@ final class ConnectionException extends DatabaseException
     /**
      * Returns a 'not connected' exception.
      *
+     * @param PDOException|null $err
+     *
      * @return self
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function notConnected(): self
+    public static function notConnected(?PDOException $err = null): self
     {
         return new self(
             ExceptionId::for(__METHOD__),
             'db_not_connected',
-            'Not connected to the database server.'
+            'Not connected to the database server.',
+            $err
         );
     }
 

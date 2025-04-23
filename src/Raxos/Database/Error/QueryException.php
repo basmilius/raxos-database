@@ -248,6 +248,25 @@ final class QueryException extends DatabaseException
     }
 
     /**
+     * Returns the exception for when an unexpected error occurs.
+     *
+     * @param PDOException $err
+     *
+     * @return self
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.8.0
+     */
+    public static function unexpected(PDOException $err): self
+    {
+        return new self(
+            ExceptionId::for(__METHOD__),
+            'db_query_unexpected',
+            'Unexpected error while executing query.',
+            $err
+        );
+    }
+
+    /**
      * Returns an unsupported exception.
      *
      * @param string $message

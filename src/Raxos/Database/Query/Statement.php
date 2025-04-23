@@ -66,11 +66,11 @@ class Statement implements StatementInterface
         try {
             $this->pdoStatement = $connection->pdo->prepare($this->sql, $options);
         } catch (PDOException $err) {
-            if ($err->getCode() !== '42000') {
-                throw $err;
-            }
-
-            throw QueryException::syntaxError($this->sql, $err);
+            match ($err->getCode()) {
+                'HY000' => throw QueryException::connection(ConnectionException::notConnected($err)),
+                '42000' => throw QueryException::syntaxError($this->sql, $err),
+                default => throw QueryException::unexpected($err)
+            };
         }
     }
 
