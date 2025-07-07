@@ -128,7 +128,8 @@ final class Structure
             $result = $this->class::onInitialize($result);
         }
 
-        $backbone = new Backbone($this->class, $result);
+        $structure = StructureGenerator::for($this->class);
+        $backbone = new Backbone($structure, $result);
 
         if (is_subclass_of($this->class, BackboneInitializedInterface::class)) {
             $this->class::onBackboneInitialized($backbone, $result);

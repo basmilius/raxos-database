@@ -98,7 +98,7 @@ final class Backpack implements BackpackInterface, DebuggableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function __debugInfo(): ?array
+    public function __debugInfo(): array
     {
         return $this->data;
     }

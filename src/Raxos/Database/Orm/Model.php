@@ -9,7 +9,7 @@ use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryExceptio
 use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, QueryableInterface, VisibilityInterface};
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
-use Raxos\Database\Orm\Structure\StructureHelper;
+use Raxos\Database\Orm\Structure\{StructureGenerator, StructureHelper};
 use Raxos\Database\Query\Select;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
 use Raxos\Foundation\Contract\{ArrayableInterface, DebuggableInterface};
@@ -57,7 +57,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
         ?BackboneInterface $backbone = null
     )
     {
-        $this->backbone = $backbone ?? new Backbone(static::class, [], true);
+        $this->backbone = $backbone ?? new Backbone(StructureGenerator::for(static::class), [], true);
         $this->backbone->addInstance($this);
     }
 
@@ -317,7 +317,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function __debugInfo(): ?array
+    public function __debugInfo(): array
     {
         return $this->toArray();
     }

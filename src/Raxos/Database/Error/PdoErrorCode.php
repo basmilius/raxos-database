@@ -15,8 +15,10 @@ enum PdoErrorCode: int
     case UNKNOWN = -1;
     case ACCESS_DENIED = 1045;
     case ACCESS_DENIED_PASSWORD = 1698;
+    case CONNECTION_FAILED = 2002;
     case NO_SUCH_COLUMN = 1054;
     case NO_SUCH_TABLE = 1146;
+    case UNKNOWN_DATABASE = 1049;
 
     /**
      * Returns the exception code associated with the error.
@@ -30,8 +32,10 @@ enum PdoErrorCode: int
         return match ($this) {
             self::UNKNOWN => 'unknown',
             self::ACCESS_DENIED, self::ACCESS_DENIED_PASSWORD => 'db_access_denied',
+            self::CONNECTION_FAILED => 'db_connection_failed',
             self::NO_SUCH_COLUMN => 'db_no_such_column',
-            self::NO_SUCH_TABLE => 'db_no_such_table'
+            self::NO_SUCH_TABLE => 'db_no_such_table',
+            self::UNKNOWN_DATABASE => 'db_unknown_database'
         };
     }
 }

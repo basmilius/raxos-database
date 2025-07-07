@@ -1972,7 +1972,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         'type' => 'string',
         'params' => 'array'
     ])]
-    public function __debugInfo(): ?array
+    public function __debugInfo(): array
     {
         return [
             'sql' => $this->toSql(),

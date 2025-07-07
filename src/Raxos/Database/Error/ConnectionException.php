@@ -116,13 +116,13 @@ final class ConnectionException extends DatabaseException
      *
      * @param int|string $code
      * @param string $message
-     * @param PDOException $err
+     * @param PDOException|null $err
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function of(int|string $code, string $message, PDOException $err): self
+    public static function of(int|string $code, string $message, ?PDOException $err = null): self
     {
         if (is_string($code)) {
             $code = (int)base_convert(hash('crc32', $code), 16, 10);

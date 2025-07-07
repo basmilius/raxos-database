@@ -12,7 +12,7 @@ use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryExceptio
 use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, WritableRelationInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
-use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
+use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Util\Singleton;
 use function array_column;
 use function array_find_key;
@@ -38,7 +38,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     public readonly CacheInterface $cache;
     public readonly ConnectionInterface $connection;
-    public readonly Structure $structure;
+    public readonly string $class;
 
     public readonly BackpackInterface $data;
     public readonly BackpackInterface $castCache;
@@ -54,21 +54,20 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * Backbone constructor.
      *
-     * @param class-string<TModel>|class-string<Model> $class
+     * @param Structure $structure
      * @param array $data
      * @param bool $isNew
      *
-     * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
     public function __construct(
-        public readonly string $class,
+        public readonly Structure $structure,
         array $data,
         public bool $isNew = false
     )
     {
-        $this->structure = StructureGenerator::for($this->class);
+        $this->class = $this->structure->class;
         $this->connection = $this->structure->connection;
         $this->cache = $this->connection->cache;
 

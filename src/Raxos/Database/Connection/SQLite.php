@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connection;
 
+use PDOException;
 use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Grammar\SQLiteGrammar;
@@ -52,10 +53,14 @@ final class SQLite extends Connection
      */
     public function connect(): void
     {
-        $this->pdo = new \Pdo\Sqlite(
-            $this->dsn,
-            options: $this->options
-        );
+        try {
+            $this->pdo = new \Pdo\Sqlite(
+                $this->dsn,
+                options: $this->options
+            );
+        } catch (PDOException $err) {
+            throw ConnectionException::of($err->getCode(), $err->getMessage());
+        }
     }
 
     /**

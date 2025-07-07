@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use PDO;
+use PDOException;
 use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
 use Raxos\Database\Grammar\MariaDbGrammar;
@@ -62,12 +63,16 @@ final class MariaDb extends Connection
      */
     public function connect(): void
     {
-        $this->pdo = new \Pdo\Mysql(
-            $this->dsn,
-            $this->username,
-            $this->password,
-            $this->options
-        );
+        try {
+            $this->pdo = new \Pdo\Mysql(
+                $this->dsn,
+                $this->username,
+                $this->password,
+                $this->options
+            );
+        } catch (PDOException $err) {
+            throw ConnectionException::of($err->getCode(), $err->getMessage());
+        }
     }
 
     /**
