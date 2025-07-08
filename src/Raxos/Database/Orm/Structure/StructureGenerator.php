@@ -37,6 +37,20 @@ final class StructureGenerator
     private static array $structures = [];
 
     /**
+     * Registers a structure.
+     *
+     * @param Structure $structure
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public static function define(Structure $structure): void
+    {
+        self::$structures[$structure->class] = $structure;
+    }
+
+    /**
      * Returns the structure for the given class.
      *
      * @template TModel of Model

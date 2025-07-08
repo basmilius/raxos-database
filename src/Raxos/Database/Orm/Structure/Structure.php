@@ -15,6 +15,7 @@ use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, Prop
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
 use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Foundation\Contract\SerializableInterface;
 use function array_any;
 use function array_key_exists;
 use function array_map;
@@ -32,7 +33,7 @@ use function str_starts_with;
  * @package Raxos\Database\Orm\Structure
  * @since 1.0.17
  */
-final class Structure
+final class Structure implements SerializableInterface
 {
 
     public private(set) ConnectionInterface $connection;
@@ -147,8 +148,6 @@ final class Structure
      *
      * @param RelationInterface $relation
      * @param ModelArrayList $instances
-     * @param array $forced
-     * @param array $disabled
      *
      * @return void
      * @throws ConnectionException
@@ -159,15 +158,8 @@ final class Structure
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function eagerLoadRelation(RelationInterface $relation, ModelArrayList $instances, array $forced = [], array $disabled = []): void
+    public function eagerLoadRelation(RelationInterface $relation, ModelArrayList $instances): void
     {
-        $property = $relation->property;
-        $eagerLoad = $relation->attribute->eagerLoad;
-
-        if ((!$eagerLoad && !$property->isIn($forced)) || $property->isIn($disabled)) {
-            return;
-        }
-
         if ($this->connection->logger->enabled) {
             $deferred = $this->connection->logger->deferred();
             $relation->eagerLoad($instances);
@@ -210,7 +202,11 @@ final class Structure
         $loaded = [];
 
         foreach ($this->getRelations() as $relation) {
-            $this->eagerLoadRelation($relation, $instances, $forced, $disabled);
+            if ((!$relation->attribute->eagerLoad && !$relation->property->isIn($forced)) || $relation->property->isIn($disabled)) {
+                return;
+            }
+
+            $this->eagerLoadRelation($relation, $instances);
             $loaded[] = $relation->property->name;
         }
 
@@ -227,7 +223,11 @@ final class Structure
                     continue;
                 }
 
-                $this->eagerLoadRelation($subRelation, $subInstances, $forced, $disabled);
+                if ((!$subRelation->attribute->eagerLoad && !$subRelation->property->isIn($forced)) || $subRelation->property->isIn($disabled)) {
+                    return;
+                }
+
+                $this->eagerLoadRelation($subRelation, $subInstances);
             }
         }
     }
@@ -384,6 +384,48 @@ final class Structure
         }
 
         return $properties;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function __serialize(): array
+    {
+        return [
+            $this->class,
+            $this->connectionId,
+            $this->onDuplicateKeyUpdate,
+            $this->polymorphic,
+            $this->properties,
+            $this->softDeleteColumn,
+            $this->table,
+            $this->parent?->class
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function __unserialize(array $data): void
+    {
+        [
+            $this->class,
+            $this->connectionId,
+            $this->onDuplicateKeyUpdate,
+            $this->polymorphic,
+            $this->properties,
+            $this->softDeleteColumn,
+            $this->table,
+            $parentClass
+        ] = $data;
+
+        $this->connection = Db::getOrFail($this->connectionId);
+        $this->parent = $parentClass !== null ? StructureGenerator::for($parentClass) : null;
+        $this->primaryKey = $this->getPrimaryKey();
     }
 
 }
