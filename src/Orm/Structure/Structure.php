@@ -6,7 +6,7 @@ namespace Raxos\Database\Orm\Structure;
 use Generator;
 use Raxos\Database\Contract\ConnectionInterface;
 use Raxos\Database\Db;
-use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
+use Raxos\Database\Error\{ConnectionException, DatabaseException, ExecutionException, QueryException};
 use Raxos\Database\Logger\EagerLoadEvent;
 use Raxos\Database\Orm\{Backbone, Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
@@ -407,6 +407,7 @@ final class Structure implements SerializableInterface
 
     /**
      * {@inheritdoc}
+     * @throws DatabaseException
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
