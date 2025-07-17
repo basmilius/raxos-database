@@ -15,7 +15,6 @@ use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Contract\CacheInterface;
 use Raxos\Database\Query\Statement;
 use SensitiveParameter;
-use function array_key_exists;
 
 /**
  * Class Connection
@@ -274,7 +273,7 @@ abstract class Connection implements ConnectionInterface
     {
         $this->structure ??= $this->loadDatabaseSchema();
 
-        return array_key_exists($table, $this->structure);
+        return isset($this->structure[$table]);
     }
 
     /**
