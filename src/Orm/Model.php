@@ -62,14 +62,6 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     }
 
     /**
-     * Model destructor.
-     */
-    public function __destruct()
-    {
-        $this->backbone->removeInstance($this);
-    }
-
-    /**
      * Deletes the model record from the database.
      *
      * @return void

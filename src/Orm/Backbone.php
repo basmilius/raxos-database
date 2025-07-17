@@ -6,8 +6,7 @@ namespace Raxos\Database\Orm;
 use BackedEnum;
 use Generator;
 use JetBrains\PhpStorm\ExpectedValues;
-use Raxos\Database\Contract\ConnectionInterface;
-use Raxos\Database\Contract\QueryInterface;
+use Raxos\Database\Contract\{ConnectionInterface, QueryInterface};
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, WritableRelationInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
@@ -17,7 +16,6 @@ use Raxos\Foundation\Util\Singleton;
 use function array_column;
 use function array_find_key;
 use function array_map;
-use function array_search;
 use function array_shift;
 use function in_array;
 use function is_subclass_of;
@@ -47,7 +45,6 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     public ?Model $currentInstance = null;
 
-    private array $instances = [];
     private array $modified = [];
     private array $saveTasks = [];
 
@@ -84,8 +81,6 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     public function addInstance(Model $instance): void
     {
-        $this->instances[] = $instance;
-
         foreach ($this->structure->properties as $property) {
             unset($instance->{$property->name});
         }
@@ -99,20 +94,6 @@ final class Backbone implements AccessInterface, BackboneInterface
     public function createInstance(): Model
     {
         return new $this->class(backbone: $this);
-    }
-
-    /**
-     * {@inheritdoc}
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
-     */
-    public function removeInstance(Model $instance): void
-    {
-        $index = array_search($instance, $this->instances, true);
-
-        if ($index !== false) {
-            unset($this->instances[$index]);
-        }
     }
 
     /**

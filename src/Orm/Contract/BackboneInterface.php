@@ -56,17 +56,6 @@ interface BackboneInterface
     public function createInstance(): Model;
 
     /**
-     * Removes the given model instance.
-     *
-     * @param TModel&Model $instance
-     *
-     * @return void
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
-     */
-    public function removeInstance(Model $instance): void;
-
-    /**
      * Adds a save task.
      *
      * @param callable $fn
