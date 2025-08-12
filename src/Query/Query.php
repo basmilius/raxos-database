@@ -99,7 +99,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function addExpression(
@@ -129,7 +129,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function addParam(BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $value): string|int
@@ -170,7 +170,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function addPiece(string $clause, ColumnLiteral|array|string|int|null $data = null, ?string $separator = null): static
@@ -216,7 +216,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function conditional(bool $is, callable $fn): static
@@ -230,7 +230,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function conditionalParenthesis(bool $is, callable $fn): static
@@ -244,7 +244,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function eagerLoad(string|array $relations): static
@@ -264,7 +264,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function eagerLoadDisable(string|array $relations): static
@@ -284,7 +284,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function eagerLoadReset(): static
@@ -297,7 +297,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function merge(QueryInterface $query): static
@@ -315,7 +315,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function parenthesis(callable $fn, bool $patch = true): static
@@ -337,7 +337,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function parenthesisClose(): static
@@ -347,7 +347,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function parenthesisOpen(
@@ -361,7 +361,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function raw(string $expression): static
@@ -377,7 +377,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function isClauseDefined(string $clause): bool
@@ -387,7 +387,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function isModelQuery(): bool
@@ -397,7 +397,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function removeClause(string $clause): static
@@ -417,7 +417,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function replaceClause(string $clause, callable $fn): static
@@ -447,7 +447,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function withModel(string $class): static
@@ -459,7 +459,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function withoutModel(): static
@@ -472,7 +472,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function toSql(): string
@@ -496,7 +496,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function resultCount(): int
@@ -510,7 +510,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function totalCount(): int
@@ -558,7 +558,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function array(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): array
@@ -570,7 +570,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function arrayList(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): ArrayList|ModelArrayList
@@ -582,7 +582,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Generator
@@ -606,7 +606,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function run(array $options = []): void
@@ -655,7 +655,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function single(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array|null
@@ -667,7 +667,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function singleOrFail(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array
@@ -683,7 +683,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function statement(array $options = []): StatementInterface
@@ -782,7 +782,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function delete(string $table): static
@@ -792,7 +792,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function deleteFrom(string $table): static
@@ -802,7 +802,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function from(QueryInterface|array|string $tables, ?string $alias = null): static
@@ -835,7 +835,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function groupBy(QueryLiteralInterface|array|string $fields): static
@@ -852,7 +852,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function having(
@@ -866,7 +866,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function havingExists(QueryInterface $query): static
@@ -876,7 +876,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function havingIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
@@ -886,7 +886,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
     public function havingNotExists(QueryInterface $query): static
@@ -896,7 +896,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function havingNotNull(QueryLiteralInterface|string $field): static
@@ -916,7 +916,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function havingNull(QueryLiteralInterface|string $field): static
@@ -926,7 +926,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function limit(int $limit, int $offset = 0): static
@@ -942,7 +942,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function offset(int $offset): static
@@ -952,7 +952,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function on(
@@ -969,7 +969,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function onDuplicateKeyUpdate(array|string $fields): static
@@ -994,7 +994,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orWhere(
@@ -1008,7 +1008,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orWhereExists(QueryInterface $query): static
@@ -1018,7 +1018,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orWhereHas(string $relation, ?callable $fn = null): static
@@ -1028,7 +1028,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orWhereIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
@@ -1048,7 +1048,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orWhereNotHas(string $relation, callable $fn): static
@@ -1068,7 +1068,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orWhereNotNull(QueryLiteralInterface|string $field): static
@@ -1078,7 +1078,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orWhereNull(QueryLiteralInterface|string $field): static
@@ -1088,7 +1088,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orWhereRelation(
@@ -1103,7 +1103,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orderBy(QueryLiteralInterface|array|string $fields): static
@@ -1137,7 +1137,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orderByAsc(QueryLiteralInterface|string $field): static
@@ -1153,7 +1153,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function orderByDesc(QueryLiteralInterface|string $field): static
@@ -1169,7 +1169,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function set(
@@ -1200,7 +1200,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function union(QueryInterface $query): static
@@ -1212,7 +1212,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function unionAll(QueryInterface $query): static
@@ -1224,7 +1224,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function update(string $table, ?array $pairs = null): static
@@ -1244,7 +1244,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function values(array $values): static
@@ -1259,7 +1259,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function where(
@@ -1273,7 +1273,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function whereExists(QueryInterface $query): static
@@ -1283,7 +1283,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function whereHas(string $relation, ?callable $fn = null): static
@@ -1293,7 +1293,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function whereIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
@@ -1313,7 +1313,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function whereNotHas(string $relation, callable $fn): static
@@ -1333,7 +1333,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function whereNotNull(QueryLiteralInterface|string $field): static
@@ -1343,7 +1343,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function whereNull(QueryLiteralInterface|string $field): static
@@ -1420,7 +1420,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function whereRelation(
@@ -1435,7 +1435,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function insertInto(string $table, array $fields): static
@@ -1445,7 +1445,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function insertIgnoreInto(string $table, array $fields): static
@@ -1455,7 +1455,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function insertIntoValues(string $table, array $pairs): static
@@ -1480,7 +1480,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function insertIgnoreIntoValues(string $table, array $pairs): static
@@ -1505,7 +1505,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function replaceInto(string $table, array $fields): static
@@ -1515,7 +1515,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function replaceIntoValues(string $table, array $pairs): static
@@ -1531,7 +1531,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function select(Select|Stringable|array|string|int $fields = []): static
@@ -1541,7 +1541,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function selectDistinct(Select|Stringable|array|string|int $fields = []): static
@@ -1551,7 +1551,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function selectFoundRows(Select|Stringable|array|string|int $fields = []): static
@@ -1561,7 +1561,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function selectSuffix(string $suffix, Select|Stringable|array|string|int $fields = []): static
@@ -1571,7 +1571,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function fullJoin(string $table, ?callable $fn = null): static
@@ -1581,7 +1581,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function innerJoin(string $table, ?callable $fn = null): static
@@ -1591,7 +1591,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function join(string $table, ?callable $fn = null): static
@@ -1601,7 +1601,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function leftJoin(string $table, ?callable $fn = null): static
@@ -1611,7 +1611,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function leftOuterJoin(string $table, ?callable $fn = null): static
@@ -1621,7 +1621,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function rightJoin(string $table, ?callable $fn = null): static
@@ -1631,7 +1631,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function with(string $name, QueryInterface $query): static
@@ -1641,7 +1641,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
-     * @author Bas Milius <bas@glybe.nl>
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function withRecursive(string $name, QueryInterface $query): static
