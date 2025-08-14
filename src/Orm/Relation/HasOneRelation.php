@@ -131,23 +131,25 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
      */
     public function eagerLoad(ModelArrayList $instances): void
     {
-        $cache = $this->referenceStructure->connection->cache;
+        [$cached, $uncached] = RelationHelper::partitionModels(
+            $this->referenceStructure,
+            $instances
+                ->column($this->declaringKey->column)
+                ->unique()
+        );
 
-        $values = $instances
-            ->column($this->declaringKey->column)
-            ->unique()
-            ->filter(fn(string|int $key) => !$cache->has($this->referenceStructure->class, $key));
-
-        if ($values->isEmpty()) {
-            return;
+        if ($cached->isNotEmpty()) {
+            $this->onBeforeRelations($cached->toArray(), $instances);
         }
 
-        $this->referenceStructure->class::select()
-            ->whereIn($this->referenceKey, $values->toArray())
-            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
-                ->orderBy($this->attribute->orderBy))
-            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
-            ->array();
+        if ($uncached->isNotEmpty()) {
+            $this->referenceStructure->class::select()
+                ->whereIn($this->referenceKey, $uncached)
+                ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                    ->orderBy($this->attribute->orderBy))
+                ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+                ->array();
+        }
     }
 
     /**

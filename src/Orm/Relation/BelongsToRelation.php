@@ -6,7 +6,6 @@ namespace Raxos\Database\Orm\Relation;
 use Raxos\Database\Contract\QueryInterface;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsTo;
-use Raxos\Database\Query\Struct;
 use Raxos\Database\Orm\Contract\{RelationInterface, WritableRelationInterface};
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
@@ -128,21 +127,23 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      */
     public function eagerLoad(ModelArrayList $instances): void
     {
-        $cache = $this->referenceStructure->connection->cache;
+        [$cached, $uncached] = RelationHelper::partitionModels(
+            $this->referenceStructure,
+            $instances
+                ->column($this->declaringKey->column)
+                ->unique()
+        );
 
-        $values = $instances
-            ->column($this->declaringKey->column)
-            ->unique()
-            ->filter(fn(string|int|null $key) => $key !== null && !$cache->has($this->referenceStructure->class, $key));
-
-        if ($values->isEmpty()) {
-            return;
+        if ($cached->isNotEmpty()) {
+            $this->onBeforeRelations($cached->toArray(), $instances);
         }
 
-        $this->referenceStructure->class::select()
-            ->where($this->referenceKey, Struct::in($values->toArray()))
-            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
-            ->array();
+        if ($uncached->isNotEmpty()) {
+            $this->referenceStructure->class::select()
+                ->whereIn($this->referenceKey, $uncached)
+                ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+                ->array();
+        }
     }
 
     /**

@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Contract\{InternalQueryInterface, QueryInterface};
 use Raxos\Database\Grammar\Grammar;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Foundation\Collection\ArrayList;
+use Raxos\Foundation\Contract\ArrayListInterface;
 use function is_numeric;
 
 /**
@@ -92,7 +93,6 @@ final class RelationHelper
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    #[Pure]
     public static function onBeforeRelations(ModelArrayList $instances, callable $fn): callable
     {
         return static function (InternalQueryInterface&QueryInterface $query) use ($fn, $instances): QueryInterface {
@@ -100,6 +100,45 @@ final class RelationHelper
 
             return $query;
         };
+    }
+
+    /**
+     * Partitions the foreign keys into already loaded instances and to
+     * be loaded instances.
+     *
+     * @param Structure $referenceStructure
+     * @param ArrayListInterface<int, string|int|null> $foreignKeys
+     *
+     * @return array{
+     *     0: ArrayListInterface<int, Model>,
+     *     1: ArrayListInterface<int, string|int|null>
+     * }
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public static function partitionModels(Structure $referenceStructure, ArrayListInterface $foreignKeys): array
+    {
+        $cache = $referenceStructure->connection->cache;
+        $cached = new ArrayList();
+        $uncached = new ArrayList();
+
+        foreach ($foreignKeys as $foreignKey) {
+            if ($foreignKey === null) {
+                continue;
+            }
+
+            if ($cache->has($referenceStructure->class, $foreignKey)) {
+                $cached->append($cache->get($referenceStructure->class, $foreignKey));
+                continue;
+            }
+
+            $uncached->append($foreignKey);
+        }
+
+        return [
+            $cached,
+            $uncached
+        ];
     }
 
 }

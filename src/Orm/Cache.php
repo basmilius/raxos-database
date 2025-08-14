@@ -3,13 +3,12 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
-use JetBrains\PhpStorm\Pure;
 use Raxos\Database\Orm\Contract\CacheInterface;
 use Raxos\Foundation\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use function array_map;
-use function http_build_query;
 use function is_array;
+use function json_encode;
 
 /**
  * Class Cache
@@ -28,7 +27,6 @@ final class Cache implements CacheInterface, DebuggableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    #[Pure]
     public function find(string $modelClass, callable $predicate): ?Model
     {
         $instances = $this->instances[$modelClass] ?? [];
@@ -61,7 +59,6 @@ final class Cache implements CacheInterface, DebuggableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    #[Pure]
     public function get(string $modelClass, array|string|int $primaryKey): ?Model
     {
         $key = $this->key($primaryKey);
@@ -74,7 +71,6 @@ final class Cache implements CacheInterface, DebuggableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    #[Pure]
     public function has(string $modelClass, array|string|int $primaryKey): bool
     {
         $key = $this->key($primaryKey);
@@ -119,7 +115,7 @@ final class Cache implements CacheInterface, DebuggableInterface
             $primaryKey = [$primaryKey];
         }
 
-        return http_build_query($primaryKey);
+        return json_encode($primaryKey);
     }
 
     /**
