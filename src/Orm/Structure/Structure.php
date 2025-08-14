@@ -203,7 +203,7 @@ final class Structure implements SerializableInterface
 
         foreach ($this->getRelations() as $relation) {
             if ((!$relation->attribute->eagerLoad && !$relation->property->isIn($forced)) || $relation->property->isIn($disabled)) {
-                return;
+                continue;
             }
 
             $this->eagerLoadRelation($relation, $instances);
@@ -224,7 +224,7 @@ final class Structure implements SerializableInterface
                 }
 
                 if ((!$subRelation->attribute->eagerLoad && !$subRelation->property->isIn($forced)) || $subRelation->property->isIn($disabled)) {
-                    return;
+                    continue;
                 }
 
                 $this->eagerLoadRelation($subRelation, $subInstances);

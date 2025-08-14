@@ -172,10 +172,6 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         foreach ($instances as $instance) {
             $result = ArrayUtil::first($results, fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column});
 
-            if ($result === null) {
-                continue;
-            }
-
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
                 $result
