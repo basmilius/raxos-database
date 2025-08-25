@@ -3,18 +3,16 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Contract\QueryInterface;
+use Raxos\Database\Contract\{QueryInterface, StructureInterface};
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsToMany;
 use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\StructureException;
-use Raxos\Database\Orm\Structure\{Structure, StructureGenerator};
-use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Select;
-use Raxos\Database\Query\Struct;
-use function array_filter;
-use function array_values;
+use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Foundation\Contract\ArrayListInterface;
 use function implode;
 use function sort;
 
@@ -37,14 +35,14 @@ final readonly class BelongsToManyRelation implements RelationInterface
     public ColumnLiteral $referenceKey;
     public ColumnLiteral $referenceLinkingKey;
 
-    public Structure $referenceStructure;
+    public StructureInterface $referenceStructure;
 
     /**
      * BelongsToManyRelation constructor.
      *
      * @param BelongsToMany $attribute
      * @param RelationDefinition $property
-     * @param Structure $declaringStructure
+     * @param StructureInterface<TDeclaringModel> $declaringStructure
      *
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
@@ -53,7 +51,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
     public function __construct(
         public BelongsToMany $attribute,
         public RelationDefinition $property,
-        public Structure $declaringStructure
+        public StructureInterface $declaringStructure
     )
     {
         $this->referenceStructure = StructureGenerator::for($this->attribute->referenceModel);
@@ -148,7 +146,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function eagerLoad(ModelArrayList $instances): void
+    public function eagerLoad(ArrayListInterface $instances): void
     {
         $values = $instances
             ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
@@ -167,7 +165,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
         $this->referenceStructure->class::select($select)
             ->join($this->declaringLinkingKey->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
-            ->where($this->declaringLinkingKey, Struct::in($values->toArray()))
+            ->whereIn($this->declaringLinkingKey, $values)
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
@@ -177,22 +175,23 @@ final readonly class BelongsToManyRelation implements RelationInterface
     /**
      * Apply the results to the instances' relation cache.
      *
-     * @param Model[] $results
-     * @param ModelArrayList<int, Model> $instances
+     * @param ArrayListInterface<int, TReferenceModel> $results
+     * @param ArrayListInterface<int, TDeclaringModel> $instances
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    private function onBeforeRelations(array $results, ModelArrayList $instances): void
+    private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
     {
         foreach ($instances as $instance) {
-            $result = array_filter($results, fn(Model $reference) => $reference->backbone->data->getValue('__local_linking_key') === $instance->{$this->declaringKey->column});
-            $result = array_values($result);
+            $result = $results
+                ->filter(fn(Model $reference) => $reference->backbone->data->getValue('__local_linking_key') === $instance->{$this->declaringKey->column})
+                ->values();
 
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
-                new ModelArrayList($result)
+                $result->convertTo(ModelArrayList::class)
             );
         }
     }

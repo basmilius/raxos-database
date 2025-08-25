@@ -19,7 +19,7 @@ use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Literal\ColumnLiteral;
 use Raxos\Database\Query\Literal\Literal;
 use Raxos\Foundation\Collection\{ArrayList, Paginated};
-use Raxos\Foundation\Contract\{ArrayableInterface, DebuggableInterface};
+use Raxos\Foundation\Contract\{ArrayableInterface, ArrayListInterface, DebuggableInterface};
 use stdClass;
 use Stringable;
 use function array_any;
@@ -27,6 +27,7 @@ use function array_find_key;
 use function array_is_list;
 use function array_keys;
 use function array_map;
+use function array_merge;
 use function array_shift;
 use function array_splice;
 use function array_unique;
@@ -120,9 +121,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         $this->addPiece($clause);
 
-        $lhs !== null && $this->unwrapValue($lhs);
+        $lhs !== null && QueryHelper::value($this, $lhs);
         $cmp !== null && $this->addPiece($cmp);
-        $rhs !== null && $this->unwrapValue($rhs);
+        $rhs !== null && QueryHelper::value($this, $rhs);
 
         return $this;
     }
@@ -162,10 +163,12 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $value = (string)$value;
         }
 
-        $name = $this->paramsIndex . count($this->params);
-        $this->params[] = [$name, $value];
+        $paramsCount = count($this->params);
+        $name = ":{$this->paramsIndex}{$paramsCount}";
 
-        return ':' . $name;
+        $this->params[$name] = $value;
+
+        return $name;
     }
 
     /**
@@ -306,9 +309,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $this->pieces[] = [$clause, $data, $separator];
         }
 
-        foreach ($query->params as $param) {
-            $this->params[] = $param;
-        }
+        $this->params = array_merge($this->params, $query->params);
 
         return $this;
     }
@@ -719,7 +720,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $statement->eagerLoad($this->eagerLoad);
         $statement->eagerLoadDisable($this->eagerLoadDisable);
 
-        foreach ($this->params as [$name, $value]) {
+        foreach ($this->params as $name => $value) {
             $statement->bind($name, $value);
         }
 
@@ -753,7 +754,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public function _internal_invokeBeforeRelations(array $instances): void
+    public function _internal_invokeBeforeRelations(ArrayListInterface $instances): void
     {
         if ($this->beforeRelations === null) {
             return;
@@ -838,16 +839,22 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function groupBy(QueryLiteralInterface|array|string $fields): static
+    public function groupBy(QueryLiteralInterface|array|string $fields, bool $withRollup = false): static
     {
         if (!is_array($fields)) {
             $fields = [$fields];
         }
 
-        $fields = array_map(strval(...), $fields);
+        $fields = array_map(\strval(...), $fields);
         $fields = array_map($this->grammar->escape(...), $fields);
 
-        return $this->addPiece('group by', $fields, $this->grammar->columnSeparator);
+        $this->addPiece('group by', $fields, $this->grammar->columnSeparator);
+
+        if ($withRollup) {
+            $this->addPiece('with rollup');
+        }
+
+        return $this;
     }
 
     /**
@@ -1920,36 +1927,6 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
             yield $this->grammar->escape((string)$field);
         }
-    }
-
-    /**
-     * Unwraps a value.
-     *
-     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $value
-     *
-     * @return void
-     * @throws QueryException
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.5.0
-     */
-    private function unwrapValue(BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $value): void
-    {
-        match (true) {
-            $value instanceof BackedEnum => match (true) {
-                is_string($value->value) => $this->raw((string)stringLiteral($value->value)),
-                default => $this->raw((string)literal($value->value)),
-            },
-
-            $value instanceof QueryStructInterface => $value->compile($this, $this->connection, $this->grammar),
-
-            $value instanceof QueryLiteralInterface => $this->raw((string)$value),
-
-            $value instanceof Stringable => $this->raw((string)stringLiteral($value)),
-
-            is_bool($value) => $this->raw($value ? '1' : '0'),
-
-            default => $this->raw((string)$this->addParam($value))
-        };
     }
 
     /**

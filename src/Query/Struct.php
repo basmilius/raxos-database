@@ -3,8 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use Raxos\Database\Contract\{QueryInterface, QueryLiteralInterface, QueryStructInterface};
-use Raxos\Database\Query\Struct\{BetweenStruct, CoalesceStruct, ExistsStruct, GroupConcatStruct, IfStruct, InStruct, LiteralStruct, NotStruct, SubQueryStruct, VariableStruct};
+use BackedEnum;
+use Raxos\Database\Contract\{QueryInterface, QueryLiteralInterface, QueryStructInterface, QueryValueInterface};
+use Raxos\Database\Query\Struct\{BetweenStruct, CoalesceStruct, ExistsStruct, FunctionStruct, GreatestStruct, GroupConcatStruct, IfStruct, InStruct, LiteralStruct, MatchAgainstStruct, NotStruct, SubQueryStruct, VariableStruct};
 use Raxos\Foundation\Contract\ArrayableInterface;
 use Stringable;
 
@@ -65,6 +66,38 @@ final class Struct
     public static function exists(QueryStructInterface $struct): QueryStructInterface
     {
         return new ExistsStruct($struct);
+    }
+
+    /**
+     * Returns `$name(...$params)` struct.
+     *
+     * @param string $name
+     * @param array<BackedEnum|Stringable|QueryValueInterface|string|int|float|bool> $params
+     *
+     * @return QueryStructInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     * @see FunctionStruct
+     */
+    public static function function (string $name, array $params): QueryStructInterface
+    {
+        return new FunctionStruct($name, $params);
+    }
+
+    /**
+     * Returns a `greatest(...$params)` struct.
+     *
+     * @param array<BackedEnum|Stringable|QueryValueInterface|string|int|float|bool> $params
+     *
+     * @return QueryStructInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     * @see FunctionStruct
+     * @see GreatestStruct
+     */
+    public static function greatest(array $params): QueryStructInterface
+    {
+        return new GreatestStruct($params);
     }
 
     /**
@@ -153,6 +186,28 @@ final class Struct
     public static function isNull(): QueryStructInterface
     {
         return new LiteralStruct('is null');
+    }
+
+    /**
+     * Returns a new `match($fields) against ($expression)` struct.
+     *
+     * @param QueryLiteralInterface|QueryStructInterface|Stringable|ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|string|float|int|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $fields
+     * @param QueryLiteralInterface|QueryStructInterface|Stringable|string|float|int $expression
+     * @param bool $booleanMode
+     * @param bool $queryExpansion
+     *
+     * @return QueryStructInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public static function matchAgainst(
+        QueryLiteralInterface|QueryStructInterface|Stringable|ArrayableInterface|string|float|int|array $fields,
+        QueryLiteralInterface|QueryStructInterface|Stringable|string|float|int $expression,
+        bool $booleanMode = false,
+        bool $queryExpansion = false
+    ): QueryStructInterface
+    {
+        return new MatchAgainstStruct($fields, $expression, $booleanMode, $queryExpansion);
     }
 
     /**

@@ -519,12 +519,13 @@ interface QueryInterface
      * Adds a `group by $fields` expression.
      *
      * @param QueryLiteralInterface|QueryLiteralInterface[]|string[]|string $fields
+     * @param bool $withRollup
      *
      * @return QueryInterface<TModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function groupBy(QueryLiteralInterface|array|string $fields): static;
+    public function groupBy(QueryLiteralInterface|array|string $fields, bool $withRollup = false): static;
 
     /**
      * Adds a `having $field $comparator $value` expression.

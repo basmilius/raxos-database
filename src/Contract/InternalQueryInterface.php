@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Contract;
 
 use Raxos\Database\Orm\Model;
+use Raxos\Foundation\Contract\ArrayListInterface;
 
 /**
  * Interface InternalQueryInterface
@@ -35,7 +36,7 @@ interface InternalQueryInterface
      * If {@see self::_internal_beforeRelations()} is set, that function
      * will be invoked.
      *
-     * @param Model[] $instances
+     * @param ArrayListInterface<int, Model> $instances
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
@@ -43,6 +44,6 @@ interface InternalQueryInterface
      * @internal
      * @private
      */
-    public function _internal_invokeBeforeRelations(array $instances): void;
+    public function _internal_invokeBeforeRelations(ArrayListInterface $instances): void;
 
 }

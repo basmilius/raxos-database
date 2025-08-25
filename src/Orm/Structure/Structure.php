@@ -4,18 +4,18 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Structure;
 
 use Generator;
-use Raxos\Database\Contract\ConnectionInterface;
+use Raxos\Database\Contract\{ConnectionInterface, StructureInterface};
 use Raxos\Database\Db;
-use Raxos\Database\Error\{ConnectionException, DatabaseException, ExecutionException, QueryException};
+use Raxos\Database\Error\{ConnectionException, DatabaseException};
 use Raxos\Database\Logger\EagerLoadEvent;
-use Raxos\Database\Orm\{Backbone, Model, ModelArrayList};
+use Raxos\Database\Orm\{Backbone, Model};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
 use Raxos\Database\Orm\Contract\{BackboneInitializedInterface, CustomRelationAttributeInterface, InitializeInterface, RelationInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{RelationException, StructureException};
+use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
 use Raxos\Database\Query\Literal\ColumnLiteral;
-use Raxos\Foundation\Contract\SerializableInterface;
+use Raxos\Foundation\Contract\{ArrayListInterface, SerializableInterface};
 use function array_any;
 use function array_key_exists;
 use function array_map;
@@ -28,12 +28,13 @@ use function str_starts_with;
  * Class Structure
  *
  * @template TModel of Model
+ * @implements StructureInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Structure
  * @since 1.0.17
  */
-final class Structure implements SerializableInterface
+final class Structure implements StructureInterface, SerializableInterface
 {
 
     public private(set) ConnectionInterface $connection;
@@ -54,7 +55,7 @@ final class Structure implements SerializableInterface
      * @param PropertyDefinition[] $properties
      * @param string|null $softDeleteColumn
      * @param string $table
-     * @param self|null $parent
+     * @param StructureInterface|null $parent
      *
      * @throws ConnectionException
      * @author Bas Milius <bas@mili.us>
@@ -68,7 +69,7 @@ final class Structure implements SerializableInterface
         public readonly array $properties,
         public readonly ?string $softDeleteColumn,
         public readonly string $table,
-        public readonly ?self $parent = null
+        public readonly ?StructureInterface $parent = null
     )
     {
         $this->connection = Db::getOrFail($this->connectionId);
@@ -76,22 +77,17 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Creates a new instance of the model.
-     *
-     * @param array<string, mixed> $result
-     *
-     * @return TModel&Model
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
-    public function createInstance(array $result): Model
+    public function createInstance(array $data): Model
     {
         $cache = $this->connection->cache;
         $primaryKey = $this->primaryKey;
 
         if (is_array($primaryKey)) {
-            $primaryKeyValue = array_map(static fn(ColumnDefinition $property) => $result[$property->key], $primaryKey);
+            $primaryKeyValue = array_map(static fn(ColumnDefinition $property) => $data[$property->key], $primaryKey);
         } else {
             $primaryKeyValue = null;
         }
@@ -103,7 +99,7 @@ final class Structure implements SerializableInterface
             //  the fields but instead keep the existing ones because some of them
             //  may be modified. But we do update internal data points that are used
             //  in relations, for example, such as `__local_linking_key`.
-            foreach ($result as $key => $value) {
+            foreach ($data as $key => $value) {
                 if (!str_starts_with($key, '__')) {
                     continue;
                 }
@@ -115,25 +111,25 @@ final class Structure implements SerializableInterface
         }
 
         if ($this->polymorphic !== null) {
-            if (!array_key_exists($this->polymorphic->column, $result)) {
+            if (!array_key_exists($this->polymorphic->column, $data)) {
                 throw StructureException::polymorphicColumnMissing($this->class, $this->polymorphic->column);
             }
 
-            $polymorphicClass = $this->polymorphic->map[$result[$this->polymorphic->column]];
+            $polymorphicClass = $this->polymorphic->map[$data[$this->polymorphic->column]];
             $polymorphicStructure = StructureGenerator::for($polymorphicClass);
 
-            return $polymorphicStructure->createInstance($result);
+            return $polymorphicStructure->createInstance($data);
         }
 
         if (is_subclass_of($this->class, InitializeInterface::class)) {
-            $result = $this->class::onInitialize($result);
+            $data = $this->class::onInitialize($data);
         }
 
         $structure = StructureGenerator::for($this->class);
-        $backbone = new Backbone($structure, $result);
+        $backbone = new Backbone($structure, $data);
 
         if (is_subclass_of($this->class, BackboneInitializedInterface::class)) {
-            $this->class::onBackboneInitialized($backbone, $result);
+            $this->class::onBackboneInitialized($backbone, $data);
         }
 
         $instance = $backbone->createInstance();
@@ -144,21 +140,11 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Eager loads the given relation for the given model instances.
-     *
-     * @param RelationInterface $relation
-     * @param ModelArrayList $instances
-     *
-     * @return void
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
-    public function eagerLoadRelation(RelationInterface $relation, ModelArrayList $instances): void
+    public function eagerLoadRelation(RelationInterface $relation, ArrayListInterface $instances): void
     {
         if ($this->connection->logger->enabled) {
             $deferred = $this->connection->logger->deferred();
@@ -170,27 +156,16 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Eager loads the relationships of the given instances.
-     *
-     * @param Model[] $instances
-     * @param string[] $forced
-     * @param string[] $disabled
-     *
-     * @return void
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
-    public function eagerLoadRelations(array $instances, array $forced = [], array $disabled = []): void
+    public function eagerLoadRelations(ArrayListInterface $instances, array $enabled = [], array $disabled = []): void
     {
         // note(Bas): if the structure has a parent, which means that the structure
         //  is part of a polymorphic structure, eager load from the parent class.
         if ($this->parent !== null) {
-            $this->parent->eagerLoadRelations($instances, $forced, $disabled);
+            $this->parent->eagerLoadRelations($instances, $enabled, $disabled);
 
             return;
         }
@@ -198,11 +173,10 @@ final class Structure implements SerializableInterface
         // note(Bas): First we eager load all relations from the provided model
         //  class. This ensures that if the model is polymorphic, the common
         //  relations are eaged loaded together.
-        $instances = new ModelArrayList($instances);
         $loaded = [];
 
         foreach ($this->getRelations() as $relation) {
-            if ((!$relation->attribute->eagerLoad && !$relation->property->isIn($forced)) || $relation->property->isIn($disabled)) {
+            if ((!$relation->attribute->eagerLoad && !$relation->property->isIn($enabled)) || $relation->property->isIn($disabled)) {
                 continue;
             }
 
@@ -223,7 +197,7 @@ final class Structure implements SerializableInterface
                     continue;
                 }
 
-                if ((!$subRelation->attribute->eagerLoad && !$subRelation->property->isIn($forced)) || $subRelation->property->isIn($disabled)) {
+                if ((!$subRelation->attribute->eagerLoad && !$subRelation->property->isIn($enabled)) || $subRelation->property->isIn($disabled)) {
                     continue;
                 }
 
@@ -233,14 +207,9 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Gets the definition of the given property.
-     *
-     * @param string $key
-     *
-     * @return PropertyDefinition
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
     public function getProperty(string $key): PropertyDefinition
     {
@@ -254,13 +223,9 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Returns TRUE if a property with the given key exists.
-     *
-     * @param string $key
-     *
-     * @return bool
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
     public function hasProperty(string $key): bool
     {
@@ -268,14 +233,9 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Returns a column literal for the given key.
-     *
-     * @param string $key
-     *
-     * @return ColumnLiteral
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
     public function getColumn(string $key): ColumnLiteral
     {
@@ -291,15 +251,9 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Returns the relation instance for the given property.
-     *
-     * @param RelationDefinition $property
-     *
-     * @return RelationInterface
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
     public function getRelation(RelationDefinition $property): RelationInterface
     {
@@ -319,13 +273,9 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Generates the relation properties of the model.
-     *
-     * @return Generator<RelationInterface<Model, Model>>
-     * @throws RelationException
-     * @throws StructureException
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
     public function getRelations(): Generator
     {
@@ -337,11 +287,9 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Returns the first primary key as a column literal for use in relations.
-     *
-     * @return ColumnLiteral
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
     public function getRelationPrimaryKey(): ColumnLiteral
     {
@@ -357,13 +305,11 @@ final class Structure implements SerializableInterface
     }
 
     /**
-     * Gets the primary key(s).
-     *
-     * @return ColumnDefinition[]|null
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
-    private function getPrimaryKey(): array|null
+    public function getPrimaryKey(): array|null
     {
         $properties = [];
 

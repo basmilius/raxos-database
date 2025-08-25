@@ -44,7 +44,7 @@ final readonly class CoalesceStruct implements QueryStructInterface
             $values = $values->toArray();
         }
 
-        $values = array_map(fn(mixed $value) => StructHelper::compileValue($connection, $value), $values);
+        $values = array_map(static fn(mixed $value) => StructHelper::compileValue($connection, $value), $values);
         $values = implode(', ', $values);
 
         $query->raw("coalesce({$values})");

@@ -361,15 +361,17 @@ class Statement implements StatementInterface
     private function loadRelationships(Model|array $instances): void
     {
         if (!is_array($instances)) {
-            $instances = [$instances];
+            $instances = new ModelArrayList([$instances]);
+        } else {
+            $instances = new ModelArrayList($instances);
+        }
+
+        if ($instances->isEmpty()) {
+            return;
         }
 
         if ($this->query instanceof InternalQueryInterface) {
             $this->query->_internal_invokeBeforeRelations($instances);
-        }
-
-        if (empty($instances)) {
-            return;
         }
 
         $structure = StructureGenerator::for($this->modelClass);

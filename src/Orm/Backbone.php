@@ -6,12 +6,11 @@ namespace Raxos\Database\Orm;
 use BackedEnum;
 use Generator;
 use JetBrains\PhpStorm\ExpectedValues;
-use Raxos\Database\Contract\{ConnectionInterface, QueryInterface};
+use Raxos\Database\Contract\{ConnectionInterface, QueryInterface, StructureInterface};
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, WritableRelationInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
-use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Util\Singleton;
 use function array_column;
 use function array_find_key;
@@ -51,7 +50,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * Backbone constructor.
      *
-     * @param Structure $structure
+     * @param StructureInterface $structure
      * @param array $data
      * @param bool $isNew
      *
@@ -59,7 +58,7 @@ final class Backbone implements AccessInterface, BackboneInterface
      * @since 1.0.17
      */
     public function __construct(
-        public readonly Structure $structure,
+        public readonly StructureInterface $structure,
         array $data,
         public bool $isNew = false
     )

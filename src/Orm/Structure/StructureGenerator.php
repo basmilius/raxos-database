@@ -5,6 +5,7 @@ namespace Raxos\Database\Orm\Structure;
 
 use BackedEnum;
 use Generator;
+use Raxos\Database\Contract\StructureInterface;
 use Raxos\Database\Error\ConnectionException;
 use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, SoftDelete, Table, Visible};
 use Raxos\Database\Orm\Caster\BooleanCaster;
@@ -39,13 +40,13 @@ final class StructureGenerator
     /**
      * Registers a structure.
      *
-     * @param Structure $structure
+     * @param StructureInterface $structure
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public static function define(Structure $structure): void
+    public static function define(StructureInterface $structure): void
     {
         self::$structures[$structure->class] = $structure;
     }
@@ -56,13 +57,14 @@ final class StructureGenerator
      * @template TModel of Model
      *
      * @param class-string<TModel> $class
+     * @param StructureInterface|null $parent
      *
-     * @return Structure<TModel>
+     * @return StructureInterface<TModel>
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function for(string $class, ?Structure $parent = null): Structure
+    public static function for(string $class, ?StructureInterface $parent = null): StructureInterface
     {
         if (isset(self::$structures[$class])) {
             return self::$structures[$class];
@@ -122,14 +124,14 @@ final class StructureGenerator
      * Returns the structure for the given class.
      *
      * @param ReflectionClass $class
-     * @param Structure|null $parent
+     * @param StructureInterface|null $parent
      *
      * @return ClassStructureDefinition
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    private static function class(ReflectionClass $class, ?Structure $parent = null): ClassStructureDefinition
+    private static function class(ReflectionClass $class, ?StructureInterface $parent = null): ClassStructureDefinition
     {
         $connectionId = $parent?->connection->id ?? 'default';
         $onDuplicateKeyUpdate = null;

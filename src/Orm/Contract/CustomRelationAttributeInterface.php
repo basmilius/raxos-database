@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Contract;
 
+use Raxos\Database\Contract\StructureInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Model;
-use Raxos\Database\Orm\Structure\Structure;
 
 /**
  * Interface CustomRelationAttributeInterface
@@ -14,7 +14,7 @@ use Raxos\Database\Orm\Structure\Structure;
  * #[Attribute(Attribute::TARGET_PROPERTY)]
  * class Friends implements CustomRelationAttributeInterface
  * {
- *     public function createRelationInstance(RelationDefinition $property, Structure $declaringStructure): RelationInterface
+ *     public function createRelationInstance(RelationDefinition $property, StructureInterface $declaringStructure): RelationInterface
  *     {
  *         return new FriendsRelation($this, $property, $declaringStructure);
  *     }
@@ -35,12 +35,12 @@ interface CustomRelationAttributeInterface
      * Creates the corresponding relation instance for the attribute.
      *
      * @param RelationDefinition $property
-     * @param Structure<TDeclaringModel> $declaringStructure
+     * @param StructureInterface<TDeclaringModel> $declaringStructure
      *
      * @return RelationInterface<TDeclaringModel, TReferenceModel>
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public function createRelationInstance(RelationDefinition $property, Structure $declaringStructure): RelationInterface;
+    public function createRelationInstance(RelationDefinition $property, StructureInterface $declaringStructure): RelationInterface;
 
 }

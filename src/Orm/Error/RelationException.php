@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Error;
 
+use Raxos\Database\Contract\StructureInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
-use Raxos\Database\Orm\Structure\Structure;
 use Raxos\Foundation\Error\ExceptionId;
 use function sprintf;
 
@@ -22,13 +22,13 @@ final class RelationException extends OrmException
      * Returns a reference model missing exception.
      *
      * @param RelationDefinition $property
-     * @param Structure $structure
+     * @param StructureInterface $structure
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function referenceModelMissing(RelationDefinition $property, Structure $structure): self
+    public static function referenceModelMissing(RelationDefinition $property, StructureInterface $structure): self
     {
         return new self(
             ExceptionId::for(__METHOD__),

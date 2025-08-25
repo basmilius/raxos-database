@@ -8,6 +8,7 @@ use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryExceptio
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
+use Raxos\Foundation\Contract\ArrayListInterface;
 
 /**
  * Interface RelationInterface
@@ -77,7 +78,7 @@ interface RelationInterface
     /**
      * Eager loads the relation for the given instances.
      *
-     * @param ModelArrayList<int, TDeclaringModel&Model> $instances
+     * @param ArrayListInterface<int, TDeclaringModel&Model> $instances
      *
      * @return void
      * @throws ConnectionException
@@ -88,6 +89,6 @@ interface RelationInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function eagerLoad(ModelArrayList $instances): void;
+    public function eagerLoad(ArrayListInterface $instances): void;
 
 }

@@ -3,10 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Contract\{InternalQueryInterface, QueryInterface};
+use Raxos\Database\Contract\{InternalQueryInterface, QueryInterface, StructureInterface};
 use Raxos\Database\Grammar\Grammar;
-use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Literal\ColumnLiteral;
 use Raxos\Foundation\Collection\ArrayList;
 use Raxos\Foundation\Contract\ArrayListInterface;
@@ -69,14 +68,14 @@ final class RelationHelper
      * Finds a cached model and returns it.
      *
      * @param mixed $declaringValue
-     * @param Structure $referenceStructure
+     * @param StructureInterface $referenceStructure
      * @param ColumnLiteral $referenceKey
      *
      * @return Model|null
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function findCached(mixed $declaringValue, Structure $referenceStructure, ColumnLiteral $referenceKey): ?Model
+    public static function findCached(mixed $declaringValue, StructureInterface $referenceStructure, ColumnLiteral $referenceKey): ?Model
     {
         return $referenceStructure->connection->cache
             ->find($referenceStructure->class, static fn(Model $model) => $model->{$referenceKey->column} === $declaringValue);
@@ -86,17 +85,17 @@ final class RelationHelper
      * Ensures that the given function is called before relations
      * of a model are loaded.
      *
-     * @param ModelArrayList<int, Model> $instances
-     * @param callable(Model[], ModelArrayList<int, Model>):void $fn
+     * @param ArrayListInterface<int, Model> $instances
+     * @param callable(ArrayListInterface<int, Model>, ArrayListInterface<int, Model>):void $fn
      *
      * @return callable
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function onBeforeRelations(ModelArrayList $instances, callable $fn): callable
+    public static function onBeforeRelations(ArrayListInterface $instances, callable $fn): callable
     {
         return static function (InternalQueryInterface&QueryInterface $query) use ($fn, $instances): QueryInterface {
-            $query->_internal_beforeRelations(static fn(array $results) => $fn($results, $instances));
+            $query->_internal_beforeRelations(static fn(ArrayListInterface $results) => $fn($results, $instances));
 
             return $query;
         };
@@ -106,7 +105,7 @@ final class RelationHelper
      * Partitions the foreign keys into already loaded instances and to
      * be loaded instances.
      *
-     * @param Structure $referenceStructure
+     * @param StructureInterface $referenceStructure
      * @param ArrayListInterface<int, string|int|null> $foreignKeys
      *
      * @return array{
@@ -116,7 +115,7 @@ final class RelationHelper
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public static function partitionModels(Structure $referenceStructure, ArrayListInterface $foreignKeys): array
+    public static function partitionModels(StructureInterface $referenceStructure, ArrayListInterface $foreignKeys): array
     {
         $cache = $referenceStructure->connection->cache;
         $cached = new ArrayList();

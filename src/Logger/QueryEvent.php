@@ -58,7 +58,7 @@ final readonly class QueryEvent extends Event
             $params = $paramsRef->getValue($query);
             $sql = $query->toSql();
 
-            foreach ($params as [$key, $value]) {
+            foreach ($params as $key => $value) {
                 $sql = str_replace(":$key", "<abbr title='{$value}'>:{$key}</abbr>", $sql);
             }
 

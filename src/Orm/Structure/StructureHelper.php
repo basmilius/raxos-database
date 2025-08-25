@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Structure;
 
-use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Contract\StructureInterface;
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\Model;
+use Raxos\Foundation\Contract\ArrayListInterface;
 use function is_int;
 use function is_string;
 
@@ -24,14 +26,14 @@ final class StructureHelper
      * is given, that model is filtered out because it probably is
      * the parent model within a polymorphic structure.
      *
-     * @param ModelArrayList $instances
+     * @param ArrayListInterface $instances
      * @param string|null $parentClass
      *
-     * @return ModelArrayList<class-string<Model>, ModelArrayList>
+     * @return ArrayListInterface<class-string<Model>, ArrayListInterface>
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function groupInstances(ModelArrayList $instances, ?string $parentClass = null): ModelArrayList
+    public static function groupInstances(ArrayListInterface $instances, ?string $parentClass = null): ArrayListInterface
     {
         return $instances
             ->filter(static fn(Model $instance) => $instance::class !== $parentClass)
@@ -61,14 +63,14 @@ final class StructureHelper
      * Returns a normalized array for use in visibility.
      *
      * @param string[]|string $keys
-     * @param Structure|null $structure
+     * @param StructureInterface|null $structure
      *
-     * @return array
+     * @return string[]
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function normalizeKeys(array|string $keys, ?Structure $structure = null): array
+    public static function normalizeKeys(array|string $keys, ?StructureInterface $structure = null): array
     {
         $normalizeKey = static fn(string $key) => $structure?->getProperty($key)->name ?? $key;
 

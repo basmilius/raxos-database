@@ -4,12 +4,11 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Contract;
 
 use JetBrains\PhpStorm\ExpectedValues;
-use Raxos\Database\Contract\{ConnectionInterface, QueryInterface};
+use Raxos\Database\Contract\{ConnectionInterface, QueryInterface, StructureInterface};
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
-use Raxos\Database\Orm\Structure\Structure;
 
 /**
  * Interface BackboneInterface
@@ -31,7 +30,7 @@ interface BackboneInterface
         get;
     }
 
-    public Structure $structure {
+    public StructureInterface $structure {
         get;
     }
 

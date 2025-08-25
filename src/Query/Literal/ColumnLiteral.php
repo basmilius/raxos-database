@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Literal;
 
-use Raxos\Database\Contract\{GrammarInterface, QueryLiteralInterface};
-use Raxos\Database\Orm\Structure\Structure;
+use Raxos\Database\Contract\{GrammarInterface, QueryLiteralInterface, StructureInterface};
 use function array_filter;
 
 /**
@@ -49,13 +48,13 @@ final readonly class ColumnLiteral implements QueryLiteralInterface
     /**
      * Returns the foreign key form of the column for a structure.
      *
-     * @param Structure $structure
+     * @param StructureInterface $structure
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      */
-    public function asForeignKeyFor(Structure $structure): self
+    public function asForeignKeyFor(StructureInterface $structure): self
     {
         return new self(
             $this->grammar,
