@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Error;
 
-use Raxos\Database\Contract\StructureInterface;
+use Raxos\Database\Orm\Contract\StructureInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Foundation\Error\ExceptionId;
 use function sprintf;

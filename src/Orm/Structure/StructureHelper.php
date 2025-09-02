@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Structure;
 
-use Raxos\Database\Contract\StructureInterface;
+use Raxos\Database\Orm\Contract\StructureInterface;
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Model;

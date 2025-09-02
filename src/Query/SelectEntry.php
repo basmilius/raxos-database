@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryLiteralInterface, QueryStructInterface};
+use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryLiteralInterface, QueryExpressionInterface};
 use Raxos\Database\Error\QueryException;
 use Stringable;
 use function assert;
@@ -21,14 +21,14 @@ final readonly class SelectEntry
     /**
      * SelectEntry constructor.
      *
-     * @param QueryInterface|QueryLiteralInterface|QueryStructInterface|Stringable|string|int|float|bool $value
+     * @param QueryInterface|QueryExpressionInterface|QueryLiteralInterface|Stringable|string|int|float|bool $value
      * @param string|null $alias
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      */
     public function __construct(
-        public QueryInterface|QueryLiteralInterface|QueryStructInterface|Stringable|string|int|float|bool $value,
+        public QueryInterface|QueryExpressionInterface|QueryLiteralInterface|Stringable|string|int|float|bool $value,
         public ?string $alias = null
     ) {}
 
@@ -55,7 +55,7 @@ final readonly class SelectEntry
             return "({$this->value}) as {$alias}";
         }
 
-        if ($this->value instanceof QueryStructInterface) {
+        if ($this->value instanceof QueryExpressionInterface) {
             $query = new ($query::class)($connection);
             $this->value->compile($query, $connection, $grammar);
 

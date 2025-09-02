@@ -4,13 +4,13 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Structure;
 
 use Generator;
-use Raxos\Database\Contract\{ConnectionInterface, StructureInterface};
+use Raxos\Database\Contract\{ConnectionInterface};
 use Raxos\Database\Db;
 use Raxos\Database\Error\{ConnectionException, DatabaseException};
 use Raxos\Database\Logger\EagerLoadEvent;
 use Raxos\Database\Orm\{Backbone, Model};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
-use Raxos\Database\Orm\Contract\{BackboneInitializedInterface, CustomRelationAttributeInterface, InitializeInterface, RelationInterface};
+use Raxos\Database\Orm\Contract\{BackboneInitializedInterface, CustomRelationAttributeInterface, InitializeInterface, RelationInterface, StructureInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
@@ -237,17 +237,18 @@ final class Structure implements StructureInterface, SerializableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function getColumn(string $key): ColumnLiteral
+    public function getColumn(string $key, ?string $table = null): ColumnLiteral
     {
         static $cache = [];
 
         $property = $this->getProperty($key);
+        $table ??= $this->table;
 
         if (!($property instanceof ColumnDefinition)) {
             throw StructureException::invalidColumn($this->class, $key);
         }
 
-        return $cache["{$this->table}:{$key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
+        return $cache["{$table}:{$key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $table);
     }
 
     /**

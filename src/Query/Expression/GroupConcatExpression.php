@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Query\Struct;
+namespace Raxos\Database\Query\Expression;
 
-use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryLiteralInterface, QueryStructInterface};
+use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryLiteralInterface, QueryExpressionInterface};
 
 /**
  * Class GroupConcatStruct
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Query\Struct
- * @since 1.5.0
+ * @package Raxos\Database\Query\Expression
+ * @since 2.0.0
  */
-final readonly class GroupConcatStruct implements QueryStructInterface
+final readonly class GroupConcatExpression implements QueryExpressionInterface
 {
 
     /**
@@ -26,7 +26,7 @@ final readonly class GroupConcatStruct implements QueryStructInterface
      * @param int|null $offset
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.5.0
+     * @since 2.0.0
      */
     public function __construct(
         public QueryLiteralInterface|string $expression,
@@ -40,7 +40,7 @@ final readonly class GroupConcatStruct implements QueryStructInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.5.0
+     * @since 2.0.0
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {

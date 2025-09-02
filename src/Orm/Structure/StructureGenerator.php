@@ -5,11 +5,11 @@ namespace Raxos\Database\Orm\Structure;
 
 use BackedEnum;
 use Generator;
-use Raxos\Database\Contract\StructureInterface;
 use Raxos\Database\Error\ConnectionException;
 use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, SoftDelete, Table, Visible};
 use Raxos\Database\Orm\Caster\BooleanCaster;
 use Raxos\Database\Orm\Contract\{AttributeInterface, CasterInterface, RelationAttributeInterface};
+use Raxos\Database\Orm\Contract\StructureInterface;
 use Raxos\Database\Orm\Definition\{ClassStructureDefinition, ColumnDefinition, MacroDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Model;

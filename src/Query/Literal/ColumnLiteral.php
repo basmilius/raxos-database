@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Literal;
 
-use Raxos\Database\Contract\{GrammarInterface, QueryLiteralInterface, StructureInterface};
+use Raxos\Database\Contract\{GrammarInterface, QueryLiteralInterface};
+use Raxos\Database\Orm\Contract\StructureInterface;
 use function array_filter;
 
 /**

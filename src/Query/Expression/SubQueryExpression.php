@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Query\Struct;
+namespace Raxos\Database\Query\Expression;
 
-use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryStructInterface};
+use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryExpressionInterface};
 
 /**
  * Class SubQueryStruct
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Query\Struct
- * @since 1.5.0
+ * @package Raxos\Database\Query\Expression
+ * @since 2.0.0
  */
-final readonly class SubQueryStruct implements QueryStructInterface
+final readonly class SubQueryExpression implements QueryExpressionInterface
 {
 
     /**
@@ -21,7 +21,7 @@ final readonly class SubQueryStruct implements QueryStructInterface
      * @param QueryInterface $query
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.5.0
+     * @since 2.0.0
      */
     public function __construct(
         public QueryInterface $query
@@ -30,7 +30,7 @@ final readonly class SubQueryStruct implements QueryStructInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.5.0
+     * @since 2.0.0
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {

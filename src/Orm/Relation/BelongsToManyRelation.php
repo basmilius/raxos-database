@@ -3,15 +3,15 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Contract\{QueryInterface, StructureInterface};
+use Raxos\Database\Contract\{QueryInterface};
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsToMany;
-use Raxos\Database\Orm\Contract\RelationInterface;
+use Raxos\Database\Orm\Contract\{RelationInterface, StructureInterface};
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Select;
 use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Select;
 use Raxos\Foundation\Contract\ArrayListInterface;
 use function implode;
 use function sort;

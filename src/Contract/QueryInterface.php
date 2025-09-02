@@ -75,6 +75,31 @@ interface QueryInterface
     public function addPiece(string $clause, ColumnLiteral|array|string|int|null $data = null, ?string $separator = null): static;
 
     /**
+     * Compiles a value into the query.
+     *
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $value
+     *
+     * @return void
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function compile(BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $value): void;
+
+    /**
+     * Compiles multiple values into the query.
+     *
+     * @param iterable $values
+     * @param string $separator
+     *
+     * @return void
+     * @throws QueryException
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function compileMultiple(iterable $values, string $separator = ', '): void;
+
+    /**
      * Executes the given function if the given bool is true.
      *
      * @param bool $is

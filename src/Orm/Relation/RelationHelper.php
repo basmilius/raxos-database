@@ -3,8 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Contract\{InternalQueryInterface, QueryInterface, StructureInterface};
+use Raxos\Database\Contract\{InternalQueryInterface, QueryInterface};
 use Raxos\Database\Grammar\Grammar;
+use Raxos\Database\Orm\Contract\StructureInterface;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Literal\ColumnLiteral;
 use Raxos\Foundation\Collection\ArrayList;

@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Contract;
+namespace Raxos\Database\Orm\Contract;
 
 use Generator;
+use Raxos\Database\Contract\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
-use Raxos\Database\Orm\Contract\RelationInterface;
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Model;
@@ -18,7 +18,7 @@ use Raxos\Foundation\Contract\ArrayListInterface;
  * @template TModel of Model
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Contract
+ * @package Raxos\Database\Orm\Contract
  * @since 2.0.0
  */
 interface StructureInterface
@@ -73,7 +73,7 @@ interface StructureInterface
      *
      * @param array<string, mixed> $data
      *
-     * @return TModel
+     * @return Model
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
@@ -142,13 +142,14 @@ interface StructureInterface
      * Returns a column literal for the given key.
      *
      * @param string $key
+     * @param string|null $table
      *
      * @return ColumnLiteral
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function getColumn(string $key): ColumnLiteral;
+    public function getColumn(string $key, ?string $table = null): ColumnLiteral;
 
     /**
      * Returns the relation instance for a given property.

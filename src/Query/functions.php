@@ -7,6 +7,8 @@ use Raxos\Database\Contract\QueryLiteralInterface;
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
 
+const expr = new Expr();
+
 /**
  * Returns a `$value` literal.
  *

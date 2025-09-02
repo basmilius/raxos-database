@@ -4,9 +4,10 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use BackedEnum;
-use Raxos\Database\Contract\{QueryInterface, QueryLiteralInterface, QueryValueInterface, StructureInterface};
+use Raxos\Database\Contract\{QueryInterface, QueryLiteralInterface, QueryValueInterface};
 use Raxos\Database\Contract\ConnectionInterface;
 use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
+use Raxos\Database\Orm\Contract\StructureInterface;
 use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Literal\ColumnLiteral;
@@ -17,8 +18,6 @@ use function is_array;
 
 /**
  * Trait Queryable
- *
- * @template TModel of Model
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
@@ -56,7 +55,7 @@ trait Queryable
      *
      * @param bool $prepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws StructureException
      * @author Bas Milius <bas@mili.us>
@@ -90,7 +89,7 @@ trait Queryable
      * @param int $offset
      * @param int $limit
      *
-     * @return ArrayListInterface<int, TModel>
+     * @return ArrayListInterface<int, static>
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException
@@ -163,7 +162,7 @@ trait Queryable
      *
      * @param array $primaryKeys
      *
-     * @return ModelArrayList<int, TModel>
+     * @return ModelArrayList<int, static>
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException
@@ -208,7 +207,7 @@ trait Queryable
      *
      * @param array|string|int $primaryKey
      *
-     * @return TModel|null
+     * @return static|null
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws QueryException
@@ -237,7 +236,7 @@ trait Queryable
      *
      * @param array|string|int $primaryKey
      *
-     * @return TModel
+     * @return static
      * @throws ConnectionException
      * @throws ExecutionException
      * @throws InstanceException
@@ -283,7 +282,7 @@ trait Queryable
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -306,7 +305,7 @@ trait Queryable
      *
      * @param QueryInterface $query
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -326,7 +325,7 @@ trait Queryable
      * @param ColumnLiteral $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -345,7 +344,7 @@ trait Queryable
      *
      * @param QueryInterface $query
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -365,7 +364,7 @@ trait Queryable
      * @param ColumnLiteral $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -384,7 +383,7 @@ trait Queryable
      *
      * @param ColumnLiteral $column
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -403,7 +402,7 @@ trait Queryable
      *
      * @param ColumnLiteral $column
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -423,7 +422,7 @@ trait Queryable
      * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -442,7 +441,7 @@ trait Queryable
      * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -461,7 +460,7 @@ trait Queryable
      * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -481,7 +480,7 @@ trait Queryable
      * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -501,7 +500,7 @@ trait Queryable
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -524,7 +523,7 @@ trait Queryable
      *
      * @param QueryInterface $query
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -544,7 +543,7 @@ trait Queryable
      * @param ColumnLiteral $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -563,7 +562,7 @@ trait Queryable
      *
      * @param QueryInterface $query
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -583,7 +582,7 @@ trait Queryable
      * @param ColumnLiteral $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -602,7 +601,7 @@ trait Queryable
      *
      * @param ColumnLiteral $column
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -621,7 +620,7 @@ trait Queryable
      *
      * @param ColumnLiteral $column
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException
@@ -638,10 +637,10 @@ trait Queryable
     /**
      * Returns a new select query for the model.
      *
-     * @param callable(Select):QueryInterface<TModel> $compose
+     * @param callable(Select):QueryInterface<static> $compose
      * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      *
-     * @return QueryInterface<TModel>
+     * @return QueryInterface<static>
      * @throws ConnectionException
      * @throws QueryException
      * @throws StructureException

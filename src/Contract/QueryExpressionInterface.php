@@ -6,13 +6,13 @@ namespace Raxos\Database\Contract;
 use Raxos\Database\Error\QueryException;
 
 /**
- * Interface QueryStructInterface
+ * Interface QueryExpressionInterface
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Contract
- * @since 1.0.16
+ * @since 2.0.0
  */
-interface QueryStructInterface extends QueryValueInterface
+interface QueryExpressionInterface extends QueryValueInterface
 {
 
     /**
@@ -26,7 +26,7 @@ interface QueryStructInterface extends QueryValueInterface
      * @return void
      * @throws QueryException
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 2.0.0
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void;
 

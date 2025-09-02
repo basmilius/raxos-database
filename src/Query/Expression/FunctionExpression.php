@@ -1,35 +1,34 @@
 <?php
 declare(strict_types=1);
 
-namespace Raxos\Database\Query\Struct;
+namespace Raxos\Database\Query\Expression;
 
 use BackedEnum;
-use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryStructInterface, QueryValueInterface};
-use Raxos\Database\Query\QueryHelper;
+use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryExpressionInterface, QueryValueInterface};
 use Stringable;
 
 /**
  * Class FunctionStruct
  *
  * @author Bas Milius <bas@mili.us>
- * @package Raxos\Database\Query\Struct
+ * @package Raxos\Database\Query\Expression
  * @since 2.0.0
  */
-readonly class FunctionStruct implements QueryStructInterface
+readonly class FunctionExpression implements QueryExpressionInterface
 {
 
     /**
      * FunctionStruct constructor.
      *
      * @param string $name
-     * @param array<BackedEnum|Stringable|QueryValueInterface|string|int|float|bool> $params
+     * @param iterable<BackedEnum|Stringable|QueryValueInterface|string|int|float|bool> $params
      *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function __construct(
         public string $name,
-        public array $params = []
+        public iterable $params = []
     ) {}
 
     /**
@@ -40,15 +39,7 @@ readonly class FunctionStruct implements QueryStructInterface
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {
         $query->raw("{$this->name}(");
-
-        foreach ($this->params as $index => $param) {
-            if ($index > 0) {
-                $query->raw(', ');
-            }
-
-            QueryHelper::value($query, $param);
-        }
-
+        $query->compileMultiple($this->params);
         $query->raw(')');
     }
 

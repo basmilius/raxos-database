@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Contract;
 
-use Raxos\Database\Contract\StructureInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Model;
 

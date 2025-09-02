@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use Raxos\Database\Contract\{QueryInterface, QueryLiteralInterface, QueryStructInterface};
+use Raxos\Database\Contract\{QueryExpressionInterface, QueryInterface, QueryLiteralInterface};
 use Stringable;
 use function is_numeric;
 
@@ -37,13 +37,13 @@ final readonly class Select
     /**
      * Adds values to the select.
      *
-     * @param QueryInterface|QueryLiteralInterface|QueryStructInterface|Stringable|string|int|float|bool ...$values
+     * @param QueryInterface|QueryExpressionInterface|QueryLiteralInterface|Stringable|string|int|float|bool ...$values
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      */
-    public function add(QueryInterface|QueryLiteralInterface|QueryStructInterface|Stringable|string|int|float|bool ...$values): self
+    public function add(QueryInterface|QueryExpressionInterface|QueryLiteralInterface|Stringable|string|int|float|bool ...$values): self
     {
         $entries = [];
 
@@ -61,7 +61,7 @@ final readonly class Select
     /**
      * Creates a new select set for the given keys.
      *
-     * @param array<QueryInterface|QueryLiteralInterface|QueryStructInterface|Stringable|string|int|float|bool> ...$values
+     * @param array<QueryInterface|QueryExpressionInterface|QueryLiteralInterface|Stringable|string|int|float|bool> ...$values
      *
      * @return self
      * @author Bas Milius <bas@mili.us>
