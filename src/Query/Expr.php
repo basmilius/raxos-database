@@ -24,8 +24,8 @@ final class Expr implements QueryExpressionsInterface
      * @since 2.0.0
      */
     public function between(
-        QueryLiteralInterface|Stringable|string|float|int $lower,
-        QueryLiteralInterface|Stringable|string|float|int $upper
+        QueryValueInterface|Stringable|string|int|float $lower,
+        QueryValueInterface|Stringable|string|int|float $upper
     ): QueryExpressionInterface
     {
         return new Expression\BetweenExpression($lower, $upper);
@@ -36,9 +36,29 @@ final class Expr implements QueryExpressionsInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function coalesce(QueryInterface|QueryLiteralInterface|Stringable|string|float|int ...$values): QueryExpressionInterface
+    public function coalesce(QueryInterface|QueryValueInterface|Stringable|string|int|float ...$values): QueryExpressionInterface
     {
         return new Expression\CoalesceExpression($values);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function concat(iterable $values): QueryExpressionInterface
+    {
+        return new Expression\ConcatExpression($values);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function concatWs(string $separator, iterable $values): QueryExpressionInterface
+    {
+        return new Expression\ConcatWsExpression($separator, $values);
     }
 
     /**
@@ -94,9 +114,9 @@ final class Expr implements QueryExpressionsInterface
      * @since 2.0.0
      */
     public function if(
-        QueryInterface|QueryValueInterface|Stringable|string|float|int $expression,
-        QueryInterface|QueryValueInterface|Stringable|string|float|int $then,
-        QueryInterface|QueryValueInterface|Stringable|string|float|int $else
+        QueryInterface|QueryValueInterface|Stringable|string|int|float $expression,
+        QueryInterface|QueryValueInterface|Stringable|string|int|float $then,
+        QueryInterface|QueryValueInterface|Stringable|string|int|float $else
     ): QueryExpressionInterface
     {
         return new Expression\IfExpression($expression, $then, $else);
@@ -163,12 +183,22 @@ final class Expr implements QueryExpressionsInterface
      * @since 2.0.0
      */
     public function operation(
-        QueryLiteralInterface|float|Stringable|int|string $lhs,
+        QueryValueInterface|Stringable|string|int|float $lhs,
         string $operator,
-        QueryLiteralInterface|float|Stringable|int|string $rhs
+        QueryValueInterface|Stringable|string|int|float $rhs
     ): QueryExpressionInterface
     {
         return new Expression\OperationExpression($operator, $lhs, $rhs);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function sha1(QueryValueInterface|Stringable|string|int|float $value): QueryExpressionInterface
+    {
+        return new Expression\FunctionExpression('sha1', [$value]);
     }
 
     /**
@@ -196,7 +226,7 @@ final class Expr implements QueryExpressionsInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function gt(QueryLiteralInterface|float|Stringable|int|string $lhs, QueryLiteralInterface|float|Stringable|int|string $rhs): QueryExpressionInterface
+    public function gt(QueryValueInterface|Stringable|string|int|float $lhs, QueryValueInterface|Stringable|string|int|float $rhs): QueryExpressionInterface
     {
         return $this->operation($lhs, '>', $rhs);
     }
@@ -206,7 +236,7 @@ final class Expr implements QueryExpressionsInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function gte(QueryLiteralInterface|float|Stringable|int|string $lhs, QueryLiteralInterface|float|Stringable|int|string $rhs): QueryExpressionInterface
+    public function gte(QueryValueInterface|Stringable|string|int|float $lhs, QueryValueInterface|Stringable|string|int|float $rhs): QueryExpressionInterface
     {
         return $this->operation($lhs, '>=', $rhs);
     }
@@ -216,7 +246,7 @@ final class Expr implements QueryExpressionsInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function lt(QueryLiteralInterface|float|Stringable|int|string $lhs, QueryLiteralInterface|float|Stringable|int|string $rhs): QueryExpressionInterface
+    public function lt(QueryValueInterface|Stringable|string|int|float $lhs, QueryValueInterface|Stringable|string|int|float $rhs): QueryExpressionInterface
     {
         return $this->operation($lhs, '<', $rhs);
     }
@@ -226,7 +256,7 @@ final class Expr implements QueryExpressionsInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function lte(QueryLiteralInterface|float|Stringable|int|string $lhs, QueryLiteralInterface|float|Stringable|int|string $rhs): QueryExpressionInterface
+    public function lte(QueryValueInterface|Stringable|string|int|float $lhs, QueryValueInterface|Stringable|string|int|float $rhs): QueryExpressionInterface
     {
         return $this->operation($lhs, '<=', $rhs);
     }
@@ -236,7 +266,7 @@ final class Expr implements QueryExpressionsInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function eq(QueryLiteralInterface|float|Stringable|int|string $lhs, QueryLiteralInterface|float|Stringable|int|string $rhs): QueryExpressionInterface
+    public function eq(QueryValueInterface|Stringable|string|int|float $lhs, QueryValueInterface|Stringable|string|int|float $rhs): QueryExpressionInterface
     {
         return $this->operation($lhs, '=', $rhs);
     }

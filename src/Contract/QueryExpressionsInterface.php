@@ -21,8 +21,8 @@ interface QueryExpressionsInterface
     /**
      * Returns a `between $lower and $upper` expression.
      *
-     * @param QueryLiteralInterface|Stringable|string|float|int $lower
-     * @param QueryLiteralInterface|Stringable|string|float|int $upper
+     * @param QueryValueInterface|Stringable|string|int|float $lower
+     * @param QueryValueInterface|Stringable|string|int|float $upper
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
@@ -30,21 +30,44 @@ interface QueryExpressionsInterface
      * @see BetweenExpression
      */
     public function between(
-        QueryLiteralInterface|Stringable|string|float|int $lower,
-        QueryLiteralInterface|Stringable|string|float|int $upper
+        QueryValueInterface|Stringable|string|int|float $lower,
+        QueryValueInterface|Stringable|string|int|float $upper
     ): QueryExpressionInterface;
 
     /**
      * Returns a `coalesce(...$values)` expression.
      *
-     * @param QueryInterface|QueryLiteralInterface|Stringable|string|float|int ...$values
+     * @param QueryInterface|QueryValueInterface|Stringable|string|int|float ...$values
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      * @see CoalesceExpression
      */
-    public function coalesce(QueryInterface|QueryLiteralInterface|Stringable|string|float|int ...$values): QueryExpressionInterface;
+    public function coalesce(QueryInterface|QueryValueInterface|Stringable|string|int|float ...$values): QueryExpressionInterface;
+
+    /**
+     * Returns a `concat(...$values)` expression.
+     *
+     * @param iterable<BackedEnum|Stringable|QueryValueInterface|string|int|float|bool> $values
+     *
+     * @return QueryExpressionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function concat(iterable $values): QueryExpressionInterface;
+
+    /**
+     * Returns a `concat($separator, ...$values)` expression.
+     *
+     * @param string $separator
+     * @param iterable<BackedEnum|Stringable|QueryValueInterface|string|int|float|bool> $values
+     *
+     * @return QueryExpressionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function concatWs(string $separator, iterable $values): QueryExpressionInterface;
 
     /**
      * Returns a `exists $expression` expression.
@@ -128,7 +151,7 @@ interface QueryExpressionsInterface
     /**
      * Returns a `in($values)` expression.
      *
-     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $values
+     * @param ArrayableInterface<QueryInterface|QueryValueInterface|Stringable|string|int|float>|array<QueryInterface|QueryValueInterface|Stringable|string|int|float> $values
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
@@ -160,7 +183,7 @@ interface QueryExpressionsInterface
     /**
      * Returns a new `match($fields) against ($expression)` expression.
      *
-     * @param QueryLiteralInterface|QueryExpressionInterface|Stringable|ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|string|float|int|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $fields
+     * @param QueryLiteralInterface|QueryExpressionInterface|Stringable|ArrayableInterface<QueryInterface|QueryValueInterface|Stringable|string|int|float>|string|float|int|array<QueryInterface|QueryValueInterface|Stringable|string|int|float> $fields
      * @param QueryLiteralInterface|QueryExpressionInterface|Stringable|string|float|int $expression
      * @param bool $booleanMode
      * @param bool $queryExpansion
@@ -191,19 +214,30 @@ interface QueryExpressionsInterface
     /**
      * Returns a `$lhs $operator $rhs` expression.
      *
-     * @param QueryLiteralInterface|Stringable|string|float|int $lhs
+     * @param QueryValueInterface|Stringable|string|int|float $lhs
      * @param string $operator
-     * @param QueryLiteralInterface|Stringable|string|float|int $rhs
+     * @param QueryValueInterface|Stringable|string|int|float $rhs
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function operation(
-        QueryLiteralInterface|Stringable|string|float|int $lhs,
+        QueryValueInterface|Stringable|string|int|float $lhs,
         string $operator,
-        QueryLiteralInterface|Stringable|string|float|int $rhs
+        QueryValueInterface|Stringable|string|int|float $rhs
     ): QueryExpressionInterface;
+
+    /**
+     * Returns a `sha1($value)` expression.
+     *
+     * @param QueryValueInterface|Stringable|string|int|float $value
+     *
+     * @return QueryExpressionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function sha1(QueryValueInterface|Stringable|string|int|float $value): QueryExpressionInterface;
 
     /**
      * Returns a `($subQuery)` expression.
@@ -234,76 +268,76 @@ interface QueryExpressionsInterface
     /**
      * Returns a `$lhs > $rhs` expression.
      *
-     * @param QueryLiteralInterface|Stringable|string|float|int $lhs
-     * @param QueryLiteralInterface|Stringable|string|float|int $rhs
+     * @param QueryValueInterface|Stringable|string|int|float $lhs
+     * @param QueryValueInterface|Stringable|string|int|float $rhs
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function gt(
-        QueryLiteralInterface|Stringable|string|float|int $lhs,
-        QueryLiteralInterface|Stringable|string|float|int $rhs
+        QueryValueInterface|Stringable|string|int|float $lhs,
+        QueryValueInterface|Stringable|string|int|float $rhs
     ): QueryExpressionInterface;
 
     /**
      * Returns a `$lhs >= $rhs` expression.
      *
-     * @param QueryLiteralInterface|Stringable|string|float|int $lhs
-     * @param QueryLiteralInterface|Stringable|string|float|int $rhs
+     * @param QueryValueInterface|Stringable|string|int|float $lhs
+     * @param QueryValueInterface|Stringable|string|int|float $rhs
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function gte(
-        QueryLiteralInterface|Stringable|string|float|int $lhs,
-        QueryLiteralInterface|Stringable|string|float|int $rhs
+        QueryValueInterface|Stringable|string|int|float $lhs,
+        QueryValueInterface|Stringable|string|int|float $rhs
     ): QueryExpressionInterface;
 
     /**
      * Returns a `$lhs < $rhs` expression.
      *
-     * @param QueryLiteralInterface|Stringable|string|float|int $lhs
-     * @param QueryLiteralInterface|Stringable|string|float|int $rhs
+     * @param QueryValueInterface|Stringable|string|int|float $lhs
+     * @param QueryValueInterface|Stringable|string|int|float $rhs
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function lt(
-        QueryLiteralInterface|Stringable|string|float|int $lhs,
-        QueryLiteralInterface|Stringable|string|float|int $rhs
+        QueryValueInterface|Stringable|string|int|float $lhs,
+        QueryValueInterface|Stringable|string|int|float $rhs
     ): QueryExpressionInterface;
 
     /**
      * Returns a `$lhs <= $rhs` expression.
      *
-     * @param QueryLiteralInterface|Stringable|string|float|int $lhs
-     * @param QueryLiteralInterface|Stringable|string|float|int $rhs
+     * @param QueryValueInterface|Stringable|string|int|float $lhs
+     * @param QueryValueInterface|Stringable|string|int|float $rhs
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function lte(
-        QueryLiteralInterface|Stringable|string|float|int $lhs,
-        QueryLiteralInterface|Stringable|string|float|int $rhs
+        QueryValueInterface|Stringable|string|int|float $lhs,
+        QueryValueInterface|Stringable|string|int|float $rhs
     ): QueryExpressionInterface;
 
     /**
      * Returns a `$lhs = $rhs` expression.
      *
-     * @param QueryLiteralInterface|Stringable|string|float|int $lhs
-     * @param QueryLiteralInterface|Stringable|string|float|int $rhs
+     * @param QueryValueInterface|Stringable|string|int|float $lhs
+     * @param QueryValueInterface|Stringable|string|int|float $rhs
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function eq(
-        QueryLiteralInterface|Stringable|string|float|int $lhs,
-        QueryLiteralInterface|Stringable|string|float|int $rhs
+        QueryValueInterface|Stringable|string|int|float $lhs,
+        QueryValueInterface|Stringable|string|int|float $rhs
     ): QueryExpressionInterface;
 
 }
