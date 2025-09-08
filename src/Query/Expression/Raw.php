@@ -4,31 +4,29 @@ declare(strict_types=1);
 namespace Raxos\Database\Query\Expression;
 
 use BackedEnum;
-use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryExpressionInterface, QueryValueInterface};
+use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryExpressionInterface, QueryInterface};
 use Stringable;
 
 /**
- * Class FunctionStruct
+ * Class Raw
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Expression
  * @since 2.0.0
  */
-readonly class FunctionExpression implements QueryExpressionInterface
+final readonly class Raw implements QueryExpressionInterface
 {
 
     /**
-     * FunctionStruct constructor.
+     * Raw constructor.
      *
-     * @param string $name
-     * @param iterable<BackedEnum|Stringable|QueryValueInterface|string|int|float|bool> $params
+     * @param BackedEnum|Stringable|string|int|float|bool $value
      *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function __construct(
-        public string $name,
-        public iterable $params = []
+        public BackedEnum|Stringable|string|int|float|bool $value
     ) {}
 
     /**
@@ -38,9 +36,7 @@ readonly class FunctionExpression implements QueryExpressionInterface
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {
-        $query->raw("{$this->name}(");
-        $query->compileMultiple($this->params);
-        $query->raw(')');
+        $query->raw((string)$this->value);
     }
 
 }

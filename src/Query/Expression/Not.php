@@ -6,25 +6,25 @@ namespace Raxos\Database\Query\Expression;
 use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryExpressionInterface, QueryInterface};
 
 /**
- * Class NotExpression
+ * Class Not
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Expression
  * @since 2.0.0
  */
-final readonly class NotExpression implements QueryExpressionInterface
+final readonly class Not implements QueryExpressionInterface
 {
 
     /**
-     * NotExpression constructor.
+     * Not constructor.
      *
-     * @param QueryExpressionInterface $expression
+     * @param QueryExpressionInterface $expr
      *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function __construct(
-        public QueryExpressionInterface $expression
+        public QueryExpressionInterface $expr
     ) {}
 
     /**
@@ -34,8 +34,8 @@ final readonly class NotExpression implements QueryExpressionInterface
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {
-        $query->raw("not ");
-        $this->expression->compile($query, $connection, $grammar);
+        $query->raw('not ');
+        $query->compile($this->expr);
     }
 
 }

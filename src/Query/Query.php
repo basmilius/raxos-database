@@ -223,7 +223,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function compile(BackedEnum|float|bool|Stringable|int|string|QueryValueInterface $value): void
+    public function compile(BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $value): void
     {
         match (true) {
             $value instanceof QueryInterface => $this->parenthesis(fn() => $this->merge($value), patch: false),
@@ -926,7 +926,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function havingIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
-        return $this->having($field, expr->in($options));
+        return $this->having($field, expr->in(...$options));
     }
 
     /**
@@ -956,7 +956,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function havingNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
-        return $this->having($field, expr->not(expr->in($options)));
+        return $this->having($field, expr->not(expr->in(...$options)));
     }
 
     /**
@@ -1078,7 +1078,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orWhereIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
-        return $this->orWhere($field, expr->in($options));
+        return $this->orWhere($field, expr->in(...$options));
     }
 
     /**
@@ -1108,7 +1108,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orWhereNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
-        return $this->orWhere($field, expr->not(expr->in($options)));
+        return $this->orWhere($field, expr->not(expr->in(...$options)));
     }
 
     /**
@@ -1343,7 +1343,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function whereIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
-        return $this->where($field, expr->in($options));
+        return $this->where($field, expr->in(...$options));
     }
 
     /**
@@ -1373,7 +1373,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function whereNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
-        return $this->where($field, expr->not(expr->in($options)));
+        return $this->where($field, expr->not(expr->in(...$options)));
     }
 
     /**
@@ -1441,7 +1441,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $properties = $structure->primaryKey;
 
         if (count($properties) === 1) {
-            return $this->where($structure->getColumn($properties[0]->key), expr->in($primaryKeys));
+            return $this->where($structure->getColumn($properties[0]->key), expr->in(...$primaryKeys));
         }
 
         $columns = array_map(static fn(PropertyDefinition $property) => $structure->getColumn($property->name), $properties);

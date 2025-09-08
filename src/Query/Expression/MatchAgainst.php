@@ -9,17 +9,17 @@ use Stringable;
 use function is_iterable;
 
 /**
- * Class MatchAgainstStruct
+ * Class MatchAgainst
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Expression
  * @since 2.0.0
  */
-final readonly class MatchAgainstExpression implements QueryExpressionInterface
+final readonly class MatchAgainst implements QueryExpressionInterface
 {
 
     /**
-     * MatchAgainstStruct constructor.
+     * MatchAgainst constructor.
      *
      * @param QueryLiteralInterface|QueryExpressionInterface|Stringable|ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|string|float|int|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $fields
      * @param QueryLiteralInterface|QueryExpressionInterface|Stringable|string|float|int $expression

@@ -3,29 +3,28 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Expression;
 
-use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryExpressionInterface, QueryInterface, QueryLiteralInterface};
-use Stringable;
+use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryExpressionInterface};
 
 /**
- * Class CoalesceStruct
+ * Class SubQuery
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Expression
  * @since 2.0.0
  */
-final readonly class CoalesceExpression implements QueryExpressionInterface
+final readonly class SubQuery implements QueryExpressionInterface
 {
 
     /**
-     * CoalesceStruct constructor.
+     * SubQuery constructor.
      *
-     * @param iterable<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $values
+     * @param QueryInterface $query
      *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function __construct(
-        public iterable $values
+        public QueryInterface $query
     ) {}
 
     /**
@@ -35,9 +34,7 @@ final readonly class CoalesceExpression implements QueryExpressionInterface
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {
-        $query->raw('coalesce(');
-        $query->compileMultiple($this->values);
-        $query->raw(')');
+        $query->parenthesis(fn() => $query->merge($this->query), patch: false);
     }
 
 }

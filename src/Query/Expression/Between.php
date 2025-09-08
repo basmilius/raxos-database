@@ -4,29 +4,30 @@ declare(strict_types=1);
 namespace Raxos\Database\Query\Expression;
 
 use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryLiteralInterface, QueryExpressionInterface};
-use Raxos\Foundation\Contract\ArrayableInterface;
 use Stringable;
 
 /**
- * Class InStruct
+ * Class Between
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Expression
  * @since 2.0.0
  */
-final readonly class InExpression implements QueryExpressionInterface
+final readonly class Between implements QueryExpressionInterface
 {
 
     /**
-     * InStruct constructor.
+     * Between constructor.
      *
-     * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $values
+     * @param QueryLiteralInterface|Stringable|string|float|int $min
+     * @param QueryLiteralInterface|Stringable|string|float|int $max
      *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function __construct(
-        public ArrayableInterface|array $values
+        public QueryLiteralInterface|Stringable|string|float|int $min,
+        public QueryLiteralInterface|Stringable|string|float|int $max
     ) {}
 
     /**
@@ -36,9 +37,10 @@ final readonly class InExpression implements QueryExpressionInterface
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {
-        $query->raw('in(');
-        $query->compileMultiple($this->values);
-        $query->raw(')');
+        $query->raw('between');
+        $query->compile($this->min);
+        $query->raw('and');
+        $query->compile($this->max);
     }
 
 }

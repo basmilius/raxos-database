@@ -6,17 +6,17 @@ namespace Raxos\Database\Query\Expression;
 use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryExpressionInterface, QueryInterface};
 
 /**
- * Class VariableExpression
+ * Class Variable
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Expression
  * @since 2.0.0
  */
-final readonly class VariableExpression implements QueryExpressionInterface
+final readonly class Variable implements QueryExpressionInterface
 {
 
     /**
-     * VariableExpression constructor.
+     * Variable constructor.
      *
      * @param string $name
      * @param QueryExpressionInterface $expression

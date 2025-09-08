@@ -3,22 +3,24 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Expression;
 
-use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryLiteralInterface, QueryExpressionInterface};
+use BackedEnum;
+use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
+use Stringable;
 
 /**
- * Class GroupConcatStruct
+ * Class GroupConcat
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Expression
  * @since 2.0.0
  */
-final readonly class GroupConcatExpression implements QueryExpressionInterface
+final readonly class GroupConcat implements QueryExpressionInterface
 {
 
     /**
-     * GroupConcatStruct constructor.
+     * GroupConcat constructor.
      *
-     * @param QueryLiteralInterface|string $expression
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
      * @param bool $distinct
      * @param QueryLiteralInterface|string|null $orderBy
      * @param string|null $separator
@@ -29,7 +31,7 @@ final readonly class GroupConcatExpression implements QueryExpressionInterface
      * @since 2.0.0
      */
     public function __construct(
-        public QueryLiteralInterface|string $expression,
+        public BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
         public bool $distinct = false,
         public QueryLiteralInterface|string|null $orderBy = null,
         public ?string $separator = null,
@@ -44,13 +46,14 @@ final readonly class GroupConcatExpression implements QueryExpressionInterface
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {
-        $distinct = $this->distinct ? 'distinct ' : '';
-        $orderBy = $this->orderBy ? " order by {$this->orderBy}" : '';
-        $separator = $this->separator ? " separator '{$this->separator}'" : '';
-        $limit = $this->limit ? " limit {$this->limit}" : '';
-        $offset = $this->offset ? " offset {$this->offset}" : '';
-
-        $query->raw("group_concat({$distinct}{$this->expression}{$orderBy}{$separator}{$limit}{$offset})");
+        $query->raw('group_concat(');
+        $this->distinct && $query->raw('distinct ');
+        $query->compile($this->expr);
+        $this->orderBy && $query->raw(" order by {$this->orderBy}");
+        $this->separator && $query->raw(" separator {$this->separator}");
+        $this->limit && $query->raw(" limit {$this->limit}");
+        $this->offset && $query->raw(" offset {$this->offset}");
+        $query->raw(')');
     }
 
 }
