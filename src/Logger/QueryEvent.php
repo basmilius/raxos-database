@@ -59,7 +59,7 @@ final readonly class QueryEvent extends Event
             $sql = $query->toSql();
 
             foreach ($params as $key => $value) {
-                $sql = str_replace(":$key", "<abbr title='{$value}'>:{$key}</abbr>", $sql);
+                $sql = str_replace($key, "<abbr title='{$value}'>{$key}</abbr>", $sql);
             }
 
             $modelClass = $modelClassRef->getValue($query);

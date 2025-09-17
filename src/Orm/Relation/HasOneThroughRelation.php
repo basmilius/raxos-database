@@ -174,6 +174,10 @@ final readonly class HasOneThroughRelation implements RelationInterface
         foreach ($instances as $instance) {
             $result = $results->first(fn(Model $reference) => $reference->backbone->data->getValue('__local_linking_key') === $instance->{$this->declaringKey->column});
 
+            if ($result === null) {
+                continue;
+            }
+
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
                 $result
