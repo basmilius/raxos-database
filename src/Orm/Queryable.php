@@ -4,15 +4,14 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use BackedEnum;
-use Raxos\Database\Contract\{QueryInterface, QueryLiteralInterface, QueryValueInterface};
-use Raxos\Database\Contract\ConnectionInterface;
-use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
-use Raxos\Database\Orm\Contract\StructureInterface;
-use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
+use Raxos\Contract\Collection\{ArrayableInterface, ArrayListInterface};
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
+use Raxos\Database\Orm\Error\NotFoundException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Literal\ColumnLiteral;
 use Raxos\Database\Query\Select;
-use Raxos\Foundation\Contract\{ArrayableInterface, ArrayListInterface};
 use Stringable;
 use function is_array;
 
@@ -32,7 +31,7 @@ trait Queryable
      * @param string $key
      *
      * @return ColumnLiteral
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see StructureInterface::getColumn()
@@ -56,8 +55,8 @@ trait Queryable
      * @param bool $prepared
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see ConnectionInterface::query()
@@ -73,7 +72,7 @@ trait Queryable
      * Returns the table name for the model.
      *
      * @return string
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see StructureInterface::$table
@@ -90,11 +89,9 @@ trait Queryable
      * @param int $limit
      *
      * @return ArrayListInterface<int, static>
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -111,10 +108,9 @@ trait Queryable
      * @param array|string|int $primaryKey
      *
      * @return void
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::deleteFrom()
@@ -136,10 +132,9 @@ trait Queryable
      * @param array|string|int $primaryKey
      *
      * @return bool
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -163,11 +158,9 @@ trait Queryable
      * @param array $primaryKeys
      *
      * @return ModelArrayList<int, static>
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::wherePrimaryKeyIn()
@@ -208,11 +201,9 @@ trait Queryable
      * @param array|string|int $primaryKey
      *
      * @return static|null
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::wherePrimaryKey()
@@ -237,19 +228,16 @@ trait Queryable
      * @param array|string|int $primaryKey
      *
      * @return static
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws InstanceException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see self::single()
      */
     public static function singleOrFail(array|string|int $primaryKey): static
     {
-        return self::single($primaryKey) ?? throw InstanceException::notFound(static::class, $primaryKey);
+        return self::single($primaryKey) ?? throw new NotFoundException(static::class, $primaryKey);
     }
 
     /**
@@ -259,10 +247,9 @@ trait Queryable
      * @param array<string, mixed> $values
      *
      * @return void
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::update()
@@ -283,9 +270,9 @@ trait Queryable
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::having()
@@ -306,9 +293,9 @@ trait Queryable
      * @param QueryInterface $query
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::havingExists()
@@ -326,9 +313,9 @@ trait Queryable
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::havingIn()
@@ -345,9 +332,9 @@ trait Queryable
      * @param QueryInterface $query
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::havingNotExists()
@@ -365,9 +352,9 @@ trait Queryable
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::havingNotIn()
@@ -384,9 +371,9 @@ trait Queryable
      * @param ColumnLiteral $column
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::havingNotNull()
@@ -403,9 +390,9 @@ trait Queryable
      * @param ColumnLiteral $column
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::havingNull()
@@ -423,9 +410,9 @@ trait Queryable
      * @param bool $prepared
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::select()
@@ -442,9 +429,9 @@ trait Queryable
      * @param bool $prepared
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::selectDistinct()
@@ -461,9 +448,9 @@ trait Queryable
      * @param bool $prepared
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::selectFoundRows()
@@ -481,9 +468,9 @@ trait Queryable
      * @param bool $prepared
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::selectSuffix()
@@ -501,9 +488,9 @@ trait Queryable
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::where()
@@ -524,9 +511,9 @@ trait Queryable
      * @param QueryInterface $query
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::whereExists()
@@ -544,9 +531,9 @@ trait Queryable
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::whereIn()
@@ -563,9 +550,9 @@ trait Queryable
      * @param QueryInterface $query
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::whereNotExists()
@@ -583,9 +570,9 @@ trait Queryable
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::whereNotIn()
@@ -602,9 +589,9 @@ trait Queryable
      * @param ColumnLiteral $column
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::whereNotNull()
@@ -621,9 +608,9 @@ trait Queryable
      * @param ColumnLiteral $column
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see QueryInterface::whereNull()
@@ -641,9 +628,9 @@ trait Queryable
      * @param Select|QueryValueInterface|Stringable|array|string|int $keys
      *
      * @return QueryInterface<static>
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */

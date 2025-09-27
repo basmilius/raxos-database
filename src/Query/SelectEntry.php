@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryInterface, QueryLiteralInterface, QueryExpressionInterface};
-use Raxos\Database\Error\QueryException;
+use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
+use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryExpressionInterface, QueryInterface, QueryLiteralInterface};
 use Stringable;
 use function assert;
 
@@ -40,7 +40,7 @@ final readonly class SelectEntry
      * @param GrammarInterface $grammar
      *
      * @return string
-     * @throws QueryException
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      * @see Query::baseSelect()

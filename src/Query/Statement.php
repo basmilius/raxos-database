@@ -7,13 +7,16 @@ use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Raxos\Database\Contract\{ConnectionInterface, InternalQueryInterface, QueryInterface, StatementInterface};
-use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
+use Raxos\Collection\{ArrayList, Paginated};
+use Raxos\Contract\Collection\ArrayListInterface;
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryExceptionInterface, QueryInterface, StatementInterface};
+use Raxos\Database\Error\{ExecutionException, NotConnectedException};
 use Raxos\Database\Logger\QueryEvent;
 use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Foundation\Collection\{ArrayList, Paginated};
+use Raxos\Database\Query\Error\{ConnectionErrorException, InvalidModelException, MissingModelException, SyntaxException, UnexpectedException};
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use function array_map;
@@ -51,7 +54,7 @@ class Statement implements StatementInterface
      * @param QueryInterface|string $query
      * @param array $options
      *
-     * @throws QueryException
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -67,9 +70,9 @@ class Statement implements StatementInterface
             $this->pdoStatement = $connection->pdo->prepare($this->sql, $options);
         } catch (PDOException $err) {
             match ($err->getCode()) {
-                'HY000' => throw QueryException::connection(ConnectionException::notConnected($err)),
-                '42000' => throw QueryException::syntaxError($this->sql, $err),
-                default => throw QueryException::unexpected($err)
+                'HY000' => throw new ConnectionErrorException(new NotConnectedException($err)),
+                '42000' => throw new SyntaxException($this->sql, $err),
+                default => throw new UnexpectedException($err)
             };
         }
     }
@@ -102,7 +105,7 @@ class Statement implements StatementInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public final function arrayList(int $fetchMode = PDO::FETCH_ASSOC): ArrayList|ModelArrayList
+    public final function arrayList(int $fetchMode = PDO::FETCH_ASSOC): ArrayListInterface|ModelArrayList
     {
         $results = $this->array($fetchMode);
 
@@ -190,15 +193,15 @@ class Statement implements StatementInterface
     public final function createModel(mixed $result): Model
     {
         if ($this->modelClass === null) {
-            throw QueryException::invalidModel('Cannot create model instance, no model was assigned to the query.');
+            throw new InvalidModelException('Cannot create model instance, no model was assigned to the query.');
         }
 
         if (!is_array($result)) {
-            throw QueryException::invalidModel('Cannot create model instance, the record set must be an array.');
+            throw new InvalidModelException('Cannot create model instance, the record set must be an array.');
         }
 
         if (!class_exists($this->modelClass)) {
-            throw QueryException::invalidModel('Cannot create model instance, the assigned model class does not exist.');
+            throw new InvalidModelException('Cannot create model instance, the assigned model class does not exist.');
         }
 
         return StructureGenerator::for($this->modelClass)
@@ -318,15 +321,15 @@ class Statement implements StatementInterface
     /**
      * Executes the pdo statement.
      *
-     * @throws ExecutionException
-     * @throws QueryException
+     * @throws DatabaseExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     private function execute(): void
     {
         if ($this->modelClass === null && !empty($this->eagerLoad)) {
-            throw QueryException::missingModel();
+            throw new MissingModelException();
         }
 
         if ($this->connection->logger->enabled) {
@@ -340,8 +343,7 @@ class Statement implements StatementInterface
 
         if ($result === false) {
             [, $code, $message] = $this->pdoStatement->errorInfo();
-
-            throw ExecutionException::of($code, $message);
+            throw new ExecutionException($code, $message);
         }
     }
 
@@ -350,11 +352,9 @@ class Statement implements StatementInterface
      *
      * @param Model|array $instances
      *
-     * @throws ExecutionException
-     * @throws ConnectionException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */

@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Grammar;
 
-use Raxos\Database\Contract\GrammarInterface;
-use Raxos\Database\Error\UnsupportedException;
+use Raxos\Contract\Database\GrammarInterface;
+use Raxos\Database\Query\Error\UnsupportedException;
 use function array_map;
 use function explode;
 use function implode;
@@ -43,7 +43,7 @@ abstract readonly class Grammar implements GrammarInterface
      */
     public function compileOptimizeTable(string $table): string
     {
-        throw UnsupportedException::optimizeTable();
+        throw new UnsupportedException('Feature optimizeTable is not supported by the current database engine.');
     }
 
     /**
@@ -53,7 +53,7 @@ abstract readonly class Grammar implements GrammarInterface
      */
     public function compileTruncateTable(string $table): string
     {
-        throw UnsupportedException::truncateTable();
+        throw new UnsupportedException('Feature truncateTable is not supported by the current database engine.');
     }
 
     /**

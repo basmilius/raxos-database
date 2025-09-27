@@ -3,11 +3,10 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Structure;
 
-use Raxos\Database\Orm\Contract\StructureInterface;
+use Raxos\Contract\Collection\ArrayListInterface;
+use Raxos\Contract\Database\Orm\{OrmExceptionInterface, StructureInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\StructureException;
 use Raxos\Database\Orm\Model;
-use Raxos\Foundation\Contract\ArrayListInterface;
 use function is_int;
 use function is_string;
 
@@ -66,7 +65,7 @@ final class StructureHelper
      * @param StructureInterface|null $structure
      *
      * @return string[]
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */

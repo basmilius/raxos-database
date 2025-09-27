@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Logger;
 
+use Raxos\Contract\Database\LoggerInterface;
 use Raxos\Foundation\Util\StopwatchUnit;
 use function array_filter;
 use function array_map;
@@ -17,7 +18,7 @@ use function implode;
  * @package Raxos\Database\Logger
  * @since 1.0.16
  */
-final class Logger
+final class Logger implements LoggerInterface
 {
 
     public private(set) bool $enabled = false;
@@ -26,9 +27,7 @@ final class Logger
     private array $events = [];
 
     /**
-     * Returns the number of events.
-     *
-     * @return int
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -38,9 +37,7 @@ final class Logger
     }
 
     /**
-     * Enables the logger.
-     *
-     * @return void
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -50,9 +47,7 @@ final class Logger
     }
 
     /**
-     * Disables the logger.
-     *
-     * @return void
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -62,9 +57,7 @@ final class Logger
     }
 
     /**
-     * Returns a new deferred event.
-     *
-     * @return DeferredEvent
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -76,11 +69,7 @@ final class Logger
     }
 
     /**
-     * Logs the given event.
-     *
-     * @param Event $event
-     *
-     * @return void
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -90,12 +79,7 @@ final class Logger
     }
 
     /**
-     * Replaces the event at the given index.
-     *
-     * @param int $index
-     * @param Event $event
-     *
-     * @return void
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -105,11 +89,7 @@ final class Logger
     }
 
     /**
-     * Prints the logger report.
-     *
-     * @param bool $backtrace
-     *
-     * @return string
+     * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */

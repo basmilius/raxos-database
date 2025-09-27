@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use Raxos\Database\Contract\{QueryExpressionInterface, QueryInterface, QueryLiteralInterface};
+use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryLiteralInterface};
 use Stringable;
 use function is_numeric;
 

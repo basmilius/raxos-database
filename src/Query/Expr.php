@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace Raxos\Database\Query;
 
 use BackedEnum;
-use Raxos\Database\Contract\{QueryExpressionInterface, QueryExpressionsInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
+use Raxos\Contract\Collection\ArrayableInterface;
+use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryExpressionsInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
 use Raxos\Database\Query\Literal\Literal;
-use Raxos\Foundation\Contract\ArrayableInterface;
 use Stringable;
 use function array_filter;
 

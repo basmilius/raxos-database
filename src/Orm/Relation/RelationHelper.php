@@ -3,13 +3,13 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Contract\{InternalQueryInterface, QueryInterface};
-use Raxos\Database\Grammar\Grammar;
-use Raxos\Database\Orm\Contract\StructureInterface;
+use Raxos\Collection\ArrayList;
+use Raxos\Contract\Collection\ArrayListInterface;
+use Raxos\Contract\Database\GrammarInterface;
+use Raxos\Contract\Database\Orm\StructureInterface;
+use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryInterface};
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Literal\ColumnLiteral;
-use Raxos\Foundation\Collection\ArrayList;
-use Raxos\Foundation\Contract\ArrayListInterface;
 use function is_numeric;
 
 /**
@@ -25,7 +25,7 @@ final class RelationHelper
     /**
      * Composes a column literal based on the given column and table.
      *
-     * @param Grammar $grammar
+     * @param GrammarInterface $grammar
      * @param string|null $column
      * @param string|null $table
      * @param ColumnLiteral $default
@@ -34,7 +34,7 @@ final class RelationHelper
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function composeKey(Grammar $grammar, ?string $column, ?string $table, ColumnLiteral $default): ColumnLiteral
+    public static function composeKey(GrammarInterface $grammar, ?string $column, ?string $table, ColumnLiteral $default): ColumnLiteral
     {
         static $cache = [];
 

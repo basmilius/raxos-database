@@ -4,18 +4,18 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Structure;
 
 use Generator;
-use Raxos\Database\Contract\{ConnectionInterface};
+use Raxos\Contract\Collection\ArrayListInterface;
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
+use Raxos\Contract\Database\Orm\{BackboneInitializedInterface, CustomRelationAttributeInterface, InitializeInterface, RelationInterface, StructureInterface};
+use Raxos\Contract\SerializableInterface;
 use Raxos\Database\Db;
-use Raxos\Database\Error\{ConnectionException, DatabaseException};
 use Raxos\Database\Logger\EagerLoadEvent;
-use Raxos\Database\Orm\{Backbone, Model};
+use Raxos\Database\Orm\{Backbone, Error\MissingPolymorphicDiscriminatorException, Error\MissingPropertyException, Error\MissingRelationImplementationException, Model};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
-use Raxos\Database\Orm\Contract\{BackboneInitializedInterface, CustomRelationAttributeInterface, InitializeInterface, RelationInterface, StructureInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\Error\InvalidColumnException;
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
 use Raxos\Database\Query\Literal\ColumnLiteral;
-use Raxos\Foundation\Contract\{ArrayListInterface, SerializableInterface};
 use function array_any;
 use function array_key_exists;
 use function array_map;
@@ -57,7 +57,7 @@ final class Structure implements StructureInterface, SerializableInterface
      * @param string $table
      * @param StructureInterface|null $parent
      *
-     * @throws ConnectionException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -112,7 +112,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
         if ($this->polymorphic !== null) {
             if (!array_key_exists($this->polymorphic->column, $data)) {
-                throw StructureException::polymorphicColumnMissing($this->class, $this->polymorphic->column);
+                throw new MissingPolymorphicDiscriminatorException($this->class, $this->polymorphic->column);
             }
 
             $polymorphicClass = $this->polymorphic->map[$data[$this->polymorphic->column]];
@@ -219,7 +219,7 @@ final class Structure implements StructureInterface, SerializableInterface
             }
         }
 
-        throw StructureException::missingProperty($this->class, $key);
+        throw new MissingPropertyException($this->class, $key);
     }
 
     /**
@@ -245,7 +245,7 @@ final class Structure implements StructureInterface, SerializableInterface
         $table ??= $this->table;
 
         if (!($property instanceof ColumnDefinition)) {
-            throw StructureException::invalidColumn($this->class, $key);
+            throw new InvalidColumnException($this->class, $key);
         }
 
         return $cache["{$table}:{$key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $table);
@@ -269,7 +269,7 @@ final class Structure implements StructureInterface, SerializableInterface
             $attribute instanceof HasOne => new HasOneRelation($attribute, $property, $this),
             $attribute instanceof HasOneThrough => new HasOneThroughRelation($attribute, $property, $this),
             $attribute instanceof CustomRelationAttributeInterface => $attribute->createRelationInstance($property, $this),
-            default => throw StructureException::missingRelationImplementation($this->class, $property->name, $attribute::class)
+            default => throw new MissingRelationImplementationException($this->class, $property->name, $attribute::class)
         };
     }
 
@@ -354,7 +354,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */

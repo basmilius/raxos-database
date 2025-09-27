@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
-use Raxos\Database\Orm\Contract\BackpackInterface;
+use Raxos\Contract\Database\Orm\BackpackInterface;
+use Raxos\Contract\DebuggableInterface;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
-use Raxos\Foundation\Contract\DebuggableInterface;
 use function array_key_exists;
 
 /**

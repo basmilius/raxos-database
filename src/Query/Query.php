@@ -9,17 +9,18 @@ use Generator;
 use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 use PDO;
-use Raxos\Database\Contract\{ConnectionInterface, InternalQueryInterface, QueryInterface, QueryLiteralInterface, QueryExpressionInterface, QueryValueInterface, StatementInterface};
-use Raxos\Database\Error\{ConnectionException, QueryException};
-use Raxos\Database\Grammar\Grammar;
+use Raxos\Collection\Paginated;
+use Raxos\Contract\Collection\{ArrayableInterface, ArrayListInterface};
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface};
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryExceptionInterface, QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface, StatementInterface};
+use Raxos\Contract\DebuggableInterface;
 use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{RelationException, StructureException};
+use Raxos\Database\Orm\Error\InvalidRelationException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Literal\ColumnLiteral;
-use Raxos\Database\Query\Literal\Literal;
-use Raxos\Foundation\Collection\{ArrayList, Paginated};
-use Raxos\Foundation\Contract\{ArrayableInterface, ArrayListInterface, DebuggableInterface};
+use Raxos\Database\Query\Error\{ConnectionErrorException, IncompleteException, MissingAliasException, MissingClauseException, MissingModelException, MissingResultException, StructureErrorException, TooFewPrimaryKeyValuesExceptions, TooManyPrimaryKeyValuesExceptions};
+use Raxos\Database\Query\Literal\{ColumnLiteral, Literal};
 use stdClass;
 use Stringable;
 use function array_any;
@@ -62,7 +63,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     private static int $index = 0;
 
-    public readonly Grammar $grammar;
+    public readonly GrammarInterface $grammar;
 
     private string $currentClause = '';
     private bool $isDoingJoin = false;
@@ -151,8 +152,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
             try {
                 return $this->connection->quote((string)$value);
-            } catch (ConnectionException $err) {
-                throw QueryException::connection($err);
+            } catch (DatabaseExceptionInterface $err) {
+                throw new ConnectionErrorException($err);
             }
         }
 
@@ -464,7 +465,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $index = array_find_key($this->pieces, static fn(array $piece) => $piece[0] === $clause);
 
         if ($index === null) {
-            throw QueryException::missingClause($clause);
+            throw new MissingClauseException($clause);
         }
 
         $this->pieces[$index] = $fn($this->pieces[$index]);
@@ -612,7 +613,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function arrayList(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): ArrayList|ModelArrayList
+    public function arrayList(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): ArrayListInterface|ModelArrayList
     {
         return $this
             ->statement($options)
@@ -714,7 +715,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $result = $this->single($fetchMode, $options);
 
         if ($result === null) {
-            throw QueryException::missingResult();
+            throw new MissingResultException();
         }
 
         return $result;
@@ -748,8 +749,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
                 $statement = new Statement($this->connection, $this, $options);
                 $statement->withModel($this->modelClass);
-            } catch (StructureException $err) {
-                throw QueryException::structure($this->modelClass, $err);
+            } catch (OrmExceptionInterface $err) {
+                throw new StructureErrorException($this->modelClass, $err);
             }
         } else {
             $statement = new Statement($this->connection, $this, $options);
@@ -1411,7 +1412,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         foreach ($structure->primaryKey as $property) {
             if (empty($primaryKey)) {
-                throw QueryException::primaryKeyMismatchTooFew($modelClass);
+                throw new TooFewPrimaryKeyValuesExceptions($modelClass);
             }
 
             $value = array_shift($primaryKey);
@@ -1424,7 +1425,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         }
 
         if (!empty($primaryKey)) {
-            throw QueryException::primaryKeyMismatchTooMany($modelClass);
+            throw new TooManyPrimaryKeyValuesExceptions($modelClass);
         }
 
         return $this;
@@ -1506,7 +1507,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     public function insertIntoValues(string $table, array $pairs): static
     {
         if (empty($pairs)) {
-            throw QueryException::incomplete();
+            throw new IncompleteException('There must be at least one column.');
         }
 
         if (array_is_list($pairs)) {
@@ -1531,7 +1532,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     public function insertIgnoreIntoValues(string $table, array $pairs): static
     {
         if (empty($pairs)) {
-            throw QueryException::incomplete();
+            throw new IncompleteException('There must be at least one column.');
         }
 
         if (array_is_list($pairs)) {
@@ -1702,14 +1703,14 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param array $fields
      *
      * @return static<TModel>
-     * @throws QueryException
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     protected function baseInsert(string $clause, string $table, array $fields): static
     {
         if (empty($fields)) {
-            throw QueryException::incomplete();
+            throw new IncompleteException('There must be at least one column.');
         }
 
         $fields = array_map($this->grammar->escape(...), $fields);
@@ -1770,8 +1771,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param ColumnLiteral|Literal|Select|array|string|int $fields
      *
      * @return static<TModel>
-     * @throws QueryException
-     * @throws StructureException
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1821,23 +1822,22 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param bool $negate
      *
      * @return static<TModel>
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     protected function baseWhereHas(string $relation, ?callable $fn, callable $clause, bool $negate = false): static
     {
         if ($this->modelClass === null) {
-            throw QueryException::missingModel();
+            throw new MissingModelException();
         }
 
         $structure = StructureGenerator::for($this->modelClass);
         $property = $structure->getProperty($relation);
 
         if (!($property instanceof RelationDefinition)) {
-            throw StructureException::invalidRelation($structure->class, $property->name);
+            throw new InvalidRelationException($structure->class, $property->name);
         }
 
         try {
@@ -1854,8 +1854,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $this->raw(')');
 
             return $this;
-        } catch (ConnectionException $err) {
-            throw QueryException::connection($err);
+        } catch (DatabaseExceptionInterface $err) {
+            throw new ConnectionErrorException($err);
         }
     }
 
@@ -1867,7 +1867,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param QueryInterface $query
      *
      * @return static<TModel>
-     * @throws QueryException
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1885,7 +1885,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param array $fields
      *
      * @return Generator
-     * @throws QueryException
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      * @see self::baseSelect()
@@ -1936,7 +1936,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param array $fields
      *
      * @return Generator
-     * @throws QueryException
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      * @see self::baseSelect()
@@ -1955,7 +1955,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             }
 
             if ($field instanceof QueryExpressionInterface) {
-                throw QueryException::missingAlias();
+                throw new MissingAliasException();
             }
 
             if ($field instanceof QueryLiteralInterface) {

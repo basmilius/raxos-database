@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Literal;
 
-use Raxos\Database\Contract\QueryLiteralInterface;
+use Raxos\Contract\Database\Query\QueryLiteralInterface;
 use Stringable;
 use function addslashes;
 

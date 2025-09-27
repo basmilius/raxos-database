@@ -6,11 +6,11 @@ namespace Raxos\Database\Orm;
 use BackedEnum;
 use Generator;
 use JetBrains\PhpStorm\ExpectedValues;
-use Raxos\Database\Contract\{ConnectionInterface, QueryInterface};
-use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
-use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, StructureInterface, WritableRelationInterface};
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
+use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, OrmExceptionInterface, StructureInterface, WritableRelationInterface};
+use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
+use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, PropertyReadFailedException, PropertyWriteFailedException};
 use Raxos\Foundation\Util\Singleton;
 use function array_column;
 use function array_find_key;
@@ -209,11 +209,11 @@ final class Backbone implements AccessInterface, BackboneInterface
     public function setColumnValue(ColumnDefinition $property, mixed $value): void
     {
         if ($property->isPrimaryKey && !$this->isNew) {
-            throw InstanceException::immutablePrimaryKey($this->class, $property->name);
+            throw new ImmutablePrimaryKeyException($this->class, $property->name);
         }
 
         if ($property->isImmutable && !$this->isNew) {
-            throw InstanceException::immutable($this->class, $property->name);
+            throw new ImmutableException($this->class, $property->name);
         }
 
         if ($property->caster !== null) {
@@ -239,7 +239,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         $relation = $this->structure->getRelation($property);
 
         if (!($relation instanceof WritableRelationInterface)) {
-            throw InstanceException::immutableRelation($this->class, $property->name);
+            throw new ImmutableRelationException($this->class, $property->name);
         }
 
         $relation->write($this->currentInstance, $property, $value);
@@ -289,7 +289,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         $property = $this->structure->getProperty($key);
 
         if (!($property instanceof RelationDefinition)) {
-            throw StructureException::invalidRelation($this->class, $property->name);
+            throw new InvalidRelationException($this->class, $property->name);
         }
 
         return $this->structure
@@ -382,8 +382,8 @@ final class Backbone implements AccessInterface, BackboneInterface
                 $property instanceof MacroDefinition => $this->getMacroValue($property),
                 $property instanceof RelationDefinition => $this->getRelationValue($property)
             };
-        } catch (ConnectionException|ExecutionException|QueryException|RelationException $err) {
-            throw InstanceException::readFailed($this->class, $property->name, $err);
+        } catch (DatabaseExceptionInterface $err) {
+            throw new PropertyReadFailedException($this->class, $property->name, $err);
         }
     }
 
@@ -412,15 +412,15 @@ final class Backbone implements AccessInterface, BackboneInterface
         try {
             match (true) {
                 $property instanceof ColumnDefinition => $this->setColumnValue($property, $value),
-                $property instanceof MacroDefinition => throw InstanceException::immutableMacro($this->class, $property->name),
+                $property instanceof MacroDefinition => throw new ImmutableMacroException($this->class, $property->name),
                 $property instanceof RelationDefinition => $this->setRelationValue($property, $value)
             };
 
             if (!$this->isNew && $this->currentInstance instanceof MutationListenerInterface) {
                 $this->currentInstance->onMutation($property, $value, $oldValue);
             }
-        } catch (QueryException|RelationException $err) {
-            throw InstanceException::writeFailed($this->class, $property->name, $err);
+        } catch (OrmExceptionInterface|QueryExceptionInterface $err) {
+            throw new PropertyWriteFailedException($this->class, $property->name, $err);
         }
     }
 
@@ -434,11 +434,11 @@ final class Backbone implements AccessInterface, BackboneInterface
         $property = $this->structure->getProperty($key);
 
         if ($property instanceof MacroDefinition) {
-            throw InstanceException::immutableMacro($this->class, $property->name);
+            throw new ImmutableMacroException($this->class, $property->name);
         }
 
         if ($property instanceof RelationDefinition) {
-            throw InstanceException::immutableRelation($this->class, $property->name);
+            throw new ImmutableRelationException($this->class, $property->name);
         }
 
         $this->data->unsetValue($key);
@@ -448,8 +448,7 @@ final class Backbone implements AccessInterface, BackboneInterface
      * Gets the saveable columns with their values.
      *
      * @return Generator<string, mixed>
-     * @throws InstanceException
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.19
      */

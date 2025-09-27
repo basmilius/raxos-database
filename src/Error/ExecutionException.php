@@ -3,31 +3,34 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Error;
 
-use Raxos\Foundation\Error\ExceptionId;
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Error\Exception;
+use Throwable;
 use function base_convert;
 use function hash;
+use function is_string;
 
 /**
  * Class ExecutionException
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Error
- * @since 1.0.17
+ * @since 2.0.0
  */
-final class ExecutionException extends DatabaseException
+final class ExecutionException extends Exception implements DatabaseExceptionInterface
 {
 
     /**
-     * Returns an execution exception for the given code and message.
+     * ExecutionException constructor.
      *
-     * @param int|string $code
-     * @param string $message
-     *
-     * @return self
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 2.0.0
      */
-    public static function of(int|string $code, string $message): self
+    public function __construct(
+        int|string $code,
+        string $message,
+        ?Throwable $previous = null
+    )
     {
         if (is_string($code)) {
             $code = (int)base_convert(hash('crc32', $code), 16, 10);
@@ -35,10 +38,10 @@ final class ExecutionException extends DatabaseException
 
         $code = PdoErrorCode::tryFrom($code) ?? PdoErrorCode::UNKNOWN;
 
-        return new self(
-            ExceptionId::for(__METHOD__ . $code->name),
+        parent::__construct(
             $code->getCode(),
-            $message
+            $message,
+            previous: $previous
         );
     }
 

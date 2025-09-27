@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Expression;
 
-use Raxos\Database\Contract\{ConnectionInterface, GrammarInterface, QueryExpressionInterface, QueryInterface};
+use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
+use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface};
 
 /**
  * Class Not

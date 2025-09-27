@@ -5,13 +5,13 @@ namespace Raxos\Database\Connection;
 
 use PDO;
 use PDOException;
-use Raxos\Database\Contract\QueryInterface;
-use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
+use Raxos\Contract\Database\{DatabaseExceptionInterface, LoggerInterface};
+use Raxos\Contract\Database\Orm\CacheInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Database\Error\{ExecutionException, InvalidOptionException, MissingOptionException, SchemaFetchFailedException};
 use Raxos\Database\Grammar\MariaDbGrammar;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
-use Raxos\Database\Orm\Contract\CacheInterface;
-use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Query\MariaDbQuery;
 use SensitiveParameter;
 use function Raxos\Database\Query\literal;
@@ -34,7 +34,7 @@ final class MariaDb extends Connection
      * @param string|null $password
      * @param array|null $options
      * @param CacheInterface $cache
-     * @param Logger $logger
+     * @param LoggerInterface $logger
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
@@ -45,7 +45,7 @@ final class MariaDb extends Connection
         #[SensitiveParameter] ?string $password = null,
         ?array $options = null,
         CacheInterface $cache = new Cache(),
-        Logger $logger = new Logger()
+        LoggerInterface $logger = new Logger()
     )
     {
         $options ??= [];
@@ -71,7 +71,7 @@ final class MariaDb extends Connection
                 $this->options
             );
         } catch (PDOException $err) {
-            throw ConnectionException::of($err->getCode(), $err->getMessage());
+            throw new ExecutionException($err->getCode(), $err->getMessage());
         }
     }
 
@@ -112,8 +112,8 @@ final class MariaDb extends Connection
             }
 
             return $data;
-        } catch (ConnectionException|ExecutionException|QueryException|RelationException|StructureException $err) {
-            throw SchemaException::failed($err);
+        } catch (DatabaseExceptionInterface $err) {
+            throw new SchemaFetchFailedException($err);
         }
     }
 
@@ -142,7 +142,7 @@ final class MariaDb extends Connection
      * @param Logger|null $logger
      *
      * @return self
-     * @throws ConnectionException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -160,15 +160,15 @@ final class MariaDb extends Connection
     ): self
     {
         if ($unixSocket === null && $host === null && $port === null) {
-            throw ConnectionException::missingOption('host');
+            throw new MissingOptionException('host');
         }
 
         if ($database === null) {
-            throw ConnectionException::missingOption('database');
+            throw new MissingOptionException('database');
         }
 
         if ($unixSocket !== null && ($host !== null || $port !== null)) {
-            throw ConnectionException::invalidOption('unixSocket', 'Either specify a unix socket or host and port');
+            throw new InvalidOptionException('unixSocket', 'Either specify a unix socket or host and port');
         }
 
         $dsn = 'mysql:';

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use Raxos\Database\Contract\QueryLiteralInterface;
+use Raxos\Contract\Database\Query\QueryLiteralInterface;
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
 

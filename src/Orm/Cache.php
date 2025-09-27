@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
-use Raxos\Database\Orm\Contract\CacheInterface;
-use Raxos\Foundation\Contract\DebuggableInterface;
+use Raxos\Contract\Database\Orm\CacheInterface;
+use Raxos\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use function array_map;
 use function is_array;

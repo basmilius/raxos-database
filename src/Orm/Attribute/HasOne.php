@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
-use Raxos\Database\Orm\Contract\{AttributeInterface, RelationAttributeInterface};
+use Raxos\Contract\Database\Orm\{AttributeInterface, RelationAttributeInterface};
 
 /**
  * Class HasOne

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Logger;
 
-use Raxos\Database\Orm\Contract\RelationInterface;
+use Raxos\Contract\Database\Orm\RelationInterface;
 use Raxos\Foundation\Util\{Stopwatch, StringUtil};
 
 /**

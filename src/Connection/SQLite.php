@@ -4,13 +4,14 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use PDOException;
-use Raxos\Database\Contract\QueryInterface;
-use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
+use Raxos\Contract\Database\{DatabaseExceptionInterface, LoggerInterface};
+use Raxos\Contract\Database\Orm\CacheInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Database\Error\{ExecutionException, SchemaFetchFailedException};
 use Raxos\Database\Grammar\SQLiteGrammar;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
-use Raxos\Database\Orm\Contract\CacheInterface;
-use Raxos\Database\Orm\Error\{RelationException, StructureException};
+use Raxos\Database\Query\Error\UnsupportedException;
 use Raxos\Database\Query\SQLiteQuery;
 use SensitiveParameter;
 use function Raxos\Database\Query\literal;
@@ -40,7 +41,7 @@ final class SQLite extends Connection
         #[SensitiveParameter] string $dsn,
         ?array $options = null,
         CacheInterface $cache = new Cache(),
-        Logger $logger = new Logger()
+        LoggerInterface $logger = new Logger()
     )
     {
         parent::__construct($dsn, null, null, $options, $cache, new SQLiteGrammar(), $logger);
@@ -59,7 +60,7 @@ final class SQLite extends Connection
                 options: $this->options
             );
         } catch (PDOException $err) {
-            throw ConnectionException::of($err->getCode(), $err->getMessage());
+            throw new ExecutionException($err->getCode(), $err->getMessage());
         }
     }
 
@@ -70,7 +71,7 @@ final class SQLite extends Connection
      */
     public function foundRows(): int
     {
-        throw QueryException::unsupported('foundRows() is not supported in SQLite.');
+        throw new UnsupportedException('foundRows() is not supported in SQLite.');
     }
 
     /**
@@ -98,8 +99,8 @@ final class SQLite extends Connection
             }
 
             return $data;
-        } catch (ConnectionException|ExecutionException|QueryException|RelationException|StructureException $err) {
-            throw SchemaException::failed($err);
+        } catch (DatabaseExceptionInterface $err) {
+            throw new SchemaFetchFailedException($err);
         }
     }
 

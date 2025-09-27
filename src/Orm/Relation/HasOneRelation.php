@@ -3,15 +3,14 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
-use Raxos\Database\Contract\{QueryInterface};
-use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Contract\Collection\ArrayListInterface;
+use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface, WritableRelationInterface};
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Database\Orm\{Error\ReferenceModelMissingException, Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasOne;
-use Raxos\Database\Orm\Contract\{RelationInterface, StructureInterface, WritableRelationInterface};
 use Raxos\Database\Orm\Definition\RelationDefinition;
-use Raxos\Database\Orm\Error\{RelationException, StructureException};
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Literal\ColumnLiteral;
-use Raxos\Foundation\Contract\ArrayListInterface;
 use function assert;
 
 /**
@@ -40,8 +39,7 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
      * @param RelationDefinition $property
      * @param StructureInterface<TDeclaringModel|Model> $declaringStructure
      *
-     * @throws RelationException
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -51,7 +49,7 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
         public StructureInterface $declaringStructure
     )
     {
-        $referenceModel = $this->property->types[0] ?? throw RelationException::referenceModelMissing($this->property, $this->declaringStructure);
+        $referenceModel = $this->property->types[0] ?? throw new ReferenceModelMissingException($this->property, $this->declaringStructure);
         $this->referenceStructure = StructureGenerator::for($referenceModel);
 
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();

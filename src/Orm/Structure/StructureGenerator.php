@@ -5,13 +5,12 @@ namespace Raxos\Database\Orm\Structure;
 
 use BackedEnum;
 use Generator;
-use Raxos\Database\Error\ConnectionException;
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\Orm\{AttributeInterface, CasterInterface, OrmExceptionInterface, RelationAttributeInterface, StructureInterface};
 use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, SoftDelete, Table, Visible};
 use Raxos\Database\Orm\Caster\BooleanCaster;
-use Raxos\Database\Orm\Contract\{AttributeInterface, CasterInterface, RelationAttributeInterface};
-use Raxos\Database\Orm\Contract\StructureInterface;
 use Raxos\Database\Orm\Definition\{ClassStructureDefinition, ColumnDefinition, MacroDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\StructureException;
+use Raxos\Database\Orm\Error\{ConnectionFailedException, InvalidCasterException, InvalidMacroException, InvalidModelException, InvalidRelationException, MissingTableException, ReflectionErrorException};
 use Raxos\Database\Orm\Model;
 use Raxos\Foundation\Util\ReflectionUtil;
 use ReflectionAttribute;
@@ -60,7 +59,7 @@ final class StructureGenerator
      * @param StructureInterface|null $parent
      *
      * @return StructureInterface<TModel>
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -71,7 +70,7 @@ final class StructureGenerator
         }
 
         if (!is_subclass_of($class, Model::class)) {
-            throw StructureException::notAModel($class);
+            throw new InvalidModelException($class);
         }
 
         try {
@@ -113,10 +112,10 @@ final class StructureGenerator
             }
 
             return $structure;
-        } catch (ConnectionException $err) {
-            throw StructureException::connectionFailed($class, $err);
+        } catch (DatabaseExceptionInterface $err) {
+            throw new ConnectionFailedException($class, $err);
         } catch (ReflectionException $err) {
-            throw StructureException::reflectionError($class, $err);
+            throw new ReflectionErrorException($class, $err);
         }
     }
 
@@ -127,7 +126,7 @@ final class StructureGenerator
      * @param StructureInterface|null $parent
      *
      * @return ClassStructureDefinition
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -176,7 +175,7 @@ final class StructureGenerator
         }
 
         if ($table === null) {
-            throw StructureException::missingTable($class->name);
+            throw new MissingTableException($class->name);
         }
 
         return new ClassStructureDefinition(
@@ -194,7 +193,7 @@ final class StructureGenerator
      * @param ReflectionClass $class
      *
      * @return Generator<PropertyDefinition>
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -223,7 +222,7 @@ final class StructureGenerator
      * @param ReflectionProperty $property
      *
      * @return PropertyDefinition|null
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -261,7 +260,7 @@ final class StructureGenerator
      * @param ReflectionAttribute[] $attributes
      *
      * @return ColumnDefinition
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -294,7 +293,7 @@ final class StructureGenerator
 
                 case $attr instanceof Caster:
                     if (!is_subclass_of($attr->casterClass, CasterInterface::class)) {
-                        throw StructureException::invalidCaster($property->class, $property->name);
+                        throw new InvalidCasterException($property->class, $property->name);
                     }
 
                     $caster = $attr->casterClass;
@@ -363,7 +362,7 @@ final class StructureGenerator
      * @param ReflectionAttribute[] $attributes
      *
      * @return MacroDefinition
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -399,7 +398,7 @@ final class StructureGenerator
         }
 
         if (!is_callable($callback)) {
-            throw StructureException::invalidMacro($property->class, $property->name);
+            throw new InvalidMacroException($property->class, $property->name);
         }
 
         return new MacroDefinition(
@@ -419,7 +418,7 @@ final class StructureGenerator
      * @param ReflectionAttribute[] $attributes
      *
      * @return RelationDefinition
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -459,7 +458,7 @@ final class StructureGenerator
         }
 
         if ($relation === null) {
-            throw StructureException::invalidRelation($property->class, $property->name);
+            throw new InvalidRelationException($property->class, $property->name);
         }
 
         return new RelationDefinition(

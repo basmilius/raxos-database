@@ -7,12 +7,12 @@ use BackedEnum;
 use Exception;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use Raxos\Database\Contract\{ConnectionInterface, QueryInterface, StatementInterface};
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface, LoggerInterface};
+use Raxos\Contract\Database\Orm\CacheInterface;
+use Raxos\Contract\Database\Query\{QueryInterface, StatementInterface};
 use Raxos\Database\Db;
-use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException, SchemaException};
-use Raxos\Database\Grammar\Grammar;
-use Raxos\Database\Logger\Logger;
-use Raxos\Database\Orm\Contract\CacheInterface;
+use Raxos\Database\Error\{ExecutionException, InvalidTableException, NotConnectedException};
+use Raxos\Database\Query\Error\NotInTransactionException;
 use Raxos\Database\Query\Statement;
 use SensitiveParameter;
 
@@ -55,8 +55,8 @@ abstract class Connection implements ConnectionInterface
      * @param string|null $password
      * @param array|null $options
      * @param CacheInterface $cache
-     * @param Grammar $grammar
-     * @param Logger $logger
+     * @param GrammarInterface $grammar
+     * @param LoggerInterface $logger
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
@@ -67,8 +67,8 @@ abstract class Connection implements ConnectionInterface
         #[SensitiveParameter] public readonly ?string $password,
         public readonly ?array $options,
         public readonly CacheInterface $cache,
-        public readonly Grammar $grammar,
-        public readonly Logger $logger
+        public readonly GrammarInterface $grammar,
+        public readonly LoggerInterface $logger
     ) {}
 
     /**
@@ -88,7 +88,7 @@ abstract class Connection implements ConnectionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
-    public function column(string|QueryInterface $query): string|int|false
+    public function column(QueryInterface|string $query): string|int|false
     {
         if ($query instanceof QueryInterface) {
             $query = $query->toSql();
@@ -103,7 +103,7 @@ abstract class Connection implements ConnectionInterface
         }
 
         [, $code, $message] = $this->pdo->errorInfo();
-        throw ExecutionException::of($code, $message);
+        throw new ExecutionException($code, $message);
     }
 
     /**
@@ -124,7 +124,7 @@ abstract class Connection implements ConnectionInterface
         }
 
         [, $code, $message] = $this->pdo->errorInfo();
-        throw ExecutionException::of($code, $message);
+        throw new ExecutionException($code, $message);
     }
 
     /**
@@ -210,7 +210,7 @@ abstract class Connection implements ConnectionInterface
     public function commit(): bool
     {
         if (!$this->inTransaction) {
-            throw QueryException::notInTransaction();
+            throw new NotInTransactionException();
         }
 
         return $this->pdo->commit();
@@ -224,7 +224,7 @@ abstract class Connection implements ConnectionInterface
     public function rollBack(): bool
     {
         if (!$this->inTransaction) {
-            throw QueryException::notInTransaction();
+            throw new NotInTransactionException();
         }
 
         return $this->pdo->rollBack();
@@ -258,7 +258,7 @@ abstract class Connection implements ConnectionInterface
     public function tableColumns(string $table): array
     {
         if (!$this->tableExists($table)) {
-            throw SchemaException::invalidTable($table);
+            throw new InvalidTableException($table);
         }
 
         return $this->structure[$table] ?? [];
@@ -280,14 +280,14 @@ abstract class Connection implements ConnectionInterface
      * Ensures that a connection is available.
      *
      * @return void
-     * @throws ConnectionException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
     private function ensureConnected(): void
     {
         if (!$this->connected) {
-            throw ConnectionException::notConnected();
+            throw new NotConnectedException();
         }
     }
 

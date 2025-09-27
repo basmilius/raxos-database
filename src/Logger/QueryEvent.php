@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Logger;
 
-use Raxos\Database\Contract\QueryInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
 use Raxos\Database\Query\Query;
 use Raxos\Foundation\Util\{Stopwatch, StringUtil};
 use ReflectionClass;

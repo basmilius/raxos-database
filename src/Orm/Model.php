@@ -4,15 +4,16 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use JsonSerializable;
-use Raxos\Database\Contract\QueryInterface;
-use Raxos\Database\Error\{ConnectionException, ExecutionException, QueryException};
-use Raxos\Database\Orm\Contract\{AccessInterface, BackboneInterface, QueryableInterface, VisibilityInterface};
+use Raxos\Contract\Collection\ArrayableInterface;
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, OrmExceptionInterface, QueryableInterface, VisibilityInterface};
+use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
+use Raxos\Contract\DebuggableInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
-use Raxos\Database\Orm\Error\{InstanceException, RelationException, StructureException};
+use Raxos\Database\Orm\Error\MissingFunctionException;
 use Raxos\Database\Orm\Structure\{StructureGenerator, StructureHelper};
 use Raxos\Database\Query\Select;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
-use Raxos\Foundation\Contract\{ArrayableInterface, DebuggableInterface};
 use Stringable;
 use function array_diff_key;
 use function array_key_exists;
@@ -25,7 +26,6 @@ use function sprintf;
  * Class Model
  *
  * @mixin Queryable<static>
- *
  * @property BackboneInterface<static> $backbone
  *
  * @author Bas Milius <bas@mili.us>
@@ -49,7 +49,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      *
      * @param BackboneInterface<static>|null $backbone
      *
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -65,11 +65,9 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      * Deletes the model record from the database.
      *
      * @return void
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws InstanceException
-     * @throws QueryException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -93,12 +91,9 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      * Saves the model.
      *
      * @return void
-     * @throws ConnectionException
-     * @throws ExecutionException
-     * @throws InstanceException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -218,8 +213,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
 
     /**
      * {@inheritdoc}
-     * @throws InstanceException
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -230,8 +224,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
 
     /**
      * {@inheritdoc}
-     * @throws InstanceException
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -281,11 +274,9 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      * @param array $arguments
      *
      * @return QueryInterface
-     * @throws ConnectionException
-     * @throws InstanceException
-     * @throws QueryException
-     * @throws RelationException
-     * @throws StructureException
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -299,13 +290,12 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
             return $relation->query($this);
         }
 
-        throw InstanceException::missingFunction(static::class, $name);
+        throw new MissingFunctionException(static::class, $name);
     }
 
     /**
      * {@inheritdoc}
-     * @throws InstanceException
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -316,8 +306,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
 
     /**
      * {@inheritdoc}
-     * @throws InstanceException
-     * @throws StructureException
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */

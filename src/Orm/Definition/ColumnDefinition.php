@@ -5,7 +5,7 @@ namespace Raxos\Database\Orm\Definition;
 
 use BackedEnum;
 use JetBrains\PhpStorm\{ArrayShape, Pure};
-use Raxos\Database\Orm\Contract\CasterInterface;
+use Raxos\Contract\Database\Orm\CasterInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 
 /**

@@ -5,8 +5,9 @@ namespace Raxos\Database;
 
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use Raxos\Database\Contract\{ConnectionInterface, QueryInterface, StatementInterface};
-use Raxos\Database\Error\{ConnectionException, DatabaseException};
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
+use Raxos\Contract\Database\Query\{QueryInterface, StatementInterface};
+use Raxos\Database\Error\InvalidConnectionException;
 
 /**
  * Class Db
@@ -53,7 +54,7 @@ class Db
      * @param string|null $id
      *
      * @return ConnectionInterface|null
-     * @throws ConnectionException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -81,7 +82,7 @@ class Db
      * @param string|null $id
      *
      * @return ConnectionInterface
-     * @throws ConnectionException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -89,7 +90,7 @@ class Db
     {
         $id ??= static::$connectionId;
 
-        return static::get($id) ?? throw ConnectionException::invalidConnection($id);
+        return static::get($id) ?? throw new InvalidConnectionException($id);
     }
 
     /**
@@ -125,7 +126,7 @@ class Db
      * @param string|null $id
      *
      * @return mixed
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::attribute()
@@ -142,7 +143,7 @@ class Db
      * @param string|null $id
      *
      * @return string|int
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::column()
@@ -159,7 +160,7 @@ class Db
      * @param string|null $id
      *
      * @return int
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::execute()
@@ -175,7 +176,7 @@ class Db
      * @param string|null $id
      *
      * @return int
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::foundRows()
@@ -192,7 +193,7 @@ class Db
      * @param string|null $id
      *
      * @return string
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::lastInsertId()
@@ -209,7 +210,7 @@ class Db
      * @param string|null $id
      *
      * @return int
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::lastInsertIdInteger()
@@ -227,7 +228,7 @@ class Db
      * @param string|null $id
      *
      * @return StatementInterface
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::prepare()
@@ -244,7 +245,7 @@ class Db
      * @param string|null $id
      *
      * @return QueryInterface
-     * @throws ConnectionException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::query()
@@ -263,7 +264,7 @@ class Db
      * @param string|null $id
      *
      * @return string
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::quote()
@@ -281,7 +282,7 @@ class Db
      * @param string|null $id
      *
      * @return bool
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::tableColumnExists()
@@ -298,7 +299,7 @@ class Db
      * @param string|null $id
      *
      * @return string[]
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::tableColumns()
@@ -315,7 +316,7 @@ class Db
      * @param string|null $id
      *
      * @return bool
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::tableExists()
@@ -331,7 +332,7 @@ class Db
      * @param string|null $id
      *
      * @return bool
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::commit()
@@ -347,7 +348,7 @@ class Db
      * @param string|null $id
      *
      * @return bool
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::inTransaction()
@@ -363,7 +364,7 @@ class Db
      * @param string|null $id
      *
      * @return bool
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::rollBack()
@@ -379,7 +380,7 @@ class Db
      * @param string|null $id
      *
      * @return bool
-     * @throws DatabaseException
+     * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      * @see ConnectionInterface::transaction()
