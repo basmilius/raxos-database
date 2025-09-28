@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use BackedEnum;
-use Exception;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
 use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface, LoggerInterface};
@@ -15,6 +14,7 @@ use Raxos\Database\Error\{ExecutionException, InvalidTableException, NotConnecte
 use Raxos\Database\Query\Error\NotInTransactionException;
 use Raxos\Database\Query\Statement;
 use SensitiveParameter;
+use Throwable;
 
 /**
  * Class Connection
@@ -158,7 +158,7 @@ abstract class Connection implements ConnectionInterface
             $this->execute('DO 1');
 
             return true;
-        } catch (Exception) {
+        } catch (Throwable) {
             return false;
         }
     }
