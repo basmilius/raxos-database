@@ -243,6 +243,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         }
 
         $relation->write($this->currentInstance, $property, $value);
+        $this->relationCache->setValue($property->name, $value);
     }
 
     /**
