@@ -71,7 +71,7 @@ final class MariaDb extends Connection
                 $this->options
             );
         } catch (PDOException $err) {
-            throw new ExecutionException($err->getCode(), $err->getMessage());
+            throw ExecutionException::fromException($err);
         }
     }
 

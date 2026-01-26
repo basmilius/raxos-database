@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Attribute;
 
 use Attribute;
+use Closure;
 use Raxos\Contract\Database\Orm\AttributeInterface;
 
 /**
@@ -24,7 +25,7 @@ use Raxos\Contract\Database\Orm\AttributeInterface;
  *     #[Column]
  *     public string $lastName;
  *
- *     #[Macro([UserMacro::class, 'getFullName'])]
+ *     #[Macro(UserMacro::getFullName(...))]
  *     public string $fullName;
  * }
  * </code>
@@ -48,14 +49,14 @@ final readonly class Macro implements AttributeInterface
     /**
      * Macro constructor.
      *
-     * @param (callable&string)|(callable&array) $callback
+     * @param Closure $callback
      * @param bool $isCached
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
     public function __construct(
-        public string|array $callback,
+        public Closure $callback,
         public bool $isCached = true
     ) {}
 

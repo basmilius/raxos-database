@@ -70,7 +70,7 @@ abstract readonly class Grammar implements GrammarInterface
     {
         static $cache = [];
 
-        return $cache[$value] ??= $this->realEscape($value);
+        return $cache[$value] ??= $this->escapeImpl($value);
     }
 
     /**
@@ -82,7 +82,7 @@ abstract readonly class Grammar implements GrammarInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.2.0
      */
-    private function realEscape(string $value): string
+    private function escapeImpl(string $value): string
     {
         if (empty($value)) {
             return $value;

@@ -1097,7 +1097,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereNotHas(string $relation, callable $fn): static
+    public function orWhereNotHas(string $relation, ?callable $fn = null): static
     {
         return $this->baseWhereHas($relation, $fn, $this->orWhere(...), true);
     }
@@ -1156,9 +1156,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     {
         if ($fields instanceof QueryLiteralInterface) {
             $fields = [(string)$fields];
-        }
-
-        if (is_string($fields)) {
+        } else if (is_string($fields)) {
             $fields = [$fields];
         }
 
@@ -1362,7 +1360,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereNotHas(string $relation, callable $fn): static
+    public function whereNotHas(string $relation, ?callable $fn = null): static
     {
         return $this->baseWhereHas($relation, $fn, $this->where(...), true);
     }
@@ -1805,9 +1803,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $this->grammar
             ), $fields->entries),
 
-            array_is_list($fields) => iterator_to_array($this->unwrapSelectMap($fields)),
+            array_is_list($fields) => iterator_to_array($this->unwrapSelectList($fields)),
 
-            default => iterator_to_array($this->unwrapSelectList($fields)),
+            default => iterator_to_array($this->unwrapSelectMap($fields)),
         };
 
         return $this->addPiece($clause, array_unique($result), $this->grammar->columnSeparator);
@@ -1848,10 +1846,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $fn($query);
             }
 
-            $clause();
-            $this->raw($negate ? 'not exists (' : 'exists (');
-            $this->merge($query);
-            $this->raw(')');
+            if ($negate) {
+                $clause(expr->not(expr->exists(expr->subQuery($query))));
+            } else {
+                $clause(expr->exists(expr->subQuery($query)));
+            }
 
             return $this;
         } catch (DatabaseExceptionInterface $err) {
@@ -1880,7 +1879,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
-     * Unwrap a select list.
+     * Unwraps a select list.
      *
      * @param array $fields
      *
@@ -1891,6 +1890,43 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @see self::baseSelect()
      */
     private function unwrapSelectList(array $fields): Generator
+    {
+        foreach ($fields as $field) {
+            if (is_array($field) && count($field) === 2) {
+                yield $this->grammar->escape($field[0]) . ' as ' . $this->grammar->escape($field[1]);
+                continue;
+            }
+
+            if (is_numeric($field)) {
+                yield (string)$field;
+                continue;
+            }
+
+            if ($field instanceof QueryExpressionInterface) {
+                throw new MissingAliasException();
+            }
+
+            if ($field instanceof QueryLiteralInterface) {
+                yield (string)$field;
+                continue;
+            }
+
+            yield $this->grammar->escape((string)$field);
+        }
+    }
+
+    /**
+     * Unwrap a select map.
+     *
+     * @param array $fields
+     *
+     * @return Generator
+     * @throws QueryExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.5.0
+     * @see self::baseSelect()
+     */
+    private function unwrapSelectMap(array $fields): Generator
     {
         foreach ($fields as $alias => $field) {
             $alias = $this->grammar->escape($alias);
@@ -1927,43 +1963,6 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             }
 
             yield $this->grammar->escape($field) . ' as ' . $alias;
-        }
-    }
-
-    /**
-     * Unwraps a select map.
-     *
-     * @param array $fields
-     *
-     * @return Generator
-     * @throws QueryExceptionInterface
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.5.0
-     * @see self::baseSelect()
-     */
-    private function unwrapSelectMap(array $fields): Generator
-    {
-        foreach ($fields as $field) {
-            if (is_array($field) && count($field) === 2) {
-                yield $this->grammar->escape($field[0]) . ' as ' . $this->grammar->escape($field[1]);
-                continue;
-            }
-
-            if (is_numeric($field)) {
-                yield (string)$field;
-                continue;
-            }
-
-            if ($field instanceof QueryExpressionInterface) {
-                throw new MissingAliasException();
-            }
-
-            if ($field instanceof QueryLiteralInterface) {
-                yield (string)$field;
-                continue;
-            }
-
-            yield $this->grammar->escape((string)$field);
         }
     }
 

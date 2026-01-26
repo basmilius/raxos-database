@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Definition;
 
+use Closure;
 use JetBrains\PhpStorm\ArrayShape;
 
 /**
@@ -18,7 +19,7 @@ final readonly class MacroDefinition extends PropertyDefinition
     /**
      * MacroDefinition constructor.
      *
-     * @param (callable&string)|(callable&array) $callback
+     * @param Closure $callback
      * @param bool $isCached
      * @param string $name
      * @param string|null $alias
@@ -29,7 +30,7 @@ final readonly class MacroDefinition extends PropertyDefinition
      * @since 1.0.17
      */
     public function __construct(
-        public string|array $callback,
+        public Closure $callback,
         public bool $isCached,
         string $name,
         ?string $alias,

@@ -30,6 +30,8 @@ final class SQLite extends Connection
      * SQLite constructor.
      *
      * @param string $dsn
+     * @param string|null $username
+     * @param string|null $password
      * @param array|null $options
      * @param CacheInterface $cache
      * @param Logger $logger
@@ -39,12 +41,14 @@ final class SQLite extends Connection
      */
     public function __construct(
         #[SensitiveParameter] string $dsn,
+        #[SensitiveParameter] ?string $username = null,
+        #[SensitiveParameter] ?string $password = null,
         ?array $options = null,
         CacheInterface $cache = new Cache(),
         LoggerInterface $logger = new Logger()
     )
     {
-        parent::__construct($dsn, null, null, $options, $cache, new SQLiteGrammar(), $logger);
+        parent::__construct($dsn, $username, $password, $options, $cache, new SQLiteGrammar(), $logger);
     }
 
     /**
@@ -57,10 +61,12 @@ final class SQLite extends Connection
         try {
             $this->pdo = new \Pdo\Sqlite(
                 $this->dsn,
-                options: $this->options
+                $this->username,
+                $this->password,
+                $this->options
             );
         } catch (PDOException $err) {
-            throw new ExecutionException($err->getCode(), $err->getMessage());
+            throw ExecutionException::fromException($err);
         }
     }
 

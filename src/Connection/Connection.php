@@ -102,8 +102,7 @@ abstract class Connection implements ConnectionInterface
             return $result;
         }
 
-        [, $code, $message] = $this->pdo->errorInfo();
-        throw new ExecutionException($code, $message);
+        throw ExecutionException::fromErrorInfo($this->pdo);
     }
 
     /**
@@ -123,8 +122,7 @@ abstract class Connection implements ConnectionInterface
             return $result;
         }
 
-        [, $code, $message] = $this->pdo->errorInfo();
-        throw new ExecutionException($code, $message);
+        throw ExecutionException::fromErrorInfo($this->pdo);
     }
 
     /**
