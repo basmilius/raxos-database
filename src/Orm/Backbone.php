@@ -359,7 +359,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         // todo(Bas): This should be improved. It would be nice to check if any
         //  properties that are related to these caches are updated and clear
         //  them only if needed. For example; we wouldn't want to clear the
-        //  relation cache for a model when non of the relation related
+        //  relation cache for a model when non of the relation-related
         //  properties are updated.
         $this->castCache->clear();
         $this->macroCache->clear();

@@ -50,11 +50,6 @@ final readonly class QueryEvent extends Event
             $modelClassRef = $classRef->getProperty('modelClass');
             $paramsRef = $classRef->getProperty('params');
 
-            /** @noinspection PhpExpressionResultUnusedInspection */
-            $modelClassRef->setAccessible(true);
-            /** @noinspection PhpExpressionResultUnusedInspection */
-            $paramsRef->setAccessible(true);
-
             $params = $paramsRef->getValue($query);
             $sql = $query->toSql();
 

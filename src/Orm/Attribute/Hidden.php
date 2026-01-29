@@ -9,7 +9,7 @@ use Raxos\Contract\Database\Orm\AttributeInterface;
 /**
  * Class Hidden
  *
- * Marks the column, marco or relation as hidden.
+ * Marks the column, marco, or relation as hidden.
  *
  * <code>
  * class User extends Model {
