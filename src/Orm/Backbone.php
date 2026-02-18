@@ -489,7 +489,7 @@ final class Backbone implements AccessInterface, BackboneInterface
             return;
         }
 
-        yield $polymorphic->column => array_find_key($polymorphic->map, fn(string $class) => $this->class);
+        yield $polymorphic->column => array_find_key($polymorphic->map, fn(string $class) => $class === $this->class);
     }
 
 }
