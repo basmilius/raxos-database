@@ -14,6 +14,7 @@ use Raxos\Database\Orm\Cache;
 use Raxos\Database\Query\Error\UnsupportedException;
 use Raxos\Database\Query\SQLiteQuery;
 use SensitiveParameter;
+use Throwable;
 use function Raxos\Database\Query\literal;
 
 /**
@@ -83,6 +84,22 @@ final class SQLite extends Connection
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
+     * @since 1.8.0
+     */
+    public function ping(): bool
+    {
+        try {
+            $this->execute('SELECT 1');
+
+            return true;
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
     public function loadDatabaseSchema(): array
@@ -141,9 +158,11 @@ final class SQLite extends Connection
     {
         return new self(
             "sqlite:$path",
+            null,
+            null,
             $options,
-            $cache,
-            $logger
+            $cache ?? new Cache(),
+            $logger ?? new Logger()
         );
     }
 
@@ -166,9 +185,11 @@ final class SQLite extends Connection
     {
         return new self(
             'sqlite::memory:',
+            null,
+            null,
             $options,
-            $cache,
-            $logger
+            $cache ?? new Cache(),
+            $logger ?? new Logger()
         );
     }
 

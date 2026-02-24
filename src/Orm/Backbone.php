@@ -442,7 +442,7 @@ final class Backbone implements AccessInterface, BackboneInterface
             throw new ImmutableRelationException($this->class, $property->name);
         }
 
-        $this->data->unsetValue($key);
+        $this->data->unsetValue($property->key);
     }
 
     /**
