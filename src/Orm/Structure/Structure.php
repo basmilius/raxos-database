@@ -10,12 +10,14 @@ use Raxos\Contract\Database\Orm\{BackboneInitializedInterface, CustomRelationAtt
 use Raxos\Contract\SerializableInterface;
 use Raxos\Database\Db;
 use Raxos\Database\Logger\EagerLoadEvent;
-use Raxos\Database\Orm\{Backbone, Error\MissingPolymorphicDiscriminatorException, Error\MissingPropertyException, Error\MissingRelationImplementationException, Model};
+use Raxos\Database\Orm\{Backbone, Model};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\InvalidColumnException;
+use Raxos\Database\Orm\Error\{InvalidColumnException, MissingPolymorphicDiscriminatorException, MissingPropertyException, MissingRelationImplementationException, ReflectionErrorException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
 use Raxos\Database\Query\Literal\ColumnLiteral;
+use ReflectionClass;
+use ReflectionException;
 use function array_key_exists;
 use function array_map;
 use function is_array;
@@ -34,6 +36,8 @@ use function str_starts_with;
  */
 final class Structure implements StructureInterface, SerializableInterface
 {
+
+    private const bool ENABLE_LAZY_GHOST = false;
 
     public private(set) ConnectionInterface $connection;
 
@@ -140,18 +144,46 @@ final class Structure implements StructureInterface, SerializableInterface
             $data = $this->class::onInitialize($data);
         }
 
-        $structure = StructureGenerator::for($this->class);
-        $backbone = new Backbone($structure, $data);
+        if (self::ENABLE_LAZY_GHOST) {
+            $class = $this->class;
+            $parent = $this->parent;
+            $structure = $this;
 
-        if ($this->isBackboneInitializable) {
-            $this->class::onBackboneInitialized($backbone, $data);
+            try {
+                /** @var TModel $instance */
+                $instance = new ReflectionClass($class)->newLazyGhost(static function (Model $instance) use ($class, $structure, $data): void {
+                    if (is_subclass_of($class, InitializeInterface::class)) {
+                        $data = $class::onInitialize($data);
+                    }
+
+                    $backbone = new Backbone($structure, $data);
+
+                    if ($structure->isBackboneInitializable) {
+                        $class::onBackboneInitialized($backbone, $data);
+                    }
+
+                    $instance->__construct(backbone: $backbone);
+                });
+
+                $cache->set($parent?->class ?? $class, $primaryKeyValue, $instance);
+
+                return $instance;
+            } catch (ReflectionException $err) {
+                throw new ReflectionErrorException($this->class, $err);
+            }
+        } else {
+            $backbone = new Backbone($this, $data);
+
+            if ($this->isBackboneInitializable) {
+                $this->class::onBackboneInitialized($backbone, $data);
+            }
+
+            $instance = $backbone->createInstance();
+
+            $cache->set($this->parent?->class ?? $this->class, $primaryKeyValue, $instance);
+
+            return $instance;
         }
-
-        $instance = $backbone->createInstance();
-
-        $cache->set($this->parent?->class ?? $this->class, $primaryKeyValue, $instance);
-
-        return $instance;
     }
 
     /**

@@ -36,6 +36,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     public readonly CacheInterface $cache;
     public readonly ConnectionInterface $connection;
     public readonly string $class;
+    public readonly int $id;
 
     public readonly BackpackInterface $data;
     public readonly BackpackInterface $castCache;
@@ -47,6 +48,8 @@ final class Backbone implements AccessInterface, BackboneInterface
     /** @var array<string, true> */
     private array $modified = [];
     private array $saveTasks = [];
+
+    private static int $backboneId = 0;
 
     /**
      * Backbone constructor.
@@ -67,6 +70,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         $this->class = $this->structure->class;
         $this->connection = $this->structure->connection;
         $this->cache = $this->connection->cache;
+        $this->id = ++self::$backboneId;
 
         $this->data = new Backpack($data);
         $this->castCache = new Backpack();

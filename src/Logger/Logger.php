@@ -132,9 +132,9 @@ final class Logger implements LoggerInterface
             <link rel="stylesheet" href="https://font.bmcdn.nl/css2?family=jetbrains-mono"/>
             
             <style>
+                body { margin: 0; padding: 0; background: #111827; }
                 #_raxos_database_report, #_raxos_database_report::before, #_raxos_database_report::after { box-sizing: border-box; }
-                #_raxos_database_report { position: fixed; top: 30px; right: 30px; height: 72px; width: 480px; padding: 15px; background: #111827; border-radius: 6px; box-shadow: 0 3px 9px rgb(0 0 0 / .25); color: #f3f4f6; font-family: jetbrains-mono, monospace; font-size: 12px; line-height: 1.5; overflow: auto; transition: 420ms ease-in-out; }
-                #_raxos_database_report:hover { height: calc(100dvh - 60px); width: 60dvw; }
+                #_raxos_database_report { min-height: 100dvh; width: min(1600px, 100dvw); margin: 0 auto; padding: 60px; background: #111827; color: #f3f4f6; font-family: jetbrains-mono, monospace; font-size: 12px; line-height: 1.5; overflow: auto; }
                 #_raxos_database_report h1 { margin: 0; color: #22d3ee; font-size: 16px; line-height: 1; }
                 #_raxos_database_report hr { height: 2px; margin-bottom: 9px; background: #374151; border: 0; }
                 #_raxos_database_report abbr { text-decoration-color: #374151; text-underline-offset: 3px; }
