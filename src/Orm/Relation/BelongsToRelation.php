@@ -129,21 +129,25 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
+        $pending = $instances->filter(
+            fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name)
+        );
+
         [$cached, $uncached] = RelationHelper::partitionModels(
             $this->referenceStructure,
-            $instances
+            $pending
                 ->column($this->declaringKey->column)
                 ->unique()
         );
 
         if ($cached->isNotEmpty()) {
-            $this->onBeforeRelations($cached, $instances);
+            $this->onBeforeRelations($cached, $pending);
         }
 
         if ($uncached->isNotEmpty()) {
             $this->referenceStructure->class::select()
                 ->whereIn($this->referenceKey, $uncached)
-                ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+                ->withQuery(RelationHelper::onBeforeRelations($pending, $this->onBeforeRelations(...)))
                 ->array();
         }
     }

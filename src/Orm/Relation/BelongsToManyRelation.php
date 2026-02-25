@@ -147,8 +147,11 @@ final readonly class BelongsToManyRelation implements RelationInterface
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
-        $values = $instances
-            ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
+        $pending = $instances->filter(
+            fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name)
+        );
+
+        $values = $pending
             ->column($this->declaringKey->column)
             ->unique();
 
@@ -167,7 +170,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
             ->whereIn($this->declaringLinkingKey, $values)
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
-            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+            ->withQuery(RelationHelper::onBeforeRelations($pending, $this->onBeforeRelations(...)))
             ->array();
     }
 

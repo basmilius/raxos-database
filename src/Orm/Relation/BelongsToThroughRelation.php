@@ -135,8 +135,38 @@ final readonly class BelongsToThroughRelation implements RelationInterface
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
-        $values = $instances
-            ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
+        $linkingCache = $this->linkingStructure->connection->cache;
+        $referenceCache = $this->referenceStructure->connection->cache;
+        $pendingInstances = [];
+
+        foreach ($instances as $instance) {
+            if ($instance->backbone->relationCache->hasValue($this->property->name)) {
+                continue;
+            }
+
+            $declaringValue = $instance->{$this->declaringKey->column};
+
+            // note(Bas): if the linking model and the reference model are both already in the
+            //  connection cache, we can resolve this relation without a database query.
+            if ($declaringValue !== null && $linkingCache->has($this->linkingStructure->class, $declaringValue)) {
+                $linkingModel = $linkingCache->get($this->linkingStructure->class, $declaringValue);
+                $referenceLinkingValue = $linkingModel->{$this->referenceLinkingKey->column};
+
+                if ($referenceLinkingValue !== null && $referenceCache->has($this->referenceStructure->class, $referenceLinkingValue)) {
+                    $instance->backbone->relationCache->setValue(
+                        $this->property->name,
+                        $referenceCache->get($this->referenceStructure->class, $referenceLinkingValue)
+                    );
+                    continue;
+                }
+            }
+
+            $pendingInstances[] = $instance;
+        }
+
+        $pending = new ModelArrayList($pendingInstances);
+
+        $values = $pending
             ->column($this->declaringKey->column)
             ->unique();
 
@@ -153,7 +183,7 @@ final readonly class BelongsToThroughRelation implements RelationInterface
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
             ->whereIn($this->declaringLinkingKey, $values)
-            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+            ->withQuery(RelationHelper::onBeforeRelations($pending, $this->onBeforeRelations(...)))
             ->array();
     }
 
@@ -178,7 +208,7 @@ final readonly class BelongsToThroughRelation implements RelationInterface
         foreach ($instances as $instance) {
             $result = $map[$instance->{$this->declaringKey->column}] ?? null;
 
-            if ($result === null) {
+            if ($result === null && $instance->backbone->relationCache->hasValue($this->property->name)) {
                 continue;
             }
 

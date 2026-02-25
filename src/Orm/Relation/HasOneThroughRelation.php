@@ -135,8 +135,11 @@ final readonly class HasOneThroughRelation implements RelationInterface
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
-        $values = $instances
-            ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
+        $pending = $instances->filter(
+            fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name)
+        );
+
+        $values = $pending
             ->column($this->declaringKey->column)
             ->unique();
 
@@ -153,7 +156,7 @@ final readonly class HasOneThroughRelation implements RelationInterface
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
             ->whereIn($this->declaringLinkingKey, $values)
-            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+            ->withQuery(RelationHelper::onBeforeRelations($pending, $this->onBeforeRelations(...)))
             ->array();
     }
 
@@ -178,7 +181,7 @@ final readonly class HasOneThroughRelation implements RelationInterface
         foreach ($instances as $instance) {
             $result = $map[$instance->{$this->declaringKey->column}] ?? null;
 
-            if ($result === null) {
+            if ($result === null && $instance->backbone->relationCache->hasValue($this->property->name)) {
                 continue;
             }
 
