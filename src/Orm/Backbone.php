@@ -80,8 +80,8 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     public function addInstance(Model $instance): void
     {
-        foreach ($this->structure->properties as $property) {
-            unset($instance->{$property->name});
+        foreach ($this->structure->propertyNames as $name) {
+            unset($instance->{$name});
         }
     }
 

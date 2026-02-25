@@ -16,7 +16,6 @@ use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, Prop
 use Raxos\Database\Orm\Error\InvalidColumnException;
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
 use Raxos\Database\Query\Literal\ColumnLiteral;
-use function array_any;
 use function array_key_exists;
 use function array_map;
 use function in_array;
@@ -41,6 +40,12 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /** @var ColumnDefinition[]|null */
     public readonly array|null $primaryKey;
+
+    /** @var string[] */
+    public array $propertyNames = [];
+
+    /** @var array<string, PropertyDefinition> */
+    private array $propertyIndex = [];
 
     /** @var array<string, RelationInterface> */
     private array $relations = [];
@@ -74,6 +79,7 @@ final class Structure implements StructureInterface, SerializableInterface
     {
         $this->connection = Db::getOrFail($this->connectionId);
         $this->primaryKey = $this->getPrimaryKey();
+        $this->buildPropertyIndex();
     }
 
     /**
@@ -213,13 +219,7 @@ final class Structure implements StructureInterface, SerializableInterface
      */
     public function getProperty(string $key): PropertyDefinition
     {
-        foreach ($this->properties as $property) {
-            if ($property->name === $key || $property->alias === $key || ($property instanceof ColumnDefinition && $property->key === $key)) {
-                return $property;
-            }
-        }
-
-        throw new MissingPropertyException($this->class, $key);
+        return $this->propertyIndex[$key] ?? throw new MissingPropertyException($this->class, $key);
     }
 
     /**
@@ -229,7 +229,7 @@ final class Structure implements StructureInterface, SerializableInterface
      */
     public function hasProperty(string $key): bool
     {
-        return array_any($this->properties, static fn(PropertyDefinition $property) => $property->name === $key || $property->alias === $key || ($property instanceof ColumnDefinition && $property->key === $key));
+        return isset($this->propertyIndex[$key]);
     }
 
     /**
@@ -374,6 +374,30 @@ final class Structure implements StructureInterface, SerializableInterface
         $this->connection = Db::getOrFail($this->connectionId);
         $this->parent = $parentClass !== null ? StructureGenerator::for($parentClass) : null;
         $this->primaryKey = $this->getPrimaryKey();
+        $this->buildPropertyIndex();
+    }
+
+    /**
+     * Builds the property index for O(1) property lookups by name, alias, and column key.
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    private function buildPropertyIndex(): void
+    {
+        foreach ($this->properties as $property) {
+            $this->propertyNames[] = $property->name;
+            $this->propertyIndex[$property->name] = $property;
+
+            if ($property->alias !== null) {
+                $this->propertyIndex[$property->alias] = $property;
+            }
+
+            if ($property instanceof ColumnDefinition && $property->key !== $property->name) {
+                $this->propertyIndex[$property->key] = $property;
+            }
+        }
     }
 
 }

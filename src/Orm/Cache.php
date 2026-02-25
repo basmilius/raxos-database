@@ -8,6 +8,8 @@ use Raxos\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use function array_map;
 use function is_array;
+use function is_int;
+use function is_string;
 use function json_encode;
 
 /**
@@ -111,8 +113,24 @@ final class Cache implements CacheInterface, DebuggableInterface
      */
     private function key(array|string|int $primaryKey): string
     {
-        if (!is_array($primaryKey)) {
-            $primaryKey = [$primaryKey];
+        if (is_int($primaryKey)) {
+            return (string) $primaryKey;
+        }
+
+        if (is_string($primaryKey)) {
+            return $primaryKey;
+        }
+
+        if (count($primaryKey) === 1) {
+            $value = reset($primaryKey);
+
+            if (is_int($value)) {
+                return (string) $value;
+            }
+
+            if (is_string($value)) {
+                return $value;
+            }
         }
 
         return json_encode($primaryKey);
