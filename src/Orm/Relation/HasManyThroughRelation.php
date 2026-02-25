@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
+use Raxos\Collection\ArrayList;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface};
 use Raxos\Contract\Database\Query\QueryInterface;
@@ -95,6 +96,42 @@ final readonly class HasManyThroughRelation implements RelationInterface
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
+        $directRelation = RelationHelper::findRelationToModel($this->declaringStructure, $this->linkingStructure->class);
+
+        if ($directRelation !== null && $instance->backbone->relationCache->hasValue($directRelation->name)) {
+            $linkingInstances = $instance->backbone->relationCache->getValue($directRelation->name);
+
+            if ($linkingInstances instanceof ModelArrayList) {
+                $refRelation = RelationHelper::findRelationToModel($this->linkingStructure, $this->referenceStructure->class);
+
+                if ($refRelation !== null) {
+                    $allLoaded = true;
+                    $results = [];
+
+                    foreach ($linkingInstances as $linking) {
+                        if (!$linking->backbone->relationCache->hasValue($refRelation->name)) {
+                            $allLoaded = false;
+                            break;
+                        }
+
+                        $refValue = $linking->backbone->relationCache->getValue($refRelation->name);
+
+                        if ($refValue instanceof ModelArrayList) {
+                            foreach ($refValue as $ref) {
+                                $results[] = $ref;
+                            }
+                        } elseif ($refValue instanceof Model) {
+                            $results[] = $refValue;
+                        }
+                    }
+
+                    if ($allLoaded) {
+                        return new ModelArrayList($results);
+                    }
+                }
+            }
+        }
+
         return $this
             ->query($instance)
             ->arrayList();
@@ -137,8 +174,57 @@ final readonly class HasManyThroughRelation implements RelationInterface
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
-        $values = $instances
-            ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
+        $directRelation = RelationHelper::findRelationToModel($this->declaringStructure, $this->linkingStructure->class);
+        $refRelation = $directRelation !== null
+            ? RelationHelper::findRelationToModel($this->linkingStructure, $this->referenceStructure->class)
+            : null;
+
+        $needsQuery = new ArrayList();
+
+        foreach ($instances as $instance) {
+            if ($instance->backbone->relationCache->hasValue($this->property->name)) {
+                continue;
+            }
+
+            if ($directRelation !== null && $refRelation !== null
+                && $instance->backbone->relationCache->hasValue($directRelation->name)) {
+                $linkingInstances = $instance->backbone->relationCache->getValue($directRelation->name);
+
+                if ($linkingInstances instanceof ModelArrayList) {
+                    $allLoaded = true;
+                    $results = [];
+
+                    foreach ($linkingInstances as $linking) {
+                        if (!$linking->backbone->relationCache->hasValue($refRelation->name)) {
+                            $allLoaded = false;
+                            break;
+                        }
+
+                        $refValue = $linking->backbone->relationCache->getValue($refRelation->name);
+
+                        if ($refValue instanceof ModelArrayList) {
+                            foreach ($refValue as $ref) {
+                                $results[] = $ref;
+                            }
+                        } elseif ($refValue instanceof Model) {
+                            $results[] = $refValue;
+                        }
+                    }
+
+                    if ($allLoaded) {
+                        $instance->backbone->relationCache->setValue(
+                            $this->property->name,
+                            new ModelArrayList($results)
+                        );
+                        continue;
+                    }
+                }
+            }
+
+            $needsQuery->append($instance);
+        }
+
+        $values = $needsQuery
             ->column($this->declaringKey->column)
             ->unique();
 
@@ -157,7 +243,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
             ->whereIn($this->declaringLinkingKey, $values)
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
-            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+            ->withQuery(RelationHelper::onBeforeRelations($needsQuery, $this->onBeforeRelations(...)))
             ->array();
     }
 
