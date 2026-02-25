@@ -10,17 +10,20 @@ use Raxos\Contract\Database\Orm\{BackboneInitializedInterface, CustomRelationAtt
 use Raxos\Contract\SerializableInterface;
 use Raxos\Database\Db;
 use Raxos\Database\Logger\EagerLoadEvent;
-use Raxos\Database\Orm\{Backbone, Error\MissingPolymorphicDiscriminatorException, Error\MissingPropertyException, Error\MissingRelationImplementationException, Model};
+use Raxos\Database\Orm\{Backbone, Error\MissingPolymorphicDiscriminatorException, Error\MissingPropertyException, Error\MissingRelationImplementationException, Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\InvalidColumnException;
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
 use Raxos\Database\Query\Literal\ColumnLiteral;
 use function array_key_exists;
+use function array_keys;
 use function array_map;
 use function is_array;
 use function is_subclass_of;
 use function str_starts_with;
+use function strpos;
+use function substr;
 
 /**
  * Class Structure
@@ -185,18 +188,41 @@ final class Structure implements StructureInterface, SerializableInterface
             return;
         }
 
+        // note(Bas): Parse dot-notation in relation names to support nested eager loading.
+        //  e.g., ['user.posts'] → loads 'user' first, then 'posts' for each loaded user.
+        $nested = [];
+        $topLevelEnabledSet = [];
+
+        foreach ($enabled as $relation) {
+            $dotPos = strpos($relation, '.');
+
+            if ($dotPos !== false) {
+                $topLevel = substr($relation, 0, $dotPos);
+                $nested[$topLevel][] = substr($relation, $dotPos + 1);
+                $topLevelEnabledSet[$topLevel] = true;
+            } else {
+                $topLevelEnabledSet[$relation] = true;
+            }
+        }
+
+        $topLevelEnabled = array_keys($topLevelEnabledSet);
+
         // note(Bas): First we eager load all relations from the provided model
         //  class. This ensures that if the model is polymorphic, the common
         //  relations are eaged loaded together.
         $loaded = [];
 
         foreach ($this->getRelations() as $relation) {
-            if ((!$relation->attribute->eagerLoad && !$relation->property->isIn($enabled)) || $relation->property->isIn($disabled)) {
+            if ((!$relation->attribute->eagerLoad && !$relation->property->isIn($topLevelEnabled)) || $relation->property->isIn($disabled)) {
                 continue;
             }
 
             $this->eagerLoadRelation($relation, $instances);
             $loaded[$relation->property->name] = true;
+
+            if (isset($nested[$relation->property->name])) {
+                $this->eagerLoadNestedRelations($instances, $relation->property->name, $nested[$relation->property->name], $disabled);
+            }
         }
 
         if ($this->polymorphic === null) {
@@ -212,12 +238,65 @@ final class Structure implements StructureInterface, SerializableInterface
                     continue;
                 }
 
-                if ((!$subRelation->attribute->eagerLoad && !$subRelation->property->isIn($enabled)) || $subRelation->property->isIn($disabled)) {
+                if ((!$subRelation->attribute->eagerLoad && !$subRelation->property->isIn($topLevelEnabled)) || $subRelation->property->isIn($disabled)) {
                     continue;
                 }
 
                 $this->eagerLoadRelation($subRelation, $subInstances);
+
+                if (isset($nested[$subRelation->property->name])) {
+                    $this->eagerLoadNestedRelations($subInstances, $subRelation->property->name, $nested[$subRelation->property->name], $disabled);
+                }
             }
+        }
+    }
+
+    /**
+     * Collects already-loaded reference models from the relation cache and eager loads
+     * nested relations on them, enabling dot-notation support (e.g., `user.posts`).
+     *
+     * @param ArrayListInterface<int, Model> $instances
+     * @param string $propertyName
+     * @param string[] $nestedRelations
+     * @param string[] $disabled
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.2
+     */
+    private function eagerLoadNestedRelations(ArrayListInterface $instances, string $propertyName, array $nestedRelations, array $disabled): void
+    {
+        $nestedModels = [];
+
+        foreach ($instances as $instance) {
+            if (!$instance->backbone->relationCache->hasValue($propertyName)) {
+                continue;
+            }
+
+            $value = $instance->backbone->relationCache->getValue($propertyName);
+
+            if ($value instanceof Model) {
+                $nestedModels[] = $value;
+            } elseif ($value instanceof ModelArrayList) {
+                foreach ($value as $model) {
+                    $nestedModels[] = $model;
+                }
+            }
+        }
+
+        if (empty($nestedModels)) {
+            return;
+        }
+
+        // note(Bas): Group by class to correctly handle polymorphic nested models.
+        $grouped = [];
+
+        foreach ($nestedModels as $model) {
+            $grouped[$model::class][] = $model;
+        }
+
+        foreach ($grouped as $class => $models) {
+            StructureGenerator::for($class)->eagerLoadRelations(new ModelArrayList($models), $nestedRelations, $disabled);
         }
     }
 
