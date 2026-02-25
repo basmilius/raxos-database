@@ -97,6 +97,24 @@ final readonly class HasOneThroughRelation implements RelationInterface
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
+        $directRelation = RelationHelper::findRelationToModel($this->declaringStructure, $this->linkingStructure->class);
+
+        if ($directRelation !== null && $instance->backbone->relationCache->hasValue($directRelation->name)) {
+            $linkingInstance = $instance->backbone->relationCache->getValue($directRelation->name);
+
+            if ($linkingInstance === null) {
+                return null;
+            }
+
+            if ($linkingInstance instanceof Model) {
+                $refRelation = RelationHelper::findRelationToModel($this->linkingStructure, $this->referenceStructure->class);
+
+                if ($refRelation !== null && $linkingInstance->backbone->relationCache->hasValue($refRelation->name)) {
+                    return $linkingInstance->backbone->relationCache->getValue($refRelation->name);
+                }
+            }
+        }
+
         return $this
             ->query($instance)
             ->single();

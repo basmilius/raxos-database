@@ -95,6 +95,42 @@ final readonly class HasManyThroughRelation implements RelationInterface
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
+        $directRelation = RelationHelper::findRelationToModel($this->declaringStructure, $this->linkingStructure->class);
+
+        if ($directRelation !== null && $instance->backbone->relationCache->hasValue($directRelation->name)) {
+            $linkingInstances = $instance->backbone->relationCache->getValue($directRelation->name);
+
+            if ($linkingInstances instanceof ModelArrayList) {
+                $refRelation = RelationHelper::findRelationToModel($this->linkingStructure, $this->referenceStructure->class);
+
+                if ($refRelation !== null) {
+                    $allLoaded = true;
+                    $results = [];
+
+                    foreach ($linkingInstances as $linking) {
+                        if (!$linking->backbone->relationCache->hasValue($refRelation->name)) {
+                            $allLoaded = false;
+                            break;
+                        }
+
+                        $refValue = $linking->backbone->relationCache->getValue($refRelation->name);
+
+                        if ($refValue instanceof ModelArrayList) {
+                            foreach ($refValue as $ref) {
+                                $results[] = $ref;
+                            }
+                        } elseif ($refValue instanceof Model) {
+                            $results[] = $refValue;
+                        }
+                    }
+
+                    if ($allLoaded) {
+                        return new ModelArrayList($results);
+                    }
+                }
+            }
+        }
+
         return $this
             ->query($instance)
             ->arrayList();

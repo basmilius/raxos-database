@@ -8,6 +8,7 @@ use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\GrammarInterface;
 use Raxos\Contract\Database\Orm\StructureInterface;
 use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryInterface};
+use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Literal\ColumnLiteral;
 use function is_numeric;
@@ -100,6 +101,32 @@ final class RelationHelper
 
             return $query;
         };
+    }
+
+    /**
+     * Finds the first relation definition on the given structure that references
+     * the given model class. Returns null if no such relation is found.
+     *
+     * @param StructureInterface $structure
+     * @param string $modelClass
+     *
+     * @return RelationDefinition|null
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    public static function findRelationToModel(StructureInterface $structure, string $modelClass): ?RelationDefinition
+    {
+        foreach ($structure->relationDefinitions as $relDef) {
+            if (!empty($relDef->types) && $relDef->types[0] === $modelClass) {
+                return $relDef;
+            }
+
+            if (property_exists($relDef->relation, 'referenceModel') && $relDef->relation->referenceModel === $modelClass) {
+                return $relDef;
+            }
+        }
+
+        return null;
     }
 
     /**
