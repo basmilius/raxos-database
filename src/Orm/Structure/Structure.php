@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Structure;
 
 use Generator;
+use ReflectionClass;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
 use Raxos\Contract\Database\Orm\{BackboneInitializedInterface, CustomRelationAttributeInterface, InitializeInterface, RelationInterface, StructureInterface};
@@ -121,20 +122,25 @@ final class Structure implements StructureInterface, SerializableInterface
             return $polymorphicStructure->createInstance($data);
         }
 
-        if (is_subclass_of($this->class, InitializeInterface::class)) {
-            $data = $this->class::onInitialize($data);
-        }
+        $class = $this->class;
+        $parent = $this->parent;
+        $structure = $this;
 
-        $structure = StructureGenerator::for($this->class);
-        $backbone = new Backbone($structure, $data);
+        $instance = (new ReflectionClass($class))->newLazyGhost(static function (Model $instance) use ($class, $structure, $data): void {
+            if (is_subclass_of($class, InitializeInterface::class)) {
+                $data = $class::onInitialize($data);
+            }
 
-        if (is_subclass_of($this->class, BackboneInitializedInterface::class)) {
-            $this->class::onBackboneInitialized($backbone, $data);
-        }
+            $backbone = new Backbone($structure, $data);
 
-        $instance = $backbone->createInstance();
+            if (is_subclass_of($class, BackboneInitializedInterface::class)) {
+                $class::onBackboneInitialized($backbone, $data);
+            }
 
-        $cache->set($this->parent?->class ?? $this->class, $primaryKeyValue, $instance);
+            $instance->__construct(backbone: $backbone);
+        });
+
+        $cache->set($parent?->class ?? $class, $primaryKeyValue, $instance);
 
         return $instance;
     }
