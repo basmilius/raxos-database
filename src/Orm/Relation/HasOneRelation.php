@@ -129,15 +129,19 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
+        $pending = $instances->filter(
+            fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name)
+        );
+
         [$cached, $uncached] = RelationHelper::partitionModels(
             $this->referenceStructure,
-            $instances
+            $pending
                 ->column($this->declaringKey->column)
                 ->unique()
         );
 
         if ($cached->isNotEmpty()) {
-            $this->onBeforeRelations($cached, $instances);
+            $this->onBeforeRelations($cached, $pending);
         }
 
         if ($uncached->isNotEmpty()) {
@@ -145,7 +149,7 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
                 ->whereIn($this->referenceKey, $uncached)
                 ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                     ->orderBy($this->attribute->orderBy))
-                ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+                ->withQuery(RelationHelper::onBeforeRelations($pending, $this->onBeforeRelations(...)))
                 ->array();
         }
     }
