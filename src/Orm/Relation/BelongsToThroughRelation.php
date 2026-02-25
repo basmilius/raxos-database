@@ -97,6 +97,26 @@ final readonly class BelongsToThroughRelation implements RelationInterface
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
+        $declaringValue = $instance->{$this->declaringKey->column};
+
+        if ($declaringValue === null) {
+            return null;
+        }
+
+        $linkingCache = $this->linkingStructure->connection->cache;
+        $referenceCache = $this->referenceStructure->connection->cache;
+
+        // note(Bas): if the linking model and the reference model are both already in the
+        //  connection cache, we can resolve this relation without a database query.
+        if ($linkingCache->has($this->linkingStructure->class, $declaringValue)) {
+            $linkingModel = $linkingCache->get($this->linkingStructure->class, $declaringValue);
+            $referenceLinkingValue = $linkingModel->{$this->referenceLinkingKey->column};
+
+            if ($referenceLinkingValue !== null && $referenceCache->has($this->referenceStructure->class, $referenceLinkingValue)) {
+                return $referenceCache->get($this->referenceStructure->class, $referenceLinkingValue);
+            }
+        }
+
         return $this
             ->query($instance)
             ->single();

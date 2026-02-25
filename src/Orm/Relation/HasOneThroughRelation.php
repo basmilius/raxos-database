@@ -97,6 +97,28 @@ final readonly class HasOneThroughRelation implements RelationInterface
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
+        $declaringValue = RelationHelper::declaringKeyValue($instance, $this->declaringKey);
+
+        if ($declaringValue === null) {
+            return null;
+        }
+
+        // note(Bas): check if the linking model is already in the connection cache. If so, use
+        //  its reference FK to look up the reference model without a database query.
+        $linkingModel = RelationHelper::findCached($declaringValue, $this->linkingStructure, $this->declaringLinkingKey);
+
+        if ($linkingModel !== null) {
+            $referenceLinkingValue = $linkingModel->{$this->referenceLinkingKey->column};
+
+            if ($referenceLinkingValue !== null) {
+                $referenceCache = $this->referenceStructure->connection->cache;
+
+                if ($referenceCache->has($this->referenceStructure->class, $referenceLinkingValue)) {
+                    return $referenceCache->get($this->referenceStructure->class, $referenceLinkingValue);
+                }
+            }
+        }
+
         return $this
             ->query($instance)
             ->single();
