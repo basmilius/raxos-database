@@ -31,6 +31,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     public ColumnLiteral $declaringKey;
     public ColumnLiteral $referenceKey;
 
+    public bool $referenceKeyIsPrimaryKey;
     public StructureInterface $referenceStructure;
 
     /**
@@ -68,6 +69,8 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
             $this->attribute->referenceKeyTable,
             $referencePrimaryKey
         );
+
+        $this->referenceKeyIsPrimaryKey = $this->attribute->referenceKey === null;
     }
 
     /**
@@ -83,11 +86,11 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
             return null;
         }
 
-        $cached = RelationHelper::findCached(
-            $declaringValue,
-            $this->referenceStructure,
-            $this->referenceKey
-        );
+        $cache = $this->referenceStructure->connection->cache;
+
+        $cached = $this->referenceKeyIsPrimaryKey
+            ? $cache->get($this->referenceStructure->class, $declaringValue)
+            : RelationHelper::findCached($declaringValue, $this->referenceStructure, $this->referenceKey);
 
         if ($cached !== null) {
             return $cached;

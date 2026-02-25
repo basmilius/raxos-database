@@ -231,21 +231,28 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     public function toArray(): array
     {
         $result = [];
+        $this->backbone->currentInstance = $this;
+        $noVisibilityOverrides = empty($this->visible) && empty($this->hidden);
 
         foreach ($this->backbone->structure->properties as $property) {
             $key = $property->alias ?? $property->name;
-            $visible = StructureHelper::isVisible(
-                $property,
-                array_key_exists($property->name, $this->visible),
-                array_key_exists($property->name, $this->hidden)
-            );
+
+            if ($noVisibilityOverrides) {
+                $visible = StructureHelper::isVisible($property, false, false);
+            } else {
+                $visible = StructureHelper::isVisible(
+                    $property,
+                    array_key_exists($property->name, $this->visible),
+                    array_key_exists($property->name, $this->hidden)
+                );
+            }
 
             if (!$visible) {
                 continue;
             }
 
             $only = $this->visible[$property->name] ?? null;
-            $value = $this->getValue($property->name);
+            $value = $this->backbone->getValue($property->name);
 
             if ($property instanceof RelationDefinition && $property->visibleOnly !== null) {
                 $only = array_merge_recursive($property->visibleOnly, $only ?? []);
