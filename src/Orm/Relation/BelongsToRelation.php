@@ -169,8 +169,14 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      */
     private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
     {
+        $map = [];
+
+        foreach ($results as $reference) {
+            $map[$reference->{$this->referenceKey->column}] = $reference;
+        }
+
         foreach ($instances as $instance) {
-            $result = $results->first(fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column});
+            $result = $map[$instance->{$this->declaringKey->column}] ?? null;
 
             if ($result === null && $instance->backbone->relationCache->hasValue($this->property->name)) {
                 continue;

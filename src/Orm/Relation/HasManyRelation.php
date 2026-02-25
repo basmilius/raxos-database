@@ -140,14 +140,18 @@ final readonly class HasManyRelation implements RelationInterface
      */
     private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
     {
+        $map = [];
+
+        foreach ($results as $reference) {
+            $map[$reference->{$this->referenceKey->column}][] = $reference;
+        }
+
         foreach ($instances as $instance) {
-            $result = $results
-                ->filter(fn(Model $reference) => $reference->{$this->referenceKey->column} === $instance->{$this->declaringKey->column})
-                ->values();
+            $matched = $map[$instance->{$this->declaringKey->column}] ?? [];
 
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
-                $result->convertTo(ModelArrayList::class)
+                new ModelArrayList($matched)
             );
         }
     }

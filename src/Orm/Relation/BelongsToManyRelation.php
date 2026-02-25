@@ -183,14 +183,18 @@ final readonly class BelongsToManyRelation implements RelationInterface
      */
     private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
     {
+        $map = [];
+
+        foreach ($results as $reference) {
+            $map[$reference->backbone->data->getValue('__local_linking_key')][] = $reference;
+        }
+
         foreach ($instances as $instance) {
-            $result = $results
-                ->filter(fn(Model $reference) => $reference->backbone->data->getValue('__local_linking_key') === $instance->{$this->declaringKey->column})
-                ->values();
+            $matched = $map[$instance->{$this->declaringKey->column}] ?? [];
 
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
-                $result->convertTo(ModelArrayList::class)
+                new ModelArrayList($matched)
             );
         }
     }
