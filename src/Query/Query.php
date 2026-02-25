@@ -77,6 +77,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     private array $eagerLoad = [];
     private array $eagerLoadDisable = [];
     private array $params = [];
+    private int $paramsCount = 0;
     private readonly int $paramsIndex;
 
     private ?Closure $beforeRelations = null;
@@ -165,10 +166,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $value = (string)$value;
         }
 
-        $paramsCount = count($this->params);
-        $name = ":{$this->paramsIndex}{$paramsCount}";
-
+        $name = ":{$this->paramsIndex}{$this->paramsCount}";
         $this->params[$name] = $value;
+
+        ++$this->paramsCount;
 
         return $name;
     }
@@ -349,6 +350,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         }
 
         $this->params = array_merge($this->params, $query->params);
+        $this->paramsCount = count($this->params);
 
         return $this;
     }
@@ -815,6 +817,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $this->currentClause = '';
         $this->modelClass = null;
         $this->params = [];
+        $this->paramsCount = 0;
         $this->pieces = [];
 
         return $this;
@@ -1156,7 +1159,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     {
         if ($fields instanceof QueryLiteralInterface) {
             $fields = [(string)$fields];
-        } else if (is_string($fields)) {
+        } elseif (is_string($fields)) {
             $fields = [$fields];
         }
 
