@@ -16,8 +16,6 @@ use function array_column;
 use function array_find_key;
 use function array_map;
 use function array_shift;
-use function in_array;
-use function is_subclass_of;
 use function iterator_to_array;
 use function Raxos\Database\Query\literal;
 
@@ -44,6 +42,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     public ?Model $currentInstance = null;
 
+    /** @var array<string, true> */
     private array $modified = [];
     private array $saveTasks = [];
 
@@ -221,11 +220,11 @@ final class Backbone implements AccessInterface, BackboneInterface
             $value = $this->getCastedValue($property->caster, 'encode', $value);
         }
 
-        if (is_subclass_of($property->types[0], BackedEnum::class)) {
+        if ($property->enumClass !== null) {
             $value = $value?->value;
         }
 
-        $this->modified[] = $property->name;
+        $this->modified[$property->name] = true;
         $this->data->setValue($property->key, $value);
     }
 
@@ -273,7 +272,7 @@ final class Backbone implements AccessInterface, BackboneInterface
             return false;
         }
 
-        if ($key !== null && !in_array($key, $this->modified, true)) {
+        if ($key !== null && !isset($this->modified[$key])) {
             return false;
         }
 
@@ -461,7 +460,7 @@ final class Backbone implements AccessInterface, BackboneInterface
                 continue;
             }
 
-            if (!$this->isNew && !in_array($property->name, $this->modified, true)) {
+            if (!$this->isNew && !isset($this->modified[$property->name])) {
                 continue;
             }
 
