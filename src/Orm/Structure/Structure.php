@@ -43,6 +43,9 @@ final class Structure implements StructureInterface, SerializableInterface
     /** @var string[] */
     public array $propertyNames = [];
 
+    /** @var RelationDefinition[] */
+    public array $relationDefinitions = [];
+
     public bool $isInitializable = false;
     public bool $isBackboneInitializable = false;
 
@@ -135,8 +138,7 @@ final class Structure implements StructureInterface, SerializableInterface
             $data = $this->class::onInitialize($data);
         }
 
-        $structure = StructureGenerator::for($this->class);
-        $backbone = new Backbone($structure, $data);
+        $backbone = new Backbone($this, $data);
 
         if ($this->isBackboneInitializable) {
             $this->class::onBackboneInitialized($backbone, $data);
@@ -284,10 +286,8 @@ final class Structure implements StructureInterface, SerializableInterface
      */
     public function getRelations(): Generator
     {
-        foreach ($this->properties as $property) {
-            if ($property instanceof RelationDefinition) {
-                yield self::getRelation($property);
-            }
+        foreach ($this->relationDefinitions as $property) {
+            yield self::getRelation($property);
         }
     }
 
@@ -402,6 +402,10 @@ final class Structure implements StructureInterface, SerializableInterface
 
             if ($property instanceof ColumnDefinition && $property->key !== $property->name) {
                 $this->propertyIndex[$property->key] = $property;
+            }
+
+            if ($property instanceof RelationDefinition) {
+                $this->relationDefinitions[] = $property;
             }
         }
     }

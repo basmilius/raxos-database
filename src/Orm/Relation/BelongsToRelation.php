@@ -33,6 +33,9 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
 
     public StructureInterface $referenceStructure;
 
+    /** @var bool True when the reference key is the primary key, enabling direct cache lookup. */
+    public bool $referenceKeyIsPrimaryKey;
+
     /**
      * BelongsToRelation constructor.
      *
@@ -68,6 +71,8 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
             $this->attribute->referenceKeyTable,
             $referencePrimaryKey
         );
+
+        $this->referenceKeyIsPrimaryKey = $this->attribute->referenceKey === null;
     }
 
     /**
@@ -83,11 +88,11 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
             return null;
         }
 
-        $cached = RelationHelper::findCached(
-            $declaringValue,
-            $this->referenceStructure,
-            $this->referenceKey
-        );
+        $cache = $this->referenceStructure->connection->cache;
+
+        $cached = $this->referenceKeyIsPrimaryKey
+            ? $cache->get($this->referenceStructure->class, $declaringValue)
+            : RelationHelper::findCached($declaringValue, $this->referenceStructure, $this->referenceKey);
 
         if ($cached !== null) {
             return $cached;
