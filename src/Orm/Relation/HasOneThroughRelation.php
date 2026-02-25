@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
+use Raxos\Collection\ArrayList;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface};
 use Raxos\Contract\Database\Query\QueryInterface;
@@ -153,8 +154,41 @@ final readonly class HasOneThroughRelation implements RelationInterface
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
-        $values = $instances
-            ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
+        $directRelation = RelationHelper::findRelationToModel($this->declaringStructure, $this->linkingStructure->class);
+        $refRelation = $directRelation !== null
+            ? RelationHelper::findRelationToModel($this->linkingStructure, $this->referenceStructure->class)
+            : null;
+
+        $needsQuery = new ArrayList();
+
+        foreach ($instances as $instance) {
+            if ($instance->backbone->relationCache->hasValue($this->property->name)) {
+                continue;
+            }
+
+            if ($directRelation !== null && $refRelation !== null
+                && $instance->backbone->relationCache->hasValue($directRelation->name)) {
+                $linkingInstance = $instance->backbone->relationCache->getValue($directRelation->name);
+
+                if ($linkingInstance === null) {
+                    $instance->backbone->relationCache->setValue($this->property->name, null);
+                    continue;
+                }
+
+                if ($linkingInstance instanceof Model
+                    && $linkingInstance->backbone->relationCache->hasValue($refRelation->name)) {
+                    $instance->backbone->relationCache->setValue(
+                        $this->property->name,
+                        $linkingInstance->backbone->relationCache->getValue($refRelation->name)
+                    );
+                    continue;
+                }
+            }
+
+            $needsQuery->append($instance);
+        }
+
+        $values = $needsQuery
             ->column($this->declaringKey->column)
             ->unique();
 
@@ -171,7 +205,7 @@ final readonly class HasOneThroughRelation implements RelationInterface
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
             ->whereIn($this->declaringLinkingKey, $values)
-            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
+            ->withQuery(RelationHelper::onBeforeRelations($needsQuery, $this->onBeforeRelations(...)))
             ->array();
     }
 
