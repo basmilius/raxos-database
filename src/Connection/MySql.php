@@ -48,6 +48,7 @@ final class MySql extends Connection
         LoggerInterface $logger = new Logger()
     )
     {
+        $options ??= [];
         $options += [
             PDO::ATTR_EMULATE_PREPARES => false
         ];

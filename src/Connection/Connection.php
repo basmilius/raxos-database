@@ -95,6 +95,11 @@ abstract class Connection implements ConnectionInterface
         }
 
         $smt = $this->pdo->query($query);
+
+        if ($smt === false) {
+            throw ExecutionException::fromErrorInfo($this->pdo);
+        }
+
         $result = $smt->fetchColumn();
         $smt->closeCursor();
 
