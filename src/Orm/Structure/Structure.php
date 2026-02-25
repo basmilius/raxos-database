@@ -18,7 +18,6 @@ use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, Belon
 use Raxos\Database\Query\Literal\ColumnLiteral;
 use function array_key_exists;
 use function array_map;
-use function in_array;
 use function is_array;
 use function is_subclass_of;
 use function str_starts_with;
@@ -43,6 +42,9 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /** @var string[] */
     public array $propertyNames = [];
+
+    public bool $isInitializable = false;
+    public bool $isBackboneInitializable = false;
 
     /** @var array<string, PropertyDefinition> */
     private array $propertyIndex = [];
@@ -80,6 +82,8 @@ final class Structure implements StructureInterface, SerializableInterface
         $this->connection = Db::getOrFail($this->connectionId);
         $this->primaryKey = $this->getPrimaryKey();
         $this->buildPropertyIndex();
+        $this->isInitializable = is_subclass_of($this->class, InitializeInterface::class);
+        $this->isBackboneInitializable = is_subclass_of($this->class, BackboneInitializedInterface::class);
     }
 
     /**
@@ -127,14 +131,14 @@ final class Structure implements StructureInterface, SerializableInterface
             return $polymorphicStructure->createInstance($data);
         }
 
-        if (is_subclass_of($this->class, InitializeInterface::class)) {
+        if ($this->isInitializable) {
             $data = $this->class::onInitialize($data);
         }
 
         $structure = StructureGenerator::for($this->class);
         $backbone = new Backbone($structure, $data);
 
-        if (is_subclass_of($this->class, BackboneInitializedInterface::class)) {
+        if ($this->isBackboneInitializable) {
             $this->class::onBackboneInitialized($backbone, $data);
         }
 
@@ -187,7 +191,7 @@ final class Structure implements StructureInterface, SerializableInterface
             }
 
             $this->eagerLoadRelation($relation, $instances);
-            $loaded[] = $relation->property->name;
+            $loaded[$relation->property->name] = true;
         }
 
         if ($this->polymorphic === null) {
@@ -199,7 +203,7 @@ final class Structure implements StructureInterface, SerializableInterface
             $subRelations = $subStructure->getRelations();
 
             foreach ($subRelations as $subRelation) {
-                if (in_array($subRelation->property->name, $loaded, true)) {
+                if (isset($loaded[$subRelation->property->name])) {
                     continue;
                 }
 
@@ -375,6 +379,8 @@ final class Structure implements StructureInterface, SerializableInterface
         $this->parent = $parentClass !== null ? StructureGenerator::for($parentClass) : null;
         $this->primaryKey = $this->getPrimaryKey();
         $this->buildPropertyIndex();
+        $this->isInitializable = is_subclass_of($this->class, InitializeInterface::class);
+        $this->isBackboneInitializable = is_subclass_of($this->class, BackboneInitializedInterface::class);
     }
 
     /**

@@ -169,8 +169,14 @@ final readonly class BelongsToThroughRelation implements RelationInterface
      */
     private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
     {
+        $map = [];
+
+        foreach ($results as $reference) {
+            $map[$reference->backbone->data->getValue('__local_linking_key')] = $reference;
+        }
+
         foreach ($instances as $instance) {
-            $result = $results->first(fn(Model $reference) => $reference->backbone->data->getValue('__local_linking_key') === $instance->{$this->declaringKey->column});
+            $result = $map[$instance->{$this->declaringKey->column}] ?? null;
 
             if ($result === null) {
                 continue;
