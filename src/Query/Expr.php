@@ -200,6 +200,23 @@ final class Expr implements QueryExpressionsInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function count(
+        QueryInterface|QueryValueInterface|string|null $expr = null,
+        bool $distinct = false
+    ): QueryExpressionInterface
+    {
+        if ($expr === null) {
+            return new Expression\Raw('count(*)');
+        }
+
+        return new Expression\AggregateFunc('count', [$expr], distinct: $distinct);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function groupConcat(
@@ -1128,6 +1145,35 @@ final class Expr implements QueryExpressionsInterface
     ): QueryExpressionInterface
     {
         return new Expression\MatchAgainst($fields, $expr, $booleanMode, $queryExpansion);
+    }
+
+    #endregion
+
+    #region Case / When
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function case(
+        QueryExpressionInterface ...$expr
+    ): QueryExpressionInterface
+    {
+        return new Expression\CaseStatement($expr);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function when(
+        ?QueryExpressionInterface $when,
+        QueryExpressionInterface|QueryValueInterface $then
+    ): QueryExpressionInterface
+    {
+        return new Expression\When($when, $then);
     }
 
     #endregion
