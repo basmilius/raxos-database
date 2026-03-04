@@ -103,6 +103,22 @@ trait Queryable
     }
 
     /**
+     * Returns the total number of records in the table.
+     *
+     * @return int
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     * @see QueryInterface::resultCount()
+     */
+    public static function count(): int
+    {
+        return self::select()->resultCount();
+    }
+
+    /**
      * Deletes a morel record by its primary key(s)
      *
      * @param array|string|int $primaryKey

@@ -88,6 +88,45 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     }
 
     /**
+     * Restores a soft-deleted model record.
+     *
+     * @return void
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function restore(): void
+    {
+        if ($this->backbone->structure->softDeleteColumn === null) {
+            return;
+        }
+
+        $primaryKey = $this->backbone->getPrimaryKeyValues();
+
+        self::update($primaryKey, [$this->backbone->structure->softDeleteColumn => null]);
+        $this->backbone->data->setValue($this->backbone->structure->softDeleteColumn, null);
+        $this->backbone->cache->set(static::class, $primaryKey, $this);
+    }
+
+    /**
+     * Returns TRUE when this model record has been soft-deleted.
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     */
+    public function trashed(): bool
+    {
+        if ($this->backbone->structure->softDeleteColumn === null) {
+            return false;
+        }
+
+        return $this->backbone->data->getValue($this->backbone->structure->softDeleteColumn) !== null;
+    }
+
+    /**
      * Saves the model.
      *
      * @return void
