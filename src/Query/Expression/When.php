@@ -22,14 +22,14 @@ final readonly class When implements QueryExpressionInterface
     /**
      * When constructor.
      *
-     * @param QueryExpressionInterface|null $when
+     * @param QueryExpressionInterface $when
      * @param QueryExpressionInterface|QueryValueInterface $then
      *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
     public function __construct(
-        public ?QueryExpressionInterface $when,
+        public QueryExpressionInterface $when,
         public QueryExpressionInterface|QueryValueInterface $then
     ) {}
 
