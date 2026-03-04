@@ -26,6 +26,30 @@ trait Queryable
 {
 
     /**
+     * Returns the fully qualified name for the given column in an aliased table.
+     *
+     * @param string $key
+     * @param string $table
+     *
+     * @return ColumnLiteral
+     * @throws OrmExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public static function alias(string $key, string $table): ColumnLiteral
+    {
+        static $cache = [];
+
+        $structure = StructureGenerator::for(static::class);
+
+        if ($key === '*') {
+            return $cache["{$structure->table}:{$table}:*"] ??= new ColumnLiteral($structure->connection->grammar, '*', $table);
+        }
+
+        return $cache["{$structure->table}:{$table}:{$key}"] ??= $structure->getColumn($key, $table);
+    }
+
+    /**
      * Returns the fully qualified name for the given column.
      *
      * @param string $key
@@ -43,10 +67,10 @@ trait Queryable
         $structure = StructureGenerator::for(static::class);
 
         if ($key === '*') {
-            return $cache["{$structure->table}:*"] ??= new ColumnLiteral($structure->connection->grammar, $key, $structure->table);
+            return $cache["{$structure->table}:*"] ??= new ColumnLiteral($structure->connection->grammar, '*', $structure->table);
         }
 
-        return $structure->getColumn($key);
+        return $cache["{$structure->table}:{$key}"] ??= $structure->getColumn($key);
     }
 
     /**
