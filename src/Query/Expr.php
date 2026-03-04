@@ -8,7 +8,6 @@ use Raxos\Contract\Collection\ArrayableInterface;
 use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryExpressionsInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
-use function array_filter;
 
 /**
  * Class Expression
@@ -530,7 +529,13 @@ final class Expr implements QueryExpressionsInterface
         ?string $format = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('from_unixtime', array_filter([$unixtime, $format]));
+        $params = [$unixtime];
+
+        if ($format !== null) {
+            $params[] = $format;
+        }
+
+        return new Expression\Func('from_unixtime', $params);
     }
 
     /**
@@ -660,7 +665,13 @@ final class Expr implements QueryExpressionsInterface
         QueryValueInterface|Stringable|string|null $date = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('unixtimestamp', array_filter([$date]));
+        $params = [];
+
+        if ($date !== null) {
+            $params[] = $date;
+        }
+
+        return new Expression\Func('unix_timestamp', $params);
     }
 
     /**
@@ -922,7 +933,9 @@ final class Expr implements QueryExpressionsInterface
         QueryValueInterface|Stringable|string|int|float|bool|null $b = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('log', array_filter([$b, $x]));
+        $params = $b !== null ? [$b, $x] : [$x];
+
+        return new Expression\Func('log', $params);
     }
 
     /**
@@ -1031,7 +1044,9 @@ final class Expr implements QueryExpressionsInterface
         ?int $n = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('rand', array_filter([$n]));
+        $params = $n !== null ? [$n] : [];
+
+        return new Expression\Func('rand', $params);
     }
 
     /**
@@ -1044,7 +1059,13 @@ final class Expr implements QueryExpressionsInterface
         ?int $d = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('round', array_filter([$x, $d]));
+        $params = [$x];
+
+        if ($d !== null) {
+            $params[] = $d;
+        }
+
+        return new Expression\Func('round', $params);
     }
 
     /**
@@ -1119,7 +1140,7 @@ final class Expr implements QueryExpressionsInterface
      */
     public function concat(iterable $values): QueryExpressionInterface
     {
-        return new Expression\Func('concat', [$values]);
+        return new Expression\Func('concat', $values);
     }
 
     /**

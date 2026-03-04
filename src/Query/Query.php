@@ -974,6 +974,112 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
+     * Adds an `or having $lhs $comparator $rhs` expression.
+     *
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHaving(
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
+    ): static
+    {
+        return $this->addExpression('or', $lhs, $cmp, $rhs);
+    }
+
+    /**
+     * Adds an `or having exists ($query)` expression.
+     *
+     * @param QueryInterface $query
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingExists(QueryInterface $query): static
+    {
+        return $this->orHaving(expr->exists(expr->subQuery($query)));
+    }
+
+    /**
+     * Adds an `or having $field in ($options)` expression.
+     *
+     * @param QueryLiteralInterface|string $field
+     * @param ArrayableInterface|array $options
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    {
+        return $this->orHaving($field, expr->in(...$options));
+    }
+
+    /**
+     * Adds an `or having not exists ($query)` expression.
+     *
+     * @param QueryInterface $query
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingNotExists(QueryInterface $query): static
+    {
+        return $this->orHaving(expr->not(expr->exists(expr->subQuery($query))));
+    }
+
+    /**
+     * Adds an `or having $field is not null` expression.
+     *
+     * @param QueryLiteralInterface|string $field
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingNotNull(QueryLiteralInterface|string $field): static
+    {
+        return $this->orHaving($field, expr->isNotNull());
+    }
+
+    /**
+     * Adds an `or having $field not in ($options)` expression.
+     *
+     * @param QueryLiteralInterface|string $field
+     * @param ArrayableInterface|array $options
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    {
+        return $this->orHaving($field, expr->not(expr->in(...$options)));
+    }
+
+    /**
+     * Adds an `or having $field is null` expression.
+     *
+     * @param QueryLiteralInterface|string $field
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingNull(QueryLiteralInterface|string $field): static
+    {
+        return $this->orHaving($field, expr->isNull());
+    }
+
+    /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -1168,11 +1274,13 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $field = (string)$field;
             }
 
-            if (str_contains($field, ' asc') || str_contains($field, ' ASC')) {
+            $lower = strtolower($field);
+
+            if (str_ends_with($lower, ' asc')) {
                 return $this->grammar->escape(substr($field, 0, -4)) . ' asc';
             }
 
-            if (str_contains($field, ' desc') || str_contains($field, ' DESC')) {
+            if (str_ends_with($lower, ' desc')) {
                 return $this->grammar->escape(substr($field, 0, -5)) . ' desc';
             }
 
@@ -1396,6 +1504,86 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     public function whereNull(QueryLiteralInterface|string $field): static
     {
         return $this->where($field, expr->isNull());
+    }
+
+    /**
+     * Adds a `where $field between $lower and $upper` expression.
+     *
+     * @param QueryLiteralInterface|string $field
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $lower
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $upper
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function whereBetween(
+        QueryLiteralInterface|string $field,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $lower,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $upper
+    ): static
+    {
+        return $this->where($field, expr->between($lower, $upper));
+    }
+
+    /**
+     * Adds a `where $field not between $lower and $upper` expression.
+     *
+     * @param QueryLiteralInterface|string $field
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $lower
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $upper
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function whereNotBetween(
+        QueryLiteralInterface|string $field,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $lower,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $upper
+    ): static
+    {
+        return $this->where($field, expr->not(expr->between($lower, $upper)));
+    }
+
+    /**
+     * Adds an `or where $field between $lower and $upper` expression.
+     *
+     * @param QueryLiteralInterface|string $field
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $lower
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $upper
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orWhereBetween(
+        QueryLiteralInterface|string $field,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $lower,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $upper
+    ): static
+    {
+        return $this->orWhere($field, expr->between($lower, $upper));
+    }
+
+    /**
+     * Adds an `or where $field not between $lower and $upper` expression.
+     *
+     * @param QueryLiteralInterface|string $field
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $lower
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $upper
+     *
+     * @return static<TModel>
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orWhereNotBetween(
+        QueryLiteralInterface|string $field,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $lower,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool $upper
+    ): static
+    {
+        return $this->orWhere($field, expr->not(expr->between($lower, $upper)));
     }
 
     /**
@@ -1952,7 +2140,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $query = new static($this->connection);
                 $field->compile($query, $this->connection, $this->grammar);
 
-                return "({$query}) as {$alias}";
+                yield "({$query}) as {$alias}";
+                continue;
             }
 
             if ($field instanceof QueryLiteralInterface) {
