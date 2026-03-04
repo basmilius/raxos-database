@@ -9,6 +9,7 @@ use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryExpressionsInt
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
 use function array_filter;
+use function array_values;
 
 /**
  * Class Expression
@@ -530,7 +531,7 @@ final class Expr implements QueryExpressionsInterface
         ?string $format = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('from_unixtime', array_filter([$unixtime, $format]));
+        return new Expression\Func('from_unixtime', array_values(array_filter([$unixtime, $format], self::valueNotNull(...))));
     }
 
     /**
@@ -660,7 +661,7 @@ final class Expr implements QueryExpressionsInterface
         QueryValueInterface|Stringable|string|null $date = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('unixtimestamp', array_filter([$date]));
+        return new Expression\Func('unix_timestamp', array_values(array_filter([$date], self::valueNotNull(...))));
     }
 
     /**
@@ -922,7 +923,7 @@ final class Expr implements QueryExpressionsInterface
         QueryValueInterface|Stringable|string|int|float|bool|null $b = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('log', array_filter([$b, $x]));
+        return new Expression\Func('log', array_values(array_filter([$b, $x], self::valueNotNull(...))));
     }
 
     /**
@@ -1031,7 +1032,7 @@ final class Expr implements QueryExpressionsInterface
         ?int $n = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('rand', array_filter([$n]));
+        return new Expression\Func('rand', array_values(array_filter([$n], self::valueNotNull(...))));
     }
 
     /**
@@ -1044,7 +1045,7 @@ final class Expr implements QueryExpressionsInterface
         ?int $d = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('round', array_filter([$x, $d]));
+        return new Expression\Func('round', array_values(array_filter([$x, $d], self::valueNotNull(...))));
     }
 
     /**
@@ -1233,6 +1234,20 @@ final class Expr implements QueryExpressionsInterface
         }
 
         return new Expression\Variable($name, $subQuery);
+    }
+
+    /**
+     * Returns true if the given value is not null.
+     *
+     * @param mixed $value
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    private function valueNotNull(mixed $value): bool
+    {
+        return $value !== null;
     }
 
 }
