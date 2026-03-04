@@ -45,6 +45,7 @@ use function is_numeric;
 use function is_string;
 use function iterator_to_array;
 use function str_contains;
+use function str_ends_with;
 use function substr;
 use function trim;
 
@@ -143,7 +144,16 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         }
 
         if ($value instanceof QueryExpressionInterface) {
-            $value->compile($this, $this->connection, $this->grammar);
+            $tempQuery = new static($this->connection, $this->prepared);
+            $value->compile($tempQuery, $this->connection, $this->grammar);
+
+            foreach ($tempQuery->params as $name => $param) {
+                $this->params[$name] = $param;
+            }
+
+            $this->paramsCount += $tempQuery->paramsCount;
+
+            return $tempQuery->toSql();
         }
 
         if (!$this->prepared) {
@@ -1168,11 +1178,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $field = (string)$field;
             }
 
-            if (str_contains($field, ' asc') || str_contains($field, ' ASC')) {
+            if (str_ends_with($field, ' asc') || str_ends_with($field, ' ASC')) {
                 return $this->grammar->escape(substr($field, 0, -4)) . ' asc';
             }
 
-            if (str_contains($field, ' desc') || str_contains($field, ' DESC')) {
+            if (str_ends_with($field, ' desc') || str_ends_with($field, ' DESC')) {
                 return $this->grammar->escape(substr($field, 0, -5)) . ' desc';
             }
 
@@ -1952,7 +1962,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $query = new static($this->connection);
                 $field->compile($query, $this->connection, $this->grammar);
 
-                return "({$query}) as {$alias}";
+                yield "({$query}) as {$alias}";
+                continue;
             }
 
             if ($field instanceof QueryLiteralInterface) {

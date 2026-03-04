@@ -40,6 +40,13 @@ final readonly class When implements QueryExpressionInterface
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {
+        if ($this->when === null) {
+            $query->raw('else ');
+            $query->compile($this->then);
+
+            return;
+        }
+
         $query->raw('when ');
         $query->compile($this->when);
         $query->raw(' then ');
