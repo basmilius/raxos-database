@@ -3,11 +3,8 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Expression;
 
-use Raxos\Contract\Database\ConnectionInterface;
-use Raxos\Contract\Database\GrammarInterface;
-use Raxos\Contract\Database\Query\QueryExpressionInterface;
-use Raxos\Contract\Database\Query\QueryInterface;
-use Raxos\Contract\Database\Query\QueryValueInterface;
+use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
+use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryValueInterface};
 
 /**
  * Class When
@@ -22,14 +19,14 @@ final readonly class When implements QueryExpressionInterface
     /**
      * When constructor.
      *
-     * @param QueryExpressionInterface|null $when
+     * @param QueryExpressionInterface $when
      * @param QueryExpressionInterface|QueryValueInterface $then
      *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
     public function __construct(
-        public ?QueryExpressionInterface $when,
+        public QueryExpressionInterface $when,
         public QueryExpressionInterface|QueryValueInterface $then
     ) {}
 

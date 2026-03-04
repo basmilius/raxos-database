@@ -1152,15 +1152,14 @@ final class Expr implements QueryExpressionsInterface
     #region Case / When
 
     /**
-     * {@inheritdoc}
+     * Returns a new CASE expression builder.
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function case(
-        QueryExpressionInterface ...$expr
-    ): QueryExpressionInterface
+    public function case(): Expression\CaseStatement
     {
-        return new Expression\CaseStatement($expr);
+        return new Expression\CaseStatement();
     }
 
     /**
@@ -1169,7 +1168,7 @@ final class Expr implements QueryExpressionsInterface
      * @since 2.1.0
      */
     public function when(
-        ?QueryExpressionInterface $when,
+        QueryExpressionInterface $when,
         QueryExpressionInterface|QueryValueInterface $then
     ): QueryExpressionInterface
     {
