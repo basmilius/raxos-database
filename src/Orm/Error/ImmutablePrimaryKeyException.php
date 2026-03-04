@@ -32,7 +32,7 @@ final class ImmutablePrimaryKeyException extends Exception implements OrmExcepti
     {
         parent::__construct(
             'db_orm_immutable',
-            "Cannot write to property {$this->modelClass}->{$this->propertyName}' because it is (part of) the primary key.",
+            "Cannot write to property {$this->modelClass}->{$this->propertyName} because it is (part of) the primary key.",
         );
     }
 

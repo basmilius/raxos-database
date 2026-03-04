@@ -32,7 +32,7 @@ final class ImmutableException extends Exception implements OrmExceptionInterfac
     {
         parent::__construct(
             'db_orm_immutable',
-            "Cannot write to property {$this->modelClass}->{$this->propertyName}' because it is immutable.",
+            "Cannot write to property {$this->modelClass}->{$this->propertyName} because it is immutable.",
         );
     }
 

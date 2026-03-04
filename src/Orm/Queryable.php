@@ -127,6 +127,22 @@ trait Queryable
     }
 
     /**
+     * Returns the total number of records in the table.
+     *
+     * @return int
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     * @see QueryInterface::resultCount()
+     */
+    public static function count(): int
+    {
+        return self::select()->resultCount();
+    }
+
+    /**
      * Deletes a morel record by its primary key(s)
      *
      * @param array|string|int $primaryKey
@@ -502,6 +518,25 @@ trait Queryable
     public static function selectSuffix(string $suffix, Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
         return self::baseSelect(static fn(array|string|int $keys) => self::query($prepared)->selectSuffix($suffix, $keys), $keys);
+    }
+
+    /**
+     * Returns a new select query for the model that includes soft-deleted records.
+     *
+     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
+     * @param bool $prepared
+     *
+     * @return QueryInterface<static>
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     * @see QueryInterface::withDeleted()
+     */
+    public static function withDeleted(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    {
+        return self::select($keys, $prepared)->withDeleted();
     }
 
     /**

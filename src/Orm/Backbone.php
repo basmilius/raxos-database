@@ -14,6 +14,7 @@ use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, Immut
 use Raxos\Foundation\Util\Singleton;
 use function array_column;
 use function array_find_key;
+use function array_keys;
 use function array_map;
 use function array_shift;
 use function in_array;
@@ -320,6 +321,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         $this->castCache->clear();
         $this->macroCache->clear();
         $this->relationCache->clear();
+        $this->modified = [];
     }
 
     /**
@@ -335,6 +337,8 @@ final class Backbone implements AccessInterface, BackboneInterface
         if (empty($values)) {
             return;
         }
+
+        $wasNew = $this->isNew;
 
         if ($this->isNew) {
             // note(Bas): saves a new record for the model.
@@ -361,14 +365,36 @@ final class Backbone implements AccessInterface, BackboneInterface
 
         $this->runSaveTasks();
 
-        // todo(Bas): This should be improved. It would be nice to check if any
-        //  properties that are related to these caches are updated and clear
-        //  them only if needed. For example; we wouldn't want to clear the
-        //  relation cache for a model when non of the relation-related
-        //  properties are updated.
-        $this->castCache->clear();
-        $this->macroCache->clear();
-        $this->relationCache->clear();
+        if ($wasNew) {
+            // note(Bas): For new records, data was completely reloaded from the
+            //  database, so all caches must be cleared.
+            $this->castCache->clear();
+            $this->macroCache->clear();
+            $this->relationCache->clear();
+        } else {
+            // note(Bas): For updated records, only clear the caches that may
+            //  contain stale values based on what was actually modified. The
+            //  relation cache is only cleared when a foreign key was changed.
+            $shouldClearRelationCache = false;
+
+            foreach (array_keys($this->modified) as $name) {
+                $this->castCache->unsetValue($name);
+
+                if (!$shouldClearRelationCache) {
+                    $property = $this->structure->getProperty($name);
+
+                    if ($property instanceof ColumnDefinition && $property->isForeignKey) {
+                        $shouldClearRelationCache = true;
+                    }
+                }
+            }
+
+            $this->macroCache->clear();
+
+            if ($shouldClearRelationCache) {
+                $this->relationCache->clear();
+            }
+        }
 
         $this->modified = [];
     }

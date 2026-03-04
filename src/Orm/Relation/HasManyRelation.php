@@ -129,7 +129,7 @@ final readonly class HasManyRelation implements RelationInterface
     }
 
     /**
-     * Apply the results to the instances' relation cachee.
+     * Apply the results to the instances' relation cache.
      *
      * @param ArrayListInterface<int, TReferenceModel> $results
      * @param ArrayListInterface<int, TDeclaringModel> $instances
