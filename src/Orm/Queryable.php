@@ -497,6 +497,25 @@ trait Queryable
     }
 
     /**
+     * Returns a new select query for the model that includes soft-deleted records.
+     *
+     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
+     * @param bool $prepared
+     *
+     * @return QueryInterface<static>
+     * @throws DatabaseExceptionInterface
+     * @throws OrmExceptionInterface
+     * @throws QueryExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.0.0
+     * @see QueryInterface::withDeleted()
+     */
+    public static function withTrashed(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    {
+        return self::select($keys, $prepared)->withDeleted();
+    }
+
+    /**
      * Returns a `where $lhs $cmp $rhs` query for the model.
      *
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs

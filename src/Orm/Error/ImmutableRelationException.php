@@ -32,7 +32,7 @@ final class ImmutableRelationException extends Exception implements OrmException
     {
         parent::__construct(
             'db_orm_immutable',
-            "Cannot write to property {$this->modelClass}->{$this->propertyName}' because it is a non-writable relation.",
+            "Cannot write to property {$this->modelClass}->{$this->propertyName} because it is a non-writable relation.",
         );
     }
 

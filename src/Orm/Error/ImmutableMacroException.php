@@ -32,7 +32,7 @@ final class ImmutableMacroException extends Exception implements OrmExceptionInt
     {
         parent::__construct(
             'db_orm_immutable',
-            "Cannot write to property {$this->modelClass}->{$this->propertyName}' because it is a macro.",
+            "Cannot write to property {$this->modelClass}->{$this->propertyName} because it is a macro.",
         );
     }
 
