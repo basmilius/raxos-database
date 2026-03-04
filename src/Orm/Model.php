@@ -142,20 +142,6 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     }
 
     /**
-     * Returns TRUE if this model does not represent the same database record as the given model.
-     *
-     * @param Model $other
-     *
-     * @return bool
-     * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
-     */
-    public function isNot(self $other): bool
-    {
-        return !$this->is($other);
-    }
-
-    /**
      * Saves the model.
      *
      * @return void

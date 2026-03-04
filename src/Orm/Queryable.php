@@ -510,7 +510,7 @@ trait Queryable
      * @since 2.0.0
      * @see QueryInterface::withDeleted()
      */
-    public static function withTrashed(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function withDeleted(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
         return self::select($keys, $prepared)->withDeleted();
     }
