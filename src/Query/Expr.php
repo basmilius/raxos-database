@@ -1183,8 +1183,12 @@ final class Expr implements QueryExpressionsInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function exists(QueryExpressionInterface $expr): QueryExpressionInterface
+    public function exists(QueryInterface|QueryExpressionInterface $expr): QueryExpressionInterface
     {
+        if ($expr instanceof QueryInterface) {
+            $expr = $this->subQuery($expr);
+        }
+
         return new Expression\Exists($expr);
     }
 
@@ -1223,8 +1227,12 @@ final class Expr implements QueryExpressionsInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function variable(string $name, Expression\SubQuery $subQuery): QueryExpressionInterface
+    public function variable(string $name, QueryInterface|Expression\SubQuery $subQuery): QueryExpressionInterface
     {
+        if ($subQuery instanceof QueryInterface) {
+            $subQuery = $this->subQuery($subQuery);
+        }
+
         return new Expression\Variable($name, $subQuery);
     }
 
