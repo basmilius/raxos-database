@@ -1952,7 +1952,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $query = new static($this->connection);
                 $field->compile($query, $this->connection, $this->grammar);
 
-                return "({$query}) as {$alias}";
+                yield "({$query}) as {$alias}";
+                continue;
             }
 
             if ($field instanceof QueryLiteralInterface) {

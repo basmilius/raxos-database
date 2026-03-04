@@ -530,7 +530,7 @@ final class Expr implements QueryExpressionsInterface
         ?string $format = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('from_unixtime', array_filter([$unixtime, $format]));
+        return new Expression\Func('from_unixtime', array_values(array_filter([$unixtime, $format], fn($v) => $v !== null)));
     }
 
     /**
@@ -660,7 +660,7 @@ final class Expr implements QueryExpressionsInterface
         QueryValueInterface|Stringable|string|null $date = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('unixtimestamp', array_filter([$date]));
+        return new Expression\Func('unix_timestamp', array_values(array_filter([$date], fn($v) => $v !== null)));
     }
 
     /**
@@ -922,7 +922,7 @@ final class Expr implements QueryExpressionsInterface
         QueryValueInterface|Stringable|string|int|float|bool|null $b = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('log', array_filter([$b, $x]));
+        return new Expression\Func('log', array_values(array_filter([$b, $x], fn($v) => $v !== null)));
     }
 
     /**
@@ -1031,7 +1031,7 @@ final class Expr implements QueryExpressionsInterface
         ?int $n = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('rand', array_filter([$n]));
+        return new Expression\Func('rand', array_values(array_filter([$n], fn($v) => $v !== null)));
     }
 
     /**
@@ -1044,7 +1044,7 @@ final class Expr implements QueryExpressionsInterface
         ?int $d = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('round', array_filter([$x, $d]));
+        return new Expression\Func('round', array_values(array_filter([$x, $d], fn($v) => $v !== null)));
     }
 
     /**
