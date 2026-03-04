@@ -45,6 +45,8 @@ use function is_numeric;
 use function is_string;
 use function iterator_to_array;
 use function str_contains;
+use function str_ends_with;
+use function strtolower;
 use function substr;
 use function trim;
 
@@ -1168,11 +1170,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $field = (string)$field;
             }
 
-            if (str_contains($field, ' asc') || str_contains($field, ' ASC')) {
+            if (str_ends_with(strtolower($field), ' asc')) {
                 return $this->grammar->escape(substr($field, 0, -4)) . ' asc';
             }
 
-            if (str_contains($field, ' desc') || str_contains($field, ' DESC')) {
+            if (str_ends_with(strtolower($field), ' desc')) {
                 return $this->grammar->escape(substr($field, 0, -5)) . ' desc';
             }
 
@@ -1952,7 +1954,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $query = new static($this->connection);
                 $field->compile($query, $this->connection, $this->grammar);
 
-                return "({$query}) as {$alias}";
+                yield "({$query}) as {$alias}";
+                continue;
             }
 
             if ($field instanceof QueryLiteralInterface) {

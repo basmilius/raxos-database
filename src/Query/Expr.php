@@ -8,7 +8,6 @@ use Raxos\Contract\Collection\ArrayableInterface;
 use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryExpressionsInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
-use function array_filter;
 
 /**
  * Class Expression
@@ -530,7 +529,7 @@ final class Expr implements QueryExpressionsInterface
         ?string $format = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('from_unixtime', array_filter([$unixtime, $format]));
+        return new Expression\Func('from_unixtime', $format !== null ? [$unixtime, $format] : [$unixtime]);
     }
 
     /**
@@ -660,7 +659,7 @@ final class Expr implements QueryExpressionsInterface
         QueryValueInterface|Stringable|string|null $date = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('unixtimestamp', array_filter([$date]));
+        return new Expression\Func('unix_timestamp', $date !== null ? [$date] : []);
     }
 
     /**
@@ -922,7 +921,7 @@ final class Expr implements QueryExpressionsInterface
         QueryValueInterface|Stringable|string|int|float|bool|null $b = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('log', array_filter([$b, $x]));
+        return new Expression\Func('log', $b !== null ? [$b, $x] : [$x]);
     }
 
     /**
@@ -1031,7 +1030,7 @@ final class Expr implements QueryExpressionsInterface
         ?int $n = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('rand', array_filter([$n]));
+        return new Expression\Func('rand', $n !== null ? [$n] : []);
     }
 
     /**
@@ -1044,7 +1043,7 @@ final class Expr implements QueryExpressionsInterface
         ?int $d = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('round', array_filter([$x, $d]));
+        return new Expression\Func('round', $d !== null ? [$x, $d] : [$x]);
     }
 
     /**
@@ -1119,7 +1118,7 @@ final class Expr implements QueryExpressionsInterface
      */
     public function concat(iterable $values): QueryExpressionInterface
     {
-        return new Expression\Func('concat', [$values]);
+        return new Expression\Func('concat', $values);
     }
 
     /**
