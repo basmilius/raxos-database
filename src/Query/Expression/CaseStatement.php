@@ -26,14 +26,14 @@ final class CaseStatement implements QueryExpressionInterface
      * @param QueryExpressionInterface $condition
      * @param QueryExpressionInterface|QueryValueInterface $then
      *
-     * @return static
+     * @return self
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
     public function when(
         QueryExpressionInterface $condition,
         QueryExpressionInterface|QueryValueInterface $then
-    ): static
+    ): self
     {
         $this->whens[] = new When($condition, $then);
 
@@ -45,13 +45,13 @@ final class CaseStatement implements QueryExpressionInterface
      *
      * @param QueryExpressionInterface|QueryValueInterface $result
      *
-     * @return static
+     * @return self
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
     public function else(
         QueryExpressionInterface|QueryValueInterface $result
-    ): static
+    ): self
     {
         $this->elseResult = $result;
 

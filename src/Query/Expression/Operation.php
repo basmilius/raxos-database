@@ -3,8 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Expression;
 
+use BackedEnum;
 use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
-use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryLiteralInterface};
+use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryValueInterface};
 use Stringable;
 
 /**
@@ -21,16 +22,16 @@ final readonly class Operation implements QueryExpressionInterface
      * Operation constructor.
      *
      * @param string $operator
-     * @param QueryLiteralInterface|Stringable|string|float|int $leftExpr
-     * @param QueryLiteralInterface|Stringable|string|float|int $rightExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|float|int $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|float|int $rightExpr
      *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function __construct(
         public string $operator,
-        public QueryLiteralInterface|Stringable|string|float|int $leftExpr,
-        public QueryLiteralInterface|Stringable|string|float|int $rightExpr
+        public BackedEnum|QueryValueInterface|Stringable|string|float|int $leftExpr,
+        public BackedEnum|QueryValueInterface|Stringable|string|float|int $rightExpr
     ) {}
 
     /**
