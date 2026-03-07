@@ -21,10 +21,14 @@ readonly class MySqlGrammar extends Grammar
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public function __construct()
+    public function __construct(
+        array $escapers = ['`', '`'],
+        bool $supportsReturning = false
+    )
     {
         parent::__construct(
-            escapers: ['`', '`']
+            escapers: $escapers,
+            supportsReturning: $supportsReturning
         );
     }
 

@@ -278,7 +278,7 @@ final class StructureGenerator
         $isVisible = false;
         $key = $property->name;
         $types = ($type = $property->getType()) !== null ? ReflectionUtil::getTypes($type) ?? [] : [];
-        $enumClass = is_subclass_of($types[0], BackedEnum::class) ? $types[0] : null;
+        $enumClass = isset($types[0]) && is_subclass_of($types[0], BackedEnum::class) ? $types[0] : null;
         $nullable = in_array('null', $types, true);
         $visibleOnly = null;
 

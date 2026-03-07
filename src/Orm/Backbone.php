@@ -320,6 +320,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         $this->castCache->clear();
         $this->macroCache->clear();
         $this->relationCache->clear();
+        $this->modified = [];
     }
 
     /**
@@ -336,18 +337,40 @@ final class Backbone implements AccessInterface, BackboneInterface
             return;
         }
 
+        $wasNew = $this->isNew;
+
         if ($this->isNew) {
             // note(Bas): saves a new record for the model.
-            $primaryKeyValue = $this->class::query()
+            $query = $this->class::query()
                 ->insertIntoValues($this->structure->table, $values)
                 ->conditional($this->structure->onDuplicateKeyUpdate !== null, fn(QueryInterface $query) => $query
-                    ->onDuplicateKeyUpdate($this->structure->onDuplicateKeyUpdate))
-                ->runReturning(array_column($primaryKey, 'key'));
+                    ->onDuplicateKeyUpdate($this->structure->onDuplicateKeyUpdate));
 
-            $record = $this->class::select()
-                ->withoutModel()
-                ->wherePrimaryKey($this->class, $primaryKeyValue)
-                ->single();
+            if ($this->connection->grammar->supportsReturning) {
+                $record = $query->runReturningRow();
+                $primaryKeyValue = [];
+
+                foreach ($primaryKey as $pkProperty) {
+                    $primaryKeyValue[$pkProperty->key] = $record[$pkProperty->key];
+                }
+
+                // note(Bas): RETURNING * only returns physical table columns. When the model
+                //  has computed columns (populated via getQueryableColumns/getQueryableJoins),
+                //  those won't be present in the result. Fall back to a full select query.
+                if ($this->hasComputedProperties()) {
+                    $record = $this->class::select()
+                        ->withoutModel()
+                        ->wherePrimaryKey($this->class, $primaryKeyValue)
+                        ->single();
+                }
+            } else {
+                $primaryKeyValue = $query->runReturning(array_column($primaryKey, 'key'));
+
+                $record = $this->class::select()
+                    ->withoutModel()
+                    ->wherePrimaryKey($this->class, $primaryKeyValue)
+                    ->single();
+            }
 
             $this->data->replaceWith($record);
             $this->isNew = false;
@@ -361,12 +384,13 @@ final class Backbone implements AccessInterface, BackboneInterface
 
         $this->runSaveTasks();
 
-        // todo(Bas): This should be improved. It would be nice to check if any
-        //  properties that are related to these caches are updated and clear
-        //  them only if needed. For example; we wouldn't want to clear the
-        //  relation cache for a model when non of the relation-related
-        //  properties are updated.
-        $this->castCache->clear();
+        // For new records the data was fully replaced, so all caches are stale.
+        // For existing records, setColumnValue already cleared cast cache entries
+        // for each modified property, so only macro and relation caches need clearing.
+        if ($wasNew) {
+            $this->castCache->clear();
+        }
+
         $this->macroCache->clear();
         $this->relationCache->clear();
 
@@ -449,6 +473,25 @@ final class Backbone implements AccessInterface, BackboneInterface
 
         /** @var ColumnDefinition $property */
         $this->data->unsetValue($property->key);
+    }
+
+    /**
+     * Returns TRUE when the model's structure has at least one computed column.
+     * Computed columns are not returned by `RETURNING *` and require a separate select.
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    private function hasComputedProperties(): bool
+    {
+        foreach ($this->structure->properties as $property) {
+            if ($property instanceof ColumnDefinition && $property->isComputed) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

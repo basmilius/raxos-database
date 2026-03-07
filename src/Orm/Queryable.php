@@ -13,7 +13,9 @@ use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Literal\ColumnLiteral;
 use Raxos\Database\Query\Select;
 use Stringable;
+use function array_values;
 use function is_array;
+use function json_encode;
 
 /**
  * Trait Queryable
@@ -196,27 +198,43 @@ trait Queryable
         }
 
         $cache = StructureGenerator::for(static::class)->connection->cache;
-        $results = new ModelArrayList();
         $missing = [];
+
+        foreach ($primaryKeys as $primaryKey) {
+            if (!$cache->has(static::class, $primaryKey)) {
+                $missing[] = $primaryKey;
+            }
+        }
+
+        $serializePk = static fn(array $pkValues): string => count($pkValues) === 1
+            ? (string)array_values($pkValues)[0]
+            : json_encode(array_values($pkValues));
+
+        /** @var array<string, static> $fetched */
+        $fetched = [];
+
+        if (!empty($missing)) {
+            foreach (self::select()->wherePrimaryKeyIn(static::class, $missing)->arrayList() as $model) {
+                /** @var static $model */
+                $fetched[$serializePk($model->backbone->getPrimaryKeyValues())] = $model;
+            }
+        }
+
+        $results = new ModelArrayList();
 
         foreach ($primaryKeys as $primaryKey) {
             if ($cache->has(static::class, $primaryKey)) {
                 $results->append($cache->get(static::class, $primaryKey));
-                continue;
+            } else {
+                $key = $serializePk(is_array($primaryKey) ? $primaryKey : [$primaryKey]);
+
+                if (isset($fetched[$key])) {
+                    $results->append($fetched[$key]);
+                }
             }
-
-            $missing[] = $primaryKey;
         }
 
-        if (empty($missing)) {
-            return $results;
-        }
-
-        return $results->merge(
-            self::select()
-                ->wherePrimaryKeyIn(static::class, $missing)
-                ->arrayList()
-        );
+        return $results;
     }
 
     /**

@@ -178,7 +178,7 @@ final readonly class BelongsToThroughRelation implements RelationInterface
         foreach ($instances as $instance) {
             $result = $map[$instance->{$this->declaringKey->column}] ?? null;
 
-            if ($result === null) {
+            if ($result === null && $instance->backbone->relationCache->hasValue($this->property->name)) {
                 continue;
             }
 

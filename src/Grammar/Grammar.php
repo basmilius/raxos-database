@@ -26,6 +26,7 @@ abstract readonly class Grammar implements GrammarInterface
      * @param string[] $escapers
      * @param string $columnSeparator
      * @param string $tableSeparator
+     * @param bool $supportsReturning
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
@@ -33,7 +34,8 @@ abstract readonly class Grammar implements GrammarInterface
     public function __construct(
         public array $escapers = ['', ''],
         public string $columnSeparator = ', ',
-        public string $tableSeparator = ', '
+        public string $tableSeparator = ', ',
+        public bool $supportsReturning = true
     ) {}
 
     /**

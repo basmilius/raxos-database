@@ -23,7 +23,6 @@ use Raxos\Database\Query\Error\{ConnectionErrorException, IncompleteException, M
 use Raxos\Database\Query\Literal\{ColumnLiteral, Literal};
 use stdClass;
 use Stringable;
-use function array_any;
 use function array_find_key;
 use function array_is_list;
 use function array_keys;
@@ -71,6 +70,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     /** @var class-string<Model>|null */
     private ?string $modelClass = null;
     private array $pieces = [];
+    private array $definedClauses = [];
     private ?int $position = null;
     private bool $withDeleted = false;
 
@@ -211,6 +211,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             array_splice($this->pieces, $this->position++, 0, [[$clause, $data, $separator]]);
         } else {
             $this->pieces[] = [$clause, $data, $separator];
+        }
+
+        if (!empty($clause)) {
+            $this->definedClauses[$clause] = true;
         }
 
         if (isset($clause[2])) {
@@ -424,7 +428,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function isClauseDefined(string $clause): bool
     {
-        return array_any($this->pieces, static fn(array $piece) => $piece[0] === $clause);
+        return isset($this->definedClauses[$clause]);
     }
 
     /**
@@ -448,6 +452,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         if ($index !== null) {
             array_splice($this->pieces, $index, 1);
+            unset($this->definedClauses[$clause]);
 
             while (isset($this->pieces[$index]) && $this->pieces[$index][0] === ',') {
                 array_splice($this->pieces, $index, 1);
@@ -543,7 +548,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function resultCount(): int
     {
-        return (int)$this
+        $clone = clone $this;
+
+        return (int)$clone
             ->replaceClause('select', static fn(array $piece) => ['select', 'count(*)', null])
             ->withoutModel()
             ->statement()
@@ -698,6 +705,22 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function runReturningRow(): array
+    {
+        $statement = $this
+            ->addPiece('returning', '*')
+            ->statement();
+
+        $statement->run();
+
+        return $statement->pdoStatement->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function single(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array|null
@@ -815,6 +838,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     protected final function reset(): static
     {
         $this->currentClause = '';
+        $this->definedClauses = [];
         $this->modelClass = null;
         $this->params = [];
         $this->paramsCount = 0;
@@ -856,6 +880,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $this->raw($tables->toSql());
             $this->parenthesisClose();
 
+            $this->params = array_merge($this->params, $tables->params);
+            $this->paramsCount = count($this->params);
+
             if ($alias !== null) {
                 $this->addPiece('as', $alias);
             }
@@ -887,8 +914,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $fields = [$fields];
         }
 
-        $fields = array_map(\strval(...), $fields);
-        $fields = array_map($this->grammar->escape(...), $fields);
+        $fields = array_map(fn(mixed $field): string => $field instanceof QueryLiteralInterface
+            ? (string)$field
+            : $this->grammar->escape((string)$field), $fields);
 
         $this->addPiece('group by', $fields, $this->grammar->columnSeparator);
 
@@ -971,6 +999,80 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     public function havingNull(QueryLiteralInterface|string $field): static
     {
         return $this->having($field, expr->isNull());
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHaving(
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
+    ): static
+    {
+        return $this->addExpression('or', $lhs, $cmp, $rhs);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingExists(QueryInterface $query): static
+    {
+        return $this->orHaving(expr->exists(expr->subQuery($query)));
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    {
+        return $this->orHaving($field, expr->in(...$options));
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingNotExists(QueryInterface $query): static
+    {
+        return $this->orHaving(expr->not(expr->exists(expr->subQuery($query))));
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    {
+        return $this->orHaving($field, expr->not(expr->in(...$options)));
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingNotNull(QueryLiteralInterface|string $field): static
+    {
+        return $this->orHaving($field, expr->isNotNull());
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.1.0
+     */
+    public function orHavingNull(QueryLiteralInterface|string $field): static
+    {
+        return $this->orHaving($field, expr->isNull());
     }
 
     /**
@@ -1165,7 +1267,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         $fields = array_map(function (QueryValueInterface|string $field): string {
             if ($field instanceof QueryLiteralInterface) {
-                $field = (string)$field;
+                return (string)$field;
             }
 
             if (str_contains($field, ' asc') || str_contains($field, ' ASC')) {

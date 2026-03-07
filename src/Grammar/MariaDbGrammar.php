@@ -10,4 +10,20 @@ namespace Raxos\Database\Grammar;
  * @package Raxos\Database\Grammar
  * @since 1.1.0
  */
-readonly class MariaDbGrammar extends MySqlGrammar {}
+readonly class MariaDbGrammar extends MySqlGrammar
+{
+
+    /**
+     * MariaDbGrammar constructor.
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
+    public function __construct()
+    {
+        parent::__construct(
+            supportsReturning: true
+        );
+    }
+
+}
