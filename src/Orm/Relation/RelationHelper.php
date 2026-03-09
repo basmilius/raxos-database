@@ -96,7 +96,7 @@ final class RelationHelper
     public static function onBeforeRelations(ArrayListInterface $instances, callable $fn): callable
     {
         return static function (InternalQueryInterface&QueryInterface $query) use ($fn, $instances): QueryInterface {
-            $query->_internal_beforeRelations(static fn(ArrayListInterface $results) => $fn($results, $instances));
+            $query->setBeforeRelationsHook(static fn(ArrayListInterface $results) => $fn($results, $instances));
 
             return $query;
         };

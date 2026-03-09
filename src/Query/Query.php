@@ -69,6 +69,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     private bool $isOnDefined = false;
     /** @var class-string<Model>|null */
     private ?string $modelClass = null;
+    /** @var Piece[] */
     private array $pieces = [];
     private array $definedClauses = [];
     private ?int $position = null;
@@ -186,38 +187,32 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         }
 
         if ($clause === 'select' && $this->isClauseDefined('select')) {
-            $index = array_find_key($this->pieces, static fn(array $piece) => $piece[0] === 'select');
+            $index = array_find_key($this->pieces, static fn(Piece $piece) => $piece->clause === 'select');
+            $existing = $this->pieces[$index]->data;
 
-            if (is_array($this->pieces[$index][1]) && is_array($data)) {
-                $this->pieces[$index][1] = [
-                    ...$this->pieces[$index][1],
-                    ...$data
-                ];
-            } elseif (is_array($this->pieces[$index][1])) {
-                $this->pieces[$index][1][] = $data;
-            } elseif (is_array($data)) {
-                $this->pieces[$index][1] = [
-                    $this->pieces[$index][1],
-                    ...$data
-                ];
-            } else {
-                $this->pieces[$index][1] = [$this->pieces[$index][1], $data];
-            }
+            $merged = match (true) {
+                is_array($existing) && is_array($data) => [...$existing, ...$data],
+                is_array($existing) => [...$existing, $data],
+                is_array($data) => [$existing, ...$data],
+                default => [$existing, $data]
+            };
+
+            $this->pieces[$index] = new Piece($this->pieces[$index]->clause, $merged, $this->pieces[$index]->separator);
 
             return $this;
         }
 
         if ($this->position !== null) {
-            array_splice($this->pieces, $this->position++, 0, [[$clause, $data, $separator]]);
+            array_splice($this->pieces, $this->position++, 0, [new Piece($clause, $data, $separator)]);
         } else {
-            $this->pieces[] = [$clause, $data, $separator];
+            $this->pieces[] = new Piece($clause, $data, $separator);
         }
 
         if (!empty($clause)) {
             $this->definedClauses[$clause] = true;
         }
 
-        if (isset($clause[2])) {
+        if ($clause !== '' && $clause !== '(' && $clause !== ')' && $clause !== ',') {
             $this->currentClause = $clause;
         }
 
@@ -349,9 +344,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function merge(QueryInterface $query): static
     {
-        foreach ($query->pieces as [$clause, $data, $separator]) {
-            $this->pieces[] = [$clause, $data, $separator];
-        }
+        array_push($this->pieces, ...$query->pieces);
 
         $this->params = array_merge($this->params, $query->params);
         $this->paramsCount = count($this->params);
@@ -373,9 +366,17 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $this->parenthesisClose();
 
         if ($patch) {
-            $clause = $this->pieces[$index + 1][0];
-            $this->pieces[$index][0] = (!empty($clause) ? $clause . ' ' : '') . $this->pieces[$index][0];
-            $this->pieces[$index + 1][0] = '';
+            $clausePlusOne = $this->pieces[$index + 1]->clause;
+            $open = $this->pieces[$index];
+            $inner = $this->pieces[$index + 1];
+
+            $this->pieces[$index] = new Piece(
+                (!empty($clausePlusOne) ? $clausePlusOne . ' ' : '') . $open->clause,
+                $open->data,
+                $open->separator
+            );
+
+            $this->pieces[$index + 1] = new Piece('', $inner->data, $inner->separator);
         }
 
         return $this;
@@ -413,9 +414,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     public function raw(string $expression): static
     {
         if ($this->position !== null) {
-            array_splice($this->pieces, $this->position++, 0, [[$expression, null, null]]);
+            array_splice($this->pieces, $this->position++, 0, [new Piece($expression)]);
         } else {
-            $this->pieces[] = [$expression, null, null];
+            $this->pieces[] = new Piece($expression);
         }
 
         return $this;
@@ -448,13 +449,13 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function removeClause(string $clause): static
     {
-        $index = array_find_key($this->pieces, static fn(array $piece) => $piece[0] === $clause);
+        $index = array_find_key($this->pieces, static fn(Piece $piece) => $piece->clause === $clause);
 
         if ($index !== null) {
             array_splice($this->pieces, $index, 1);
             unset($this->definedClauses[$clause]);
 
-            while (isset($this->pieces[$index]) && $this->pieces[$index][0] === ',') {
+            while (isset($this->pieces[$index]) && $this->pieces[$index]->clause === ',') {
                 array_splice($this->pieces, $index, 1);
             }
         }
@@ -469,7 +470,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function replaceClause(string $clause, callable $fn): static
     {
-        $index = array_find_key($this->pieces, static fn(array $piece) => $piece[0] === $clause);
+        $index = array_find_key($this->pieces, static fn(Piece $piece) => $piece->clause === $clause);
 
         if ($index === null) {
             throw new MissingClauseException($clause);
@@ -526,12 +527,14 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     {
         $pieces = [];
 
-        foreach ($this->pieces as [$clause, $data, $separator]) {
+        foreach ($this->pieces as $piece) {
+            $data = $piece->data;
+
             if (is_array($data)) {
-                $data = implode($separator ?? $this->grammar->columnSeparator, $data);
+                $data = implode($piece->separator ?? $this->grammar->columnSeparator, $data);
             }
 
-            $pieces[] = $clause;
+            $pieces[] = $piece->clause;
 
             if (!empty($data)) {
                 $pieces[] = $data;
@@ -551,7 +554,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $clone = clone $this;
 
         return (int)$clone
-            ->replaceClause('select', static fn(array $piece) => ['select', 'count(*)', null])
+            ->replaceClause('select', static fn(Piece $piece) => new Piece('select', 'count(*)', null))
             ->withoutModel()
             ->statement()
             ->fetchColumn();
@@ -567,11 +570,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $original = clone $this;
 
         if (!$original->isClauseDefined('having')) {
-            $original->replaceClause('select', static function (array $piece): array {
-                $piece[1] = '*';
-
-                return $piece;
-            });
+            $original->replaceClause('select', static fn(Piece $piece) => new Piece($piece->clause, '*', $piece->separator));
         }
 
         $original->removeClause('limit');
@@ -579,7 +578,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $original->removeClause('order by');
 
         return (int)$original
-            ->replaceClause('select', static fn(array $piece) => ['select', 'count(*)', null])
+            ->replaceClause('select', static fn(Piece $piece) => new Piece('select', 'count(*)', null))
             ->withoutModel()
             ->statement()
             ->fetchColumn();
@@ -594,7 +593,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     {
         $explain = clone $this;
 
-        array_unshift($explain->pieces, ['explain', null, null]);
+        array_unshift($explain->pieces, new Piece('explain'));
 
         $result = $explain
             ->withoutModel()
@@ -759,13 +758,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
                 if (!$this->withDeleted && $structure->softDeleteColumn !== null && $this->isClauseDefined('select')) {
                     if ($this->isClauseDefined('where')) {
-                        $this->replaceClause('where', static function (array $piece) use ($structure): array {
+                        $this->replaceClause('where', static function (Piece $piece) use ($structure): Piece {
                             $softDeleteColumn = $structure->getColumn($structure->softDeleteColumn);
 
-                            $piece[0] = "where";
-                            $piece[1] = "{$softDeleteColumn} is null and";
-
-                            return $piece;
+                            return new Piece('where', "{$softDeleteColumn} is null and", $piece->separator);
                         });
                     } else {
                         $this->whereNull($structure->getColumn($structure->softDeleteColumn));
@@ -806,7 +802,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public function _internal_beforeRelations(callable $fn): QueryInterface
+    public function setBeforeRelationsHook(callable $fn): QueryInterface
     {
         $this->beforeRelations = $fn;
 
@@ -818,7 +814,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public function _internal_invokeBeforeRelations(ArrayListInterface $instances): void
+    public function invokeBeforeRelationsHook(ArrayListInterface $instances): void
     {
         if ($this->beforeRelations === null) {
             return;
@@ -1270,12 +1266,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 return (string)$field;
             }
 
-            if (str_contains($field, ' asc') || str_contains($field, ' ASC')) {
-                return $this->grammar->escape(substr($field, 0, -4)) . ' asc';
-            }
-
-            if (str_contains($field, ' desc') || str_contains($field, ' DESC')) {
-                return $this->grammar->escape(substr($field, 0, -5)) . ' desc';
+            if (preg_match('/^(.+)\s+(asc|desc)$/i', $field, $matches) === 1) {
+                return $this->grammar->escape(trim($matches[1])) . ' ' . strtolower($matches[2]);
             }
 
             return $this->grammar->escape($field);
@@ -1297,7 +1289,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         $clause = $this->currentClause === 'order by' ? trim($this->grammar->columnSeparator) : 'order by';
 
-        return $this->addPiece($clause, $field . ' asc');
+        return $this->addPiece($clause, $field . ' ' . SortDirection::ASC->value);
     }
 
     /**
@@ -1313,7 +1305,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         $clause = $this->currentClause === 'order by' ? trim($this->grammar->columnSeparator) : 'order by';
 
-        return $this->addPiece($clause, $field . ' desc');
+        return $this->addPiece($clause, $field . ' ' . SortDirection::DESC->value);
     }
 
     /**
@@ -1331,7 +1323,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         if ($this->currentClause === 'set') {
             $index = count($this->pieces) - 1;
-            $existing = $this->pieces[$index][1];
+            $existing = $this->pieces[$index]->data;
 
             if (!is_array($existing)) {
                 $existing = [$existing];
@@ -1339,7 +1331,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
             $existing[] = $expression;
 
-            $this->pieces[$index][1] = $existing;
+            $this->pieces[$index] = new Piece($this->pieces[$index]->clause, $existing, $this->pieces[$index]->separator);
         } else {
             $this->addPiece('set', $expression, $this->grammar->columnSeparator);
         }
@@ -1550,6 +1542,23 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         $columns = array_map(static fn(PropertyDefinition $property) => $structure->getColumn($property->name), $properties);
 
+        if ($this->grammar->supportsRowValueConstructors) {
+            // Generate: (`col1`, `col2`) IN ((v1, v2), (v3, v4))
+            $colTuple = '(' . implode(', ', $columns) . ')';
+            $rowTuples = [];
+
+            foreach ($primaryKeys as $primaryKey) {
+                $values = is_array($primaryKey) ? $primaryKey : [$primaryKey];
+                $params = array_map(fn(mixed $value) => (string)$this->addParam(
+                    is_int($value) || is_float($value) ? literal($value) : $value
+                ), $values);
+                $rowTuples[] = '(' . implode(', ', $params) . ')';
+            }
+
+            return $this->where(Literal::of($colTuple . ' in (' . implode(', ', $rowTuples) . ')'));
+        }
+
+        // Fallback for databases without row value constructor support
         $this->where('1 = 1');
 
         foreach ($primaryKeys as $index => $primaryKey) {
@@ -1839,14 +1848,14 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     {
         $table = $this->grammar->escape($table);
 
-        foreach ($this->pieces as $index => [$existingClause, $existingTable]) {
-            if ($existingClause === 'where') {
+        foreach ($this->pieces as $index => $piece) {
+            if ($piece->clause === 'where') {
                 $this->position = $index;
             }
 
             // note(Bas): this filters out double joins, but we need to figure out
             //  if we still need to execute the given function.
-            if (str_contains($existingClause, 'join') && $existingTable === $table) {
+            if (str_contains($piece->clause, 'join') && $piece->data === $table) {
                 return $this;
             }
         }
