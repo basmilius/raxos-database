@@ -12,6 +12,10 @@ use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Literal\ColumnLiteral;
 use Raxos\Database\Query\Select;
+use function array_column;
+use function array_filter;
+use function array_unique;
+use function array_values;
 use function implode;
 use function sort;
 
@@ -142,6 +146,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -156,45 +161,48 @@ final readonly class BelongsToManyRelation implements RelationInterface
             return;
         }
 
-        $select = new Select()->add(
-            $this->referenceStructure->class::col('*'),
-            __local_linking_key: $this->declaringLinkingKey
-        );
+        $pivotSelect = new Select()->add($this->declaringLinkingKey, $this->referenceLinkingKey);
 
-        $this->referenceStructure->class::select($select)
-            ->join($this->declaringLinkingKey->table, fn(QueryInterface $query) => $query
-                ->on($this->referenceLinkingKey, $this->referenceKey))
+        $pairs = $this->declaringStructure->connection->query()
+            ->select($pivotSelect)
+            ->from($this->declaringLinkingKey->table)
             ->whereIn($this->declaringLinkingKey, $values)
-            ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
-                ->orderBy($this->attribute->orderBy))
-            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
             ->array();
-    }
 
-    /**
-     * Apply the results to the instances' relation cache.
-     *
-     * @param ArrayListInterface<int, TReferenceModel> $results
-     * @param ArrayListInterface<int, TDeclaringModel> $instances
-     *
-     * @return void
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
-     */
-    private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
-    {
-        $map = [];
+        $referenceKeyValues = array_column($pairs, $this->referenceLinkingKey->column)
+                |> array_filter(...)
+                |> array_unique(...)
+                |> array_values(...);
 
-        foreach ($results as $reference) {
-            $map[$reference->backbone->data->getValue('__local_linking_key')][] = $reference;
+        $referenceModels = !empty($referenceKeyValues)
+            ? $this->referenceStructure->class::select()
+                ->whereIn($this->referenceKey, $referenceKeyValues)
+                ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
+                    ->orderBy($this->attribute->orderBy))
+                ->array()
+            : [];
+
+        $referenceMap = [];
+
+        foreach ($referenceModels as $reference) {
+            $referenceMap[$reference->{$this->referenceKey->column}] = $reference;
+        }
+
+        $declaringMap = [];
+
+        foreach ($pairs as $pair) {
+            $declaringKeyValue = $pair[$this->declaringLinkingKey->column];
+            $referenceKeyValue = $pair[$this->referenceLinkingKey->column];
+
+            if (isset($referenceMap[$referenceKeyValue])) {
+                $declaringMap[$declaringKeyValue][] = $referenceMap[$referenceKeyValue];
+            }
         }
 
         foreach ($instances as $instance) {
-            $matched = $map[$instance->{$this->declaringKey->column}] ?? [];
-
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
-                new ModelArrayList($matched)
+                new ModelArrayList($declaringMap[$instance->{$this->declaringKey->column}] ?? [])
             );
         }
     }

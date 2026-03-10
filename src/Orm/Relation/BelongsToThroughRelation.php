@@ -11,7 +11,10 @@ use Raxos\Database\Orm\Attribute\BelongsToThrough;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Literal\ColumnLiteral;
-use Raxos\Database\Query\Select;
+use function array_column;
+use function array_filter;
+use function array_unique;
+use function array_values;
 
 /**
  * Class BelongsToThroughRelation
@@ -130,6 +133,7 @@ final readonly class BelongsToThroughRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
@@ -144,48 +148,42 @@ final readonly class BelongsToThroughRelation implements RelationInterface
             return;
         }
 
-        $select = new Select()->add(
-            $this->referenceStructure->class::col('*'),
-            __local_linking_key: $this->declaringLinkingKey
-        );
-
-        $this->referenceStructure->class::select($select)
-            ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
-                ->on($this->referenceLinkingKey, $this->referenceKey))
+        $pairs = $this->linkingStructure->class::select()
+            ->withoutModel()
             ->whereIn($this->declaringLinkingKey, $values)
-            ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
             ->array();
-    }
 
-    /**
-     * Apply the results to the instances' relation cache.
-     *
-     * @param ArrayListInterface<int, TReferenceModel> $results
-     * @param ArrayListInterface<int, TDeclaringModel> $instances
-     *
-     * @return void
-     * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
-     */
-    private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
-    {
-        $map = [];
+        $referenceKeyValues = array_column($pairs, $this->referenceLinkingKey->column)
+                |> array_filter(...)
+                |> array_unique(...)
+                |> array_values(...);
 
-        foreach ($results as $reference) {
-            $map[$reference->backbone->data->getValue('__local_linking_key')] = $reference;
+        $referenceModels = !empty($referenceKeyValues)
+            ? $this->referenceStructure->class::select()
+                ->whereIn($this->referenceKey, $referenceKeyValues)
+                ->array()
+            : [];
+
+        $referenceMap = [];
+
+        foreach ($referenceModels as $reference) {
+            $referenceMap[$reference->{$this->referenceKey->column}] = $reference;
+        }
+
+        $declaringMap = [];
+
+        foreach ($pairs as $pair) {
+            $declaringMap[$pair[$this->declaringLinkingKey->column]] = $referenceMap[$pair[$this->referenceLinkingKey->column]] ?? null;
         }
 
         foreach ($instances as $instance) {
-            $result = $map[$instance->{$this->declaringKey->column}] ?? null;
+            $result = $declaringMap[$instance->{$this->declaringKey->column}] ?? null;
 
             if ($result === null && $instance->backbone->relationCache->hasValue($this->property->name)) {
                 continue;
             }
 
-            $instance->backbone->relationCache->setValue(
-                $this->property->name,
-                $result
-            );
+            $instance->backbone->relationCache->setValue($this->property->name, $result);
         }
     }
 
