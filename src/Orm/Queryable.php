@@ -216,7 +216,11 @@ trait Queryable
         if (!empty($missing)) {
             foreach (self::select()->wherePrimaryKeyIn(static::class, $missing)->arrayList() as $model) {
                 /** @var static $model */
-                $fetched[$serializePk($model->backbone->getPrimaryKeyValues())] = $model;
+                $pkValues = $model->backbone->getPrimaryKeyValues();
+
+                if ($pkValues !== null) {
+                    $fetched[$serializePk($pkValues)] = $model;
+                }
             }
         }
 

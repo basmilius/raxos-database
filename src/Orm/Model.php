@@ -10,7 +10,7 @@ use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, OrmExceptio
 use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
 use Raxos\Contract\DebuggableInterface;
 use Raxos\Database\Orm\Definition\RelationDefinition;
-use Raxos\Database\Orm\Error\MissingFunctionException;
+use Raxos\Database\Orm\Error\{MissingFunctionException, MissingPrimaryKeyException};
 use Raxos\Database\Orm\Structure\{StructureGenerator, StructureHelper};
 use Raxos\Database\Query\Select;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
@@ -74,6 +74,10 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     public function destroy(): void
     {
         $primaryKey = $this->backbone->getPrimaryKeyValues();
+
+        if ($primaryKey === null) {
+            throw new MissingPrimaryKeyException(static::class);
+        }
 
         $cache = $this->backbone->cache;
         $cache->unset(static::class, $primaryKey);
@@ -320,9 +324,12 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     public function __toString(): string
     {
         $values = $this->backbone->getPrimaryKeyValues();
-        $values = implode(', ', $values);
 
-        return sprintf('%s(%s)', $this->backbone->class, $values);
+        if ($values === null) {
+            return sprintf('%s(no_pk)', $this->backbone->class);
+        }
+
+        return sprintf('%s(%s)', $this->backbone->class, implode(', ', $values));
     }
 
     /**

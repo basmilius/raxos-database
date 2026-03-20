@@ -10,7 +10,7 @@ use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
 use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, OrmExceptionInterface, StructureInterface, WritableRelationInterface};
 use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, MissingPrimaryKeyException, PropertyReadFailedException, PropertyWriteFailedException};
+use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, MissingPrimaryKeyException, NotFoundException, PropertyReadFailedException, PropertyWriteFailedException};
 use Raxos\Foundation\Util\Singleton;
 use function array_column;
 use function array_find_key;
@@ -310,10 +310,20 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     public function reload(): void
     {
+        $primaryKeyValues = $this->getPrimaryKeyValues();
+
+        if ($primaryKeyValues === null) {
+            throw new MissingPrimaryKeyException($this->class);
+        }
+
         $record = $this->class::select()
             ->withoutModel()
-            ->wherePrimaryKey($this->class, $this->getPrimaryKeyValues())
+            ->wherePrimaryKey($this->class, $primaryKeyValues)
             ->single();
+
+        if ($record === null) {
+            throw new NotFoundException($this->class, $primaryKeyValues);
+        }
 
         $this->data->replaceWith($record);
 
