@@ -38,7 +38,7 @@ use Raxos\Database\Orm\Model;
  *
  * <code>
  * class Country extends Model {
- *     #[MasMany(User::class)]
+ *     #[HasMany(User::class)]
  *     public ModelArrayList $users;
  *
  *     #[HasOneThrough(Post::class, User::class)]

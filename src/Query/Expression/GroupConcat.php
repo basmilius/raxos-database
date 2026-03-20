@@ -35,7 +35,7 @@ final readonly class GroupConcat implements QueryExpressionInterface
         public BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
         public bool $distinct = false,
         public QueryLiteralInterface|string|null $orderBy = null,
-        public ?string $separator = null,
+        public QueryLiteralInterface|string|null $separator = null,
         public ?int $limit = null,
         public ?int $offset = null
     ) {}
@@ -50,8 +50,8 @@ final readonly class GroupConcat implements QueryExpressionInterface
         $query->raw('group_concat(');
         $this->distinct && $query->raw('distinct ');
         $query->compile($this->expr);
-        $this->orderBy && $query->raw(" order by {$this->orderBy}");
-        $this->separator && $query->raw(" separator {$this->separator}");
+        $this->orderBy && $query->raw(' order by ')->compile($this->orderBy);
+        $this->separator !== null && $query->raw(' separator ')->compile($this->separator);
         $this->limit && $query->raw(" limit {$this->limit}");
         $this->offset && $query->raw(" offset {$this->offset}");
         $query->raw(')');

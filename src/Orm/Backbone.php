@@ -10,7 +10,7 @@ use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
 use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, OrmExceptionInterface, StructureInterface, WritableRelationInterface};
 use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, PropertyReadFailedException, PropertyWriteFailedException};
+use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, MissingPrimaryKeyException, PropertyReadFailedException, PropertyWriteFailedException};
 use Raxos\Foundation\Util\Singleton;
 use function array_column;
 use function array_find_key;
@@ -331,6 +331,11 @@ final class Backbone implements AccessInterface, BackboneInterface
     public function save(): void
     {
         $primaryKey = $this->structure->primaryKey;
+
+        if ($primaryKey === null) {
+            throw new MissingPrimaryKeyException($this->class);
+        }
+
         $values = iterator_to_array($this->getSaveableValues());
 
         if (empty($values)) {

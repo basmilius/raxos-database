@@ -25,7 +25,7 @@ final class MissingResultException extends Exception implements QueryExceptionIn
     public function __construct()
     {
         parent::__construct(
-            'db_query_missing_clause',
+            'db_query_missing_result',
             'The query did not return a result.'
         );
     }

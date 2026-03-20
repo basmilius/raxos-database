@@ -74,7 +74,9 @@ abstract readonly class Grammar implements GrammarInterface
     {
         static $cache = [];
 
-        return $cache[$value] ??= $this->escapeImpl($value);
+        $key = static::class . ':' . $value;
+
+        return $cache[$key] ??= $this->escapeImpl($value);
     }
 
     /**

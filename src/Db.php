@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database;
 
+use BackedEnum;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
 use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
@@ -68,8 +69,8 @@ class Db
         }
 
         if (!self::$connected[$id] && !$connection->connected) {
-            self::$connected[$id] = true;
             $connection->connect();
+            self::$connected[$id] = true;
         }
 
         return $connection;
@@ -116,7 +117,7 @@ class Db
      */
     public static function unregister(string $id): void
     {
-        unset(self::$connections[$id]);
+        unset(self::$connections[$id], self::$connected[$id]);
     }
 
     /**
@@ -259,7 +260,7 @@ class Db
     /**
      * Quotes the given value.
      *
-     * @param string|int|float|bool $value
+     * @param BackedEnum|string|int|float|bool $value
      * @param int $type
      * @param string|null $id
      *
@@ -269,7 +270,7 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::quote()
      */
-    public static function quote(string|int|float|bool $value, #[ExpectedValues(self::TYPES)] int $type = PDO::PARAM_STR, ?string $id = null): string
+    public static function quote(BackedEnum|string|int|float|bool $value, #[ExpectedValues(self::TYPES)] int $type = PDO::PARAM_STR, ?string $id = null): string
     {
         return static::getOrFail($id)->quote($value, $type);
     }

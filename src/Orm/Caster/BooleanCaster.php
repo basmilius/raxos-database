@@ -21,8 +21,12 @@ final readonly class BooleanCaster implements CasterInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function decode(float|int|string|null $value, Model $instance): bool
+    public function decode(float|int|string|null $value, Model $instance): bool|null
     {
+        if ($value === null) {
+            return null;
+        }
+
         return $value === 1 || $value === '1';
     }
 

@@ -35,7 +35,7 @@ final class SQLite extends Connection
      * @param string|null $password
      * @param array|null $options
      * @param CacheInterface $cache
-     * @param Logger $logger
+     * @param LoggerInterface $logger
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0

@@ -31,17 +31,17 @@ use Raxos\Database\Orm\Model;
  *     #[BelongsTo]
  *     public Owner $owner;
  *
- *     #[MasMany(Address::class)]
+ *     #[HasMany(Address::class)]
  *     public ModelArrayList $addresses;
  * }
  * </code>
  *
  * <code>
  * class Owner extends Model {
- *     #[MasMany(House::class)]
+ *     #[HasMany(House::class)]
  *     public ModelArrayList $houses;
  *
- *     #[MasManyThrough(Address::class, House::class)]
+ *     #[HasManyThrough(Address::class, linkingModel: House::class)]
  *     public ModelArrayList $addresses;
  * }
  * </code>

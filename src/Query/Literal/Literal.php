@@ -5,7 +5,7 @@ namespace Raxos\Database\Query\Literal;
 
 use Raxos\Contract\Database\Query\QueryLiteralInterface;
 use Stringable;
-use function addslashes;
+use function str_replace;
 
 /**
  * Class Literal
@@ -66,7 +66,11 @@ final readonly class Literal implements QueryLiteralInterface
      */
     public static function string(string $str): self
     {
-        $str = addslashes($str);
+        $str = str_replace(
+            ["\\", "\0", "\n", "\r", "'", "\x1a"],
+            ["\\\\", "\\0", "\\n", "\\r", "\\'", "\\Z"],
+            $str
+        );
 
         return new self("'{$str}'");
     }

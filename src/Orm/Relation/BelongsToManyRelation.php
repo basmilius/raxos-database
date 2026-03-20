@@ -200,6 +200,10 @@ final readonly class BelongsToManyRelation implements RelationInterface
         }
 
         foreach ($instances as $instance) {
+            if ($instance->backbone->relationCache->hasValue($this->property->name)) {
+                continue;
+            }
+
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
                 new ModelArrayList($declaringMap[$instance->{$this->declaringKey->column}] ?? [])

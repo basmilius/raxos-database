@@ -56,11 +56,11 @@ final readonly class MatchAgainst implements QueryExpressionInterface
         $query->compile($this->expression);
 
         if ($this->booleanMode) {
-            $query->raw('in boolean mode');
+            $query->raw(' in boolean mode');
         }
 
         if ($this->queryExpansion) {
-            $query->raw('with query expansion');
+            $query->raw(' with query expansion');
         }
 
         $query->raw(')');

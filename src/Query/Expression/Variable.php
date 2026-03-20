@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query\Expression;
 
+use InvalidArgumentException;
 use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
 use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface};
+use function preg_match;
 
 /**
  * Class Variable
@@ -28,7 +30,12 @@ final readonly class Variable implements QueryExpressionInterface
     public function __construct(
         public string $name,
         public QueryExpressionInterface $expression
-    ) {}
+    )
+    {
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_.]*$/', $name)) {
+            throw new InvalidArgumentException("Invalid SQL variable name: {$name}");
+        }
+    }
 
     /**
      * {@inheritdoc}

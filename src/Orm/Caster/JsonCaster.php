@@ -23,7 +23,7 @@ use const JSON_THROW_ON_ERROR;
  * @package Raxos\Database\Orm\Caster
  * @since 1.0.17
  */
-readonly class JsonCaster implements CasterInterface
+final readonly class JsonCaster implements CasterInterface
 {
 
     /**

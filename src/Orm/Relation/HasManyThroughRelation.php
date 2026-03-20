@@ -180,6 +180,10 @@ final readonly class HasManyThroughRelation implements RelationInterface
         }
 
         foreach ($instances as $instance) {
+            if ($instance->backbone->relationCache->hasValue($this->property->name)) {
+                continue;
+            }
+
             $matched = $map[$instance->{$this->declaringKey->column}] ?? [];
 
             $instance->backbone->relationCache->setValue(

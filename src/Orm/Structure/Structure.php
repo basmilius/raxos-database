@@ -134,7 +134,8 @@ final class Structure implements StructureInterface, SerializableInterface
                 throw new MissingPolymorphicDiscriminatorException($this->class, $this->polymorphic->column);
             }
 
-            $polymorphicClass = $this->polymorphic->map[$data[$this->polymorphic->column]];
+            $discriminatorValue = $data[$this->polymorphic->column];
+            $polymorphicClass = $this->polymorphic->map[$discriminatorValue] ?? throw new MissingPolymorphicDiscriminatorException($this->class, $this->polymorphic->column);
             $polymorphicStructure = StructureGenerator::for($polymorphicClass);
 
             return $polymorphicStructure->createInstance($data);
@@ -289,7 +290,9 @@ final class Structure implements StructureInterface, SerializableInterface
             throw new InvalidColumnException($this->class, $key);
         }
 
-        return $cache["{$table}:{$key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $table);
+        $grammarClass = $this->connection->grammar::class;
+
+        return $cache["{$grammarClass}:{$table}:{$key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $table);
     }
 
     /**
@@ -341,7 +344,9 @@ final class Structure implements StructureInterface, SerializableInterface
             $property = $property[0];
         }
 
-        return $cache["{$this->table}:{$property->key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
+        $grammarClass = $this->connection->grammar::class;
+
+        return $cache["{$grammarClass}:{$this->table}:{$property->key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
     }
 
     /**

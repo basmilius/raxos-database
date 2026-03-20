@@ -31,7 +31,7 @@ final readonly class DeferredEvent extends Event
         public int $index
     )
     {
-        parent::__construct(new Stopwatch());
+        parent::__construct(new Stopwatch(), captureTrace: false);
     }
 
     /**

@@ -1120,7 +1120,7 @@ final class Expr implements QueryExpressionsInterface
      */
     public function concat(iterable $values): QueryExpressionInterface
     {
-        return new Expression\Func('concat', [$values]);
+        return new Expression\Func('concat', [...$values]);
     }
 
     /**
@@ -1245,7 +1245,7 @@ final class Expr implements QueryExpressionsInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    private function valueNotNull(mixed $value): bool
+    private static function valueNotNull(mixed $value): bool
     {
         return $value !== null;
     }

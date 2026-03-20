@@ -15,6 +15,7 @@ use Raxos\Database\Query\Error\NotInTransactionException;
 use Raxos\Database\Query\Statement;
 use SensitiveParameter;
 use Throwable;
+use function in_array;
 
 /**
  * Class Connection
@@ -90,6 +91,8 @@ abstract class Connection implements ConnectionInterface
      */
     public function column(QueryInterface|string $query): string|int|false
     {
+        $this->ensureConnected();
+
         if ($query instanceof QueryInterface) {
             $query = $query->toSql();
         }
@@ -103,11 +106,17 @@ abstract class Connection implements ConnectionInterface
         $result = $smt->fetchColumn();
         $smt->closeCursor();
 
-        if ($result !== false) {
-            return $result;
+        if ($result === false) {
+            $errorInfo = $this->pdo->errorInfo();
+
+            if ($errorInfo[0] !== '00000' && $errorInfo[0] !== null) {
+                throw ExecutionException::fromErrorInfo($this->pdo);
+            }
+
+            return false;
         }
 
-        throw ExecutionException::fromErrorInfo($this->pdo);
+        return $result;
     }
 
     /**
@@ -117,6 +126,8 @@ abstract class Connection implements ConnectionInterface
      */
     public function execute(string|QueryInterface $query): int
     {
+        $this->ensureConnected();
+
         if ($query instanceof QueryInterface) {
             $query = $query->toSql();
         }
@@ -137,6 +148,8 @@ abstract class Connection implements ConnectionInterface
      */
     public function lastInsertId(?string $name = null): string
     {
+        $this->ensureConnected();
+
         return $this->pdo->lastInsertId($name);
     }
 
@@ -147,6 +160,8 @@ abstract class Connection implements ConnectionInterface
      */
     public function lastInsertIdInteger(?string $name = null): int
     {
+        $this->ensureConnected();
+
         return (int)$this->pdo->lastInsertId($name);
     }
 
@@ -192,7 +207,7 @@ abstract class Connection implements ConnectionInterface
             $value = $value->value;
         }
 
-        return $this->pdo->quote($value, $type);
+        return $this->pdo->quote((string)$value, $type);
     }
 
     /**
@@ -212,6 +227,8 @@ abstract class Connection implements ConnectionInterface
      */
     public function commit(): bool
     {
+        $this->ensureConnected();
+
         if (!$this->inTransaction) {
             throw new NotInTransactionException();
         }
@@ -226,6 +243,8 @@ abstract class Connection implements ConnectionInterface
      */
     public function rollBack(): bool
     {
+        $this->ensureConnected();
+
         if (!$this->inTransaction) {
             throw new NotInTransactionException();
         }
@@ -240,7 +259,9 @@ abstract class Connection implements ConnectionInterface
      */
     public function transaction(): bool
     {
-        return $this->pdo?->beginTransaction() ?? false;
+        $this->ensureConnected();
+
+        return $this->pdo->beginTransaction();
     }
 
     /**
@@ -250,7 +271,7 @@ abstract class Connection implements ConnectionInterface
      */
     public function tableColumnExists(string $table, string $column): bool
     {
-        return $this->tableExists($table) && isset($this->structure[$table][$column]);
+        return $this->tableExists($table) && in_array($column, $this->structure[$table], true);
     }
 
     /**

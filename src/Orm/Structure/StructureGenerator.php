@@ -332,7 +332,7 @@ final class StructureGenerator
             $alias = $key;
         }
 
-        if ($caster === null && $types[0] === 'bool') {
+        if ($caster === null && isset($types[0]) && $types[0] === 'bool') {
             $caster = BooleanCaster::class;
         }
 

@@ -60,7 +60,7 @@ final class ExecutionException extends Exception implements DatabaseExceptionInt
     {
         [, $code, $message] = $pdo->errorInfo();
 
-        return new self($code, $message);
+        return new self($code ?? 0, $message ?? 'Unknown error');
     }
 
     /**
@@ -74,7 +74,7 @@ final class ExecutionException extends Exception implements DatabaseExceptionInt
      */
     public static function fromException(PDOException $err): self
     {
-        return new self($err->getCode(), $err->getMessage());
+        return new self($err->getCode(), $err->getMessage(), $err);
     }
 
 }

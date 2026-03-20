@@ -85,7 +85,10 @@ class Statement implements StatementInterface
      */
     public function __destruct()
     {
-        $this->pdoStatement->closeCursor();
+        try {
+            $this->pdoStatement->closeCursor();
+        } catch (\Throwable) {
+        }
     }
 
     /**
@@ -143,8 +146,8 @@ class Statement implements StatementInterface
         $items = $itemBuilder($this->query, $offset, $limit);
         $total = $totalBuilder($this->query, $offset, $limit);
 
-        $page = (int)floor($offset / $limit) + 1;
-        $pages = (int)ceil($total / $limit);
+        $page = $limit > 0 ? (int)floor($offset / $limit) + 1 : 1;
+        $pages = $limit > 0 ? (int)ceil($total / $limit) : 1;
 
         return new Paginated($items, $page, $limit, $pages, $total);
     }

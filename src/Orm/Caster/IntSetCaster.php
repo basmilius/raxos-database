@@ -28,7 +28,7 @@ final readonly class IntSetCaster implements CasterInterface
      */
     public function decode(float|int|string|null $value, Model $instance): array
     {
-        if (!is_string($value)) {
+        if (!is_string($value) || $value === '') {
             return [];
         }
 

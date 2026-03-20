@@ -7,17 +7,17 @@ use Raxos\Contract\Database\Query\QueryExceptionInterface;
 use Raxos\Error\Exception;
 
 /**
- * Class TooFewPrimaryKeyValuesExceptions
+ * Class TooManyPrimaryKeyValuesException
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query\Error
  * @since 2.0.0
  */
-final class TooFewPrimaryKeyValuesExceptions extends Exception implements QueryExceptionInterface
+final class TooManyPrimaryKeyValuesException extends Exception implements QueryExceptionInterface
 {
 
     /**
-     * TooFewPrimaryKeyValuesExceptions constructor.
+     * TooManyPrimaryKeyValuesException constructor.
      *
      * @param string $modelClass
      *
@@ -29,8 +29,8 @@ final class TooFewPrimaryKeyValuesExceptions extends Exception implements QueryE
     )
     {
         parent::__construct(
-            'db_query_too_few_primary_key_values',
-            "Too few primary key values specified for model {$this->modelClass}."
+            'db_query_too_many_primary_key_values',
+            "Too many primary key values specified for model {$this->modelClass}."
         );
     }
 

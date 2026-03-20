@@ -41,7 +41,9 @@ final class RelationHelper
         $column ??= $default->column;
         $table ??= $default->table;
 
-        return $cache["{$table}:{$column}"] ??= new ColumnLiteral($grammar, $column, $table);
+        $grammarClass = $grammar::class;
+
+        return $cache["{$grammarClass}:{$table}:{$column}"] ??= new ColumnLiteral($grammar, $column, $table);
     }
 
     /**

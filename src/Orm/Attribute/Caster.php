@@ -15,7 +15,7 @@ use Raxos\Contract\Database\Orm\{AttributeInterface, CasterInterface};
  * <code>
  * class Post extends Model {
  *     #[Column]
- *     #[Caster(DateTimeCast::class)
+ *     #[Caster(DateTimeCast::class)]
  *     public DateTime $publishedOn;
  * }
  * </code>

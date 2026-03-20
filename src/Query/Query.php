@@ -19,7 +19,7 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\InvalidRelationException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Error\{ConnectionErrorException, IncompleteException, MissingAliasException, MissingClauseException, MissingModelException, MissingResultException, StructureErrorException, TooFewPrimaryKeyValuesExceptions, TooManyPrimaryKeyValuesExceptions};
+use Raxos\Database\Query\Error\{ConnectionErrorException, IncompleteException, MissingAliasException, MissingClauseException, MissingModelException, MissingResultException, StructureErrorException, TooFewPrimaryKeyValuesException, TooManyPrimaryKeyValuesException};
 use Raxos\Database\Query\Literal\{ColumnLiteral, Literal};
 use stdClass;
 use Stringable;
@@ -1507,7 +1507,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         foreach ($structure->primaryKey as $property) {
             if (empty($primaryKey)) {
-                throw new TooFewPrimaryKeyValuesExceptions($modelClass);
+                throw new TooFewPrimaryKeyValuesException($modelClass);
             }
 
             $value = array_shift($primaryKey);
@@ -1520,7 +1520,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         }
 
         if (!empty($primaryKey)) {
-            throw new TooManyPrimaryKeyValuesExceptions($modelClass);
+            throw new TooManyPrimaryKeyValuesException($modelClass);
         }
 
         return $this;

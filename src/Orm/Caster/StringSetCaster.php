@@ -32,7 +32,7 @@ final readonly class StringSetCaster implements CasterInterface
             return [];
         }
 
-        return array_filter(explode(',', $value));
+        return array_filter(explode(',', $value), static fn(string $str): bool => $str !== '');
     }
 
     /**

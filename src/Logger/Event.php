@@ -44,14 +44,19 @@ abstract readonly class Event
      * @since 1.0.16
      */
     public function __construct(
-        public Stopwatch $stopwatch
+        public Stopwatch $stopwatch,
+        bool $captureTrace = true
     )
     {
-        $trace = debug_backtrace();
-        array_shift($trace);
-        array_shift($trace);
+        if ($captureTrace) {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 20);
+            array_shift($trace);
+            array_shift($trace);
 
-        $this->trace = $trace;
+            $this->trace = $trace;
+        } else {
+            $this->trace = [];
+        }
     }
 
     /**
