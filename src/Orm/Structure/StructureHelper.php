@@ -5,7 +5,7 @@ namespace Raxos\Database\Orm\Structure;
 
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, StructureInterface};
-use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, PropertyDefinition, RelationDefinition};
+use Raxos\Database\Orm\Definition\{ColumnDefinition, EmbeddedDefinition, MacroDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Model;
 use function is_int;
 use function is_string;
@@ -53,7 +53,7 @@ final class StructureHelper
     public static function isVisible(PropertyDefinition $property, bool $forceVisible, bool $forceHidden): bool
     {
         return match (true) {
-            $property instanceof ColumnDefinition => !$property->isHidden && !$forceHidden || $forceVisible,
+            $property instanceof ColumnDefinition, $property instanceof EmbeddedDefinition => !$property->isHidden && !$forceHidden || $forceVisible,
             $property instanceof MacroDefinition, $property instanceof RelationDefinition => $property->isVisible && !$forceHidden || $forceVisible
         };
     }

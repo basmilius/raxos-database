@@ -9,7 +9,7 @@ use JetBrains\PhpStorm\ExpectedValues;
 use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
 use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, OrmExceptionInterface, StructureInterface, WritableRelationInterface};
 use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
-use Raxos\Database\Orm\Definition\{ColumnDefinition, MacroDefinition, RelationDefinition};
+use Raxos\Database\Orm\Definition\{ColumnDefinition, EmbeddedDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, MissingPrimaryKeyException, NotFoundException, PropertyReadFailedException, PropertyWriteFailedException};
 use Raxos\Foundation\Util\Singleton;
 use function array_column;
@@ -254,6 +254,90 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function getEmbeddedValue(EmbeddedDefinition $property): mixed
+    {
+        if ($this->castCache->hasValue($property->name)) {
+            return $this->castCache->getValue($property->name);
+        }
+
+        if ($property->nullable) {
+            $allNull = true;
+
+            foreach ($property->allColumns() as $column) {
+                if ($this->data->hasValue($column->key) && $this->data->getValue($column->key) !== null) {
+                    $allNull = false;
+                    break;
+                }
+            }
+
+            if ($allNull) {
+                $this->castCache->setValue($property->name, null);
+
+                return null;
+            }
+        }
+
+        $embeddableClass = $property->embeddableClass;
+        $value = new $embeddableClass();
+
+        foreach ($property->columns as $column) {
+            $value->{$column->name} = $this->getColumnValue($column);
+        }
+
+        foreach ($property->embeddeds as $nested) {
+            $value->{$nested->name} = $this->getEmbeddedValue($nested);
+        }
+
+        $this->castCache->setValue($property->name, $value);
+
+        return $value;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function setEmbeddedValue(EmbeddedDefinition $property, mixed $value): void
+    {
+        $this->castCache->unsetValue($property->name);
+
+        if ($value === null && $property->nullable) {
+            foreach ($property->allColumns() as $column) {
+                $this->data->setValue($column->key, null);
+            }
+
+            $this->modified[$property->name] = true;
+
+            return;
+        }
+
+        foreach ($property->columns as $column) {
+            $columnValue = $value->{$column->name};
+
+            if ($column->caster !== null) {
+                $columnValue = $this->getCastedValue($column->caster, 'encode', $columnValue);
+            }
+
+            if ($column->enumClass !== null) {
+                $columnValue = $columnValue?->value;
+            }
+
+            $this->data->setValue($column->key, $columnValue);
+        }
+
+        foreach ($property->embeddeds as $nested) {
+            $this->setEmbeddedValue($nested, $value->{$nested->name});
+        }
+
+        $this->modified[$property->name] = true;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
     public function getPrimaryKeyValues(): array|null
@@ -424,6 +508,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         try {
             return match (true) {
                 $property instanceof ColumnDefinition => $this->getColumnValue($property),
+                $property instanceof EmbeddedDefinition => $this->getEmbeddedValue($property),
                 $property instanceof MacroDefinition => $this->getMacroValue($property),
                 $property instanceof RelationDefinition => $this->getRelationValue($property)
             };
@@ -457,6 +542,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         try {
             match (true) {
                 $property instanceof ColumnDefinition => $this->setColumnValue($property, $value),
+                $property instanceof EmbeddedDefinition => $this->setEmbeddedValue($property, $value),
                 $property instanceof MacroDefinition => throw new ImmutableMacroException($this->class, $property->name),
                 $property instanceof RelationDefinition => $this->setRelationValue($property, $value)
             };
@@ -484,6 +570,16 @@ final class Backbone implements AccessInterface, BackboneInterface
 
         if ($property instanceof RelationDefinition) {
             throw new ImmutableRelationException($this->class, $property->name);
+        }
+
+        if ($property instanceof EmbeddedDefinition) {
+            foreach ($property->allColumns() as $column) {
+                $this->data->unsetValue($column->key);
+            }
+
+            $this->castCache->unsetValue($property->name);
+
+            return;
         }
 
         /** @var ColumnDefinition $property */
@@ -520,6 +616,24 @@ final class Backbone implements AccessInterface, BackboneInterface
     private function getSaveableValues(): Generator
     {
         foreach ($this->structure->properties as $property) {
+            if ($property instanceof EmbeddedDefinition) {
+                if (!$this->isNew && !isset($this->modified[$property->name])) {
+                    continue;
+                }
+
+                foreach ($property->allColumns() as $column) {
+                    if ($this->data->hasValue($column->key)) {
+                        $value = $this->data->getValue($column->key);
+                    } else {
+                        $value = literal('default');
+                    }
+
+                    yield $column->key => $value;
+                }
+
+                continue;
+            }
+
             if (!($property instanceof ColumnDefinition)) {
                 continue;
             }

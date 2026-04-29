@@ -9,7 +9,7 @@ use Raxos\Contract\Database\DatabaseExceptionInterface;
 use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, OrmExceptionInterface, QueryableInterface, VisibilityInterface};
 use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
 use Raxos\Contract\DebuggableInterface;
-use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Definition\{EmbeddedDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{MissingFunctionException, MissingPrimaryKeyException};
 use Raxos\Database\Orm\Structure\{StructureGenerator, StructureHelper};
 use Raxos\Database\Query\Select;
@@ -255,6 +255,13 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
                 continue;
             }
 
+            if ($property instanceof EmbeddedDefinition) {
+                $value = $this->backbone->getValue($property->name);
+                $result[$key] = $value !== null ? self::embeddedToArray($property, $value) : null;
+
+                continue;
+            }
+
             $only = $this->visible[$property->name] ?? null;
             $value = $this->backbone->getValue($property->name);
 
@@ -273,6 +280,34 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
             }
 
             $result[$key] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Converts an embedded value object to an associative array.
+     *
+     * @param EmbeddedDefinition $definition
+     * @param object $value
+     *
+     * @return array
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    private static function embeddedToArray(EmbeddedDefinition $definition, object $value): array
+    {
+        $result = [];
+
+        foreach ($definition->columns as $column) {
+            $columnKey = $column->alias ?? $column->name;
+            $result[$columnKey] = $value->{$column->name};
+        }
+
+        foreach ($definition->embeddeds as $nested) {
+            $nestedKey = $nested->alias ?? $nested->name;
+            $nestedValue = $value->{$nested->name};
+            $result[$nestedKey] = $nestedValue !== null ? self::embeddedToArray($nested, $nestedValue) : null;
         }
 
         return $result;

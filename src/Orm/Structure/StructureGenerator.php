@@ -7,16 +7,17 @@ use BackedEnum;
 use Generator;
 use Raxos\Contract\Database\DatabaseExceptionInterface;
 use Raxos\Contract\Database\Orm\{AttributeInterface, CasterInterface, OrmExceptionInterface, RelationAttributeInterface, StructureInterface};
-use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, SoftDelete, Table, Visible};
+use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId, Embeddable, Embedded, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, SoftDelete, Table, Visible};
 use Raxos\Database\Orm\Caster\BooleanCaster;
-use Raxos\Database\Orm\Definition\{ClassStructureDefinition, ColumnDefinition, MacroDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{ConnectionFailedException, InvalidCasterException, InvalidMacroException, InvalidModelException, InvalidRelationException, MissingTableException, ReflectionErrorException};
+use Raxos\Database\Orm\Definition\{ClassStructureDefinition, ColumnDefinition, EmbeddableStructure, EmbeddedDefinition, MacroDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
+use Raxos\Database\Orm\Error\{ConnectionFailedException, InvalidCasterException, InvalidEmbeddableException, InvalidMacroException, InvalidModelException, InvalidRelationException, MissingTableException, ReflectionErrorException};
 use Raxos\Database\Orm\Model;
 use Raxos\Foundation\Util\ReflectionUtil;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
+use function array_map;
 use function array_values;
 use function in_array;
 use function is_a;
@@ -35,6 +36,7 @@ final class StructureGenerator
 {
 
     private static array $structures = [];
+    private static array $embeddableStructures = [];
 
     /**
      * Registers a structure.
@@ -229,6 +231,7 @@ final class StructureGenerator
     private static function property(ReflectionProperty $property): ?PropertyDefinition
     {
         static $isColumn = [];
+        static $isEmbedded = [];
         static $isMacro = [];
         static $isRelation = [];
 
@@ -243,6 +246,10 @@ final class StructureGenerator
 
             if ($isMacro[$name] ??= is_a($name, Macro::class, true)) {
                 return self::propertyMacro($property, $attributes);
+            }
+
+            if ($isEmbedded[$name] ??= is_a($name, Embedded::class, true)) {
+                return self::propertyEmbedded($property, $attributes);
             }
 
             if ($isColumn[$name] ??= is_a($name, Column::class, true)) {
@@ -465,6 +472,294 @@ final class StructureGenerator
             $relation,
             $types,
             $visibleOnly,
+            $property->name,
+            $alias,
+            $isHidden,
+            $isVisible
+        );
+    }
+
+    /**
+     * Returns the embedded definition for the given property.
+     *
+     * @param ReflectionProperty $property
+     * @param ReflectionAttribute[] $attributes
+     *
+     * @return EmbeddedDefinition
+     * @throws OrmExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    private static function propertyEmbedded(ReflectionProperty $property, array $attributes): EmbeddedDefinition
+    {
+        $alias = null;
+        $isHidden = false;
+        $isVisible = false;
+        $prefix = '';
+        $types = ($type = $property->getType()) !== null ? ReflectionUtil::getTypes($type) ?? [] : [];
+        $nullable = in_array('null', $types, true);
+
+        foreach ($attributes as $attribute) {
+            $attr = $attribute->newInstance();
+
+            switch (true) {
+                case $attr instanceof Alias:
+                    $alias = $attr->alias;
+                    break;
+
+                case $attr instanceof Embedded:
+                    $prefix = $attr->prefix;
+                    break;
+
+                case $attr instanceof Hidden:
+                    $isHidden = true;
+                    break;
+
+                case $attr instanceof Visible:
+                    $isVisible = true;
+                    break;
+            }
+        }
+
+        $embeddableClass = null;
+
+        foreach ($types as $type) {
+            if ($type !== 'null') {
+                $embeddableClass = $type;
+                break;
+            }
+        }
+
+        if ($embeddableClass === null) {
+            throw new InvalidEmbeddableException($property->class, $property->name, 'unknown');
+        }
+
+        $embeddableStructure = self::resolveEmbeddable($embeddableClass, $property->class, $property->name);
+
+        return self::applyPrefix($embeddableStructure, $prefix, $property->name, $alias, $nullable, $types, $isHidden, $isVisible);
+    }
+
+    /**
+     * Applies a prefix to an embeddable structure, creating an embedded definition.
+     *
+     * @param EmbeddableStructure $structure
+     * @param string $prefix
+     * @param string $name
+     * @param string|null $alias
+     * @param bool $nullable
+     * @param string[] $types
+     * @param bool $isHidden
+     * @param bool $isVisible
+     *
+     * @return EmbeddedDefinition
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    private static function applyPrefix(
+        EmbeddableStructure $structure,
+        string $prefix,
+        string $name,
+        ?string $alias,
+        bool $nullable,
+        array $types,
+        bool $isHidden,
+        bool $isVisible
+    ): EmbeddedDefinition
+    {
+        $columns = array_map(
+            static fn(ColumnDefinition $column) => new ColumnDefinition(
+                $column->caster,
+                $column->defaultValue,
+                $column->enumClass,
+                false,
+                false,
+                false,
+                false,
+                $prefix . $column->key,
+                $column->nullable,
+                $column->types,
+                $column->visibleOnly,
+                $column->name,
+                $column->alias,
+                $column->isHidden,
+                $column->isVisible
+            ),
+            $structure->columns
+        );
+
+        $embeddeds = array_map(
+            static fn(EmbeddedDefinition $nested) => self::applyPrefix(
+                new EmbeddableStructure($nested->embeddableClass, $nested->columns, $nested->embeddeds),
+                $prefix . $nested->prefix,
+                $nested->name,
+                $nested->alias,
+                $nested->nullable,
+                $nested->types,
+                $nested->isHidden,
+                $nested->isVisible
+            ),
+            $structure->embeddeds
+        );
+
+        return new EmbeddedDefinition(
+            $structure->class,
+            $prefix,
+            $columns,
+            $embeddeds,
+            $nullable,
+            $types,
+            $name,
+            $alias,
+            $isHidden,
+            $isVisible
+        );
+    }
+
+    /**
+     * Resolves and caches the embeddable structure for the given class.
+     *
+     * @param class-string $class
+     * @param string $modelClass
+     * @param string $propertyName
+     *
+     * @return EmbeddableStructure
+     * @throws OrmExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    private static function resolveEmbeddable(string $class, string $modelClass, string $propertyName): EmbeddableStructure
+    {
+        if (isset(self::$embeddableStructures[$class])) {
+            return self::$embeddableStructures[$class];
+        }
+
+        try {
+            $classRef = new ReflectionClass($class);
+        } catch (ReflectionException $err) {
+            throw new InvalidEmbeddableException($modelClass, $propertyName, $class, $err);
+        }
+
+        $embeddableAttributes = $classRef->getAttributes(Embeddable::class);
+
+        if (empty($embeddableAttributes)) {
+            throw new InvalidEmbeddableException($modelClass, $propertyName, $class);
+        }
+
+        $columns = [];
+        $embeddeds = [];
+        $properties = $classRef->getProperties(ReflectionProperty::IS_PUBLIC);
+
+        foreach ($properties as $prop) {
+            $propAttributes = $prop->getAttributes(AttributeInterface::class, ReflectionAttribute::IS_INSTANCEOF);
+
+            $hasColumn = false;
+            $hasEmbedded = false;
+
+            foreach ($propAttributes as $propAttribute) {
+                $attrName = $propAttribute->getName();
+
+                if (is_a($attrName, Column::class, true)) {
+                    $hasColumn = true;
+                    break;
+                }
+
+                if (is_a($attrName, Embedded::class, true)) {
+                    $hasEmbedded = true;
+                    break;
+                }
+            }
+
+            if ($hasColumn) {
+                $columns[] = self::embeddableColumn($prop, $propAttributes);
+            } elseif ($hasEmbedded) {
+                $embeddeds[] = self::propertyEmbedded($prop, $propAttributes);
+            }
+        }
+
+        if (empty($columns) && empty($embeddeds)) {
+            throw new InvalidEmbeddableException($modelClass, $propertyName, $class);
+        }
+
+        return self::$embeddableStructures[$class] = new EmbeddableStructure($class, $columns, $embeddeds);
+    }
+
+    /**
+     * Returns the column definition for a property within an embeddable class.
+     * This is a simplified variant of {@see propertyColumn()} that does not
+     * support PrimaryKey, ForeignKey, Computed, or Immutable attributes.
+     *
+     * @param ReflectionProperty $property
+     * @param ReflectionAttribute[] $attributes
+     *
+     * @return ColumnDefinition
+     * @throws OrmExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    private static function embeddableColumn(ReflectionProperty $property, array $attributes): ColumnDefinition
+    {
+        $alias = null;
+        $caster = null;
+        $defaultValue = $property->hasDefaultValue() ? $property->getDefaultValue() : null;
+        $hasAlias = false;
+        $isHidden = false;
+        $isVisible = false;
+        $key = $property->name;
+        $types = ($type = $property->getType()) !== null ? ReflectionUtil::getTypes($type) ?? [] : [];
+        $enumClass = isset($types[0]) && is_subclass_of($types[0], BackedEnum::class) ? $types[0] : null;
+        $nullable = in_array('null', $types, true);
+
+        foreach ($attributes as $attribute) {
+            $attr = $attribute->newInstance();
+
+            switch (true) {
+                case $attr instanceof Alias:
+                    $alias = $attr->alias;
+                    $hasAlias = true;
+                    break;
+
+                case $attr instanceof Caster:
+                    if (!is_subclass_of($attr->casterClass, CasterInterface::class)) {
+                        throw new InvalidCasterException($property->class, $property->name);
+                    }
+
+                    $caster = $attr->casterClass;
+                    break;
+
+                case $attr instanceof Column:
+                    $key = $attr->key ?? $property->name;
+                    break;
+
+                case $attr instanceof Hidden:
+                    $isHidden = true;
+                    break;
+
+                case $attr instanceof Visible:
+                    $isVisible = true;
+                    break;
+            }
+        }
+
+        if ($alias === null && $hasAlias) {
+            $alias = $key;
+        }
+
+        if ($caster === null && isset($types[0]) && $types[0] === 'bool') {
+            $caster = BooleanCaster::class;
+        }
+
+        return new ColumnDefinition(
+            $caster,
+            $defaultValue,
+            $enumClass,
+            false,
+            false,
+            false,
+            false,
+            $key,
+            $nullable,
+            $types,
+            null,
             $property->name,
             $alias,
             $isHidden,
