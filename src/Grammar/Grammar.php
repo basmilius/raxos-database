@@ -28,6 +28,7 @@ abstract readonly class Grammar implements GrammarInterface
      * @param string $tableSeparator
      * @param bool $supportsReturning
      * @param bool $supportsRowValueConstructors
+     * @param bool $supportsRowLocking
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
@@ -37,8 +38,49 @@ abstract readonly class Grammar implements GrammarInterface
         public string $columnSeparator = ', ',
         public string $tableSeparator = ', ',
         public bool $supportsReturning = true,
-        public bool $supportsRowValueConstructors = true
+        public bool $supportsRowValueConstructors = true,
+        public bool $supportsRowLocking = false
     ) {}
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function compileForShare(): string
+    {
+        throw new UnsupportedException('Feature forShare is not supported by the current database engine.');
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function compileForUpdate(): string
+    {
+        throw new UnsupportedException('Feature forUpdate is not supported by the current database engine.');
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function compileLockNowait(): string
+    {
+        throw new UnsupportedException('Feature nowait is not supported by the current database engine.');
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function compileLockSkipLocked(): string
+    {
+        throw new UnsupportedException('Feature skipLocked is not supported by the current database engine.');
+    }
 
     /**
      * {@inheritdoc}

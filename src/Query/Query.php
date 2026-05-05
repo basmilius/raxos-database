@@ -657,9 +657,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function run(array $options = []): void
+    public function run(array $options = []): int
     {
-        $this
+        return $this
             ->statement($options)
             ->run();
     }
@@ -897,6 +897,46 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         }
 
         return $this->addPiece('from', $tables, $this->grammar->tableSeparator);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function forShare(): static
+    {
+        return $this->addPiece($this->grammar->compileForShare());
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function forUpdate(): static
+    {
+        return $this->addPiece($this->grammar->compileForUpdate());
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function nowait(): static
+    {
+        return $this->addPiece($this->grammar->compileLockNowait());
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function skipLocked(): static
+    {
+        return $this->addPiece($this->grammar->compileLockSkipLocked());
     }
 
     /**

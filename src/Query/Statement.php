@@ -157,9 +157,11 @@ class Statement implements StatementInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public final function run(): void
+    public final function run(): int
     {
         $this->execute();
+
+        return $this->pdoStatement->rowCount();
     }
 
     /**

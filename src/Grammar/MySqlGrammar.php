@@ -28,8 +28,49 @@ readonly class MySqlGrammar extends Grammar
     {
         parent::__construct(
             escapers: $escapers,
-            supportsReturning: $supportsReturning
+            supportsReturning: $supportsReturning,
+            supportsRowLocking: true
         );
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function compileForShare(): string
+    {
+        return 'for share';
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function compileForUpdate(): string
+    {
+        return 'for update';
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function compileLockNowait(): string
+    {
+        return 'nowait';
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.2.0
+     */
+    public function compileLockSkipLocked(): string
+    {
+        return 'skip locked';
     }
 
     /**
