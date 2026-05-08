@@ -126,7 +126,9 @@ final readonly class BelongsToManyRelation implements RelationInterface
                 ->on($this->referenceLinkingKey, $this->referenceKey))
             ->where($this->declaringLinkingKey, $instance->{$this->declaringKey->column})
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
-                ->orderBy($this->attribute->orderBy));
+                ->orderBy($this->attribute->orderBy))
+            ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                ->withDeleted());
     }
 
     /**
@@ -141,7 +143,9 @@ final readonly class BelongsToManyRelation implements RelationInterface
                 ->on($this->referenceLinkingKey, $this->referenceKey))
             ->where($this->declaringLinkingKey, $this->declaringKey)
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
-                ->orderBy($this->attribute->orderBy));
+                ->orderBy($this->attribute->orderBy))
+            ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                ->withDeleted());
     }
 
     /**
@@ -179,6 +183,8 @@ final readonly class BelongsToManyRelation implements RelationInterface
                 ->whereIn($this->referenceKey, $referenceKeyValues)
                 ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                     ->orderBy($this->attribute->orderBy))
+                ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                    ->withDeleted())
                 ->array()
             : [];
 

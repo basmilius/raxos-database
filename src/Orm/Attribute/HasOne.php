@@ -45,6 +45,7 @@ final readonly class HasOne implements AttributeInterface, RelationAttributeInte
      * @param string|null $declaringKeyTable
      * @param bool $eagerLoad
      * @param string|null $orderBy
+     * @param bool $withDeleted
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
@@ -55,7 +56,8 @@ final readonly class HasOne implements AttributeInterface, RelationAttributeInte
         public ?string $declaringKey = null,
         public ?string $declaringKeyTable = null,
         public bool $eagerLoad = false,
-        public ?string $orderBy = null
+        public ?string $orderBy = null,
+        public bool $withDeleted = false
     ) {}
 
 }

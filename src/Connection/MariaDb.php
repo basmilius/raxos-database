@@ -14,6 +14,8 @@ use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
 use Raxos\Database\Query\MariaDbQuery;
 use SensitiveParameter;
+use Throwable;
+use function array_column;
 use function Raxos\Database\Query\literal;
 
 /**
@@ -59,6 +61,32 @@ final class MariaDb extends Connection
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
+     * @since 2.3.0
+     */
+    public function ping(): bool
+    {
+        try {
+            $this->execute('do 1');
+
+            return true;
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.3.0
+     */
+    protected function getRecoverableDriverCodes(): array
+    {
+        return [2006, 2013, 1927];
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
     public function connect(): void
@@ -77,6 +105,7 @@ final class MariaDb extends Connection
 
     /**
      * {@inheritdoc}
+     * @deprecated 2.3.0
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -120,6 +149,32 @@ final class MariaDb extends Connection
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
+     * @since 2.3.0
+     */
+    protected function loadTableColumns(string $table): ?array
+    {
+        try {
+            $results = $this
+                ->query()
+                ->select(['COLUMN_NAME'])
+                ->from('information_schema.COLUMNS')
+                ->where('TABLE_SCHEMA', literal('DATABASE()'))
+                ->where('TABLE_NAME', $table)
+                ->array();
+
+            if (empty($results)) {
+                return null;
+            }
+
+            return array_column($results, 'COLUMN_NAME');
+        } catch (DatabaseExceptionInterface $err) {
+            throw new SchemaFetchFailedException($err);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
     public function query(bool $prepared = true): QueryInterface
@@ -142,7 +197,8 @@ final class MariaDb extends Connection
      * @param Logger|null $logger
      *
      * @return self
-     * @throws DatabaseExceptionInterface
+     * @throws InvalidOptionException
+     * @throws MissingOptionException
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */

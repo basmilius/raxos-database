@@ -115,7 +115,9 @@ final readonly class BelongsToThroughRelation implements RelationInterface
         return $this->referenceStructure->class::select()
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
-            ->where($this->declaringLinkingKey, $instance->{$this->declaringKey->column});
+            ->where($this->declaringLinkingKey, $instance->{$this->declaringKey->column})
+            ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                ->withDeleted());
     }
 
     /**
@@ -128,7 +130,9 @@ final readonly class BelongsToThroughRelation implements RelationInterface
         return $this->referenceStructure->class::select(prepared: false)
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
-            ->where($this->declaringLinkingKey, $this->declaringKey);
+            ->where($this->declaringLinkingKey, $this->declaringKey)
+            ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                ->withDeleted());
     }
 
     /**
@@ -161,6 +165,8 @@ final readonly class BelongsToThroughRelation implements RelationInterface
         $referenceModels = !empty($referenceKeyValues)
             ? $this->referenceStructure->class::select()
                 ->whereIn($this->referenceKey, $referenceKeyValues)
+                ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                    ->withDeleted())
                 ->array()
             : [];
 

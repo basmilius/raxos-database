@@ -67,6 +67,7 @@ final readonly class BelongsToThrough implements AttributeInterface, RelationAtt
      * @param string|null $declaringKey
      * @param string|null $declaringKeyTable
      * @param bool $eagerLoad
+     * @param bool $withDeleted
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
@@ -81,7 +82,8 @@ final readonly class BelongsToThrough implements AttributeInterface, RelationAtt
         public ?string $declaringLinkingKeyTable = null,
         public ?string $declaringKey = null,
         public ?string $declaringKeyTable = null,
-        public bool $eagerLoad = false
+        public bool $eagerLoad = false,
+        public bool $withDeleted = false
     ) {}
 
 }

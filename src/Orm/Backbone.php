@@ -8,16 +8,14 @@ use Generator;
 use JetBrains\PhpStorm\ExpectedValues;
 use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
 use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, OrmExceptionInterface, StructureInterface, WritableRelationInterface};
-use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
+use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface, QueryValueInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, EmbeddedDefinition, MacroDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, MissingPrimaryKeyException, NotFoundException, PropertyReadFailedException, PropertyWriteFailedException};
+use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, MissingPolymorphicMappingException, MissingPrimaryKeyException, NotFoundException, PropertyReadFailedException, PropertyWriteFailedException};
 use Raxos\Foundation\Util\Singleton;
-use function array_column;
 use function array_find_key;
+use function array_key_exists;
 use function array_map;
 use function array_shift;
-use function in_array;
-use function is_subclass_of;
 use function iterator_to_array;
 use function Raxos\Database\Query\literal;
 
@@ -25,6 +23,7 @@ use function Raxos\Database\Query\literal;
  * Class Backbone
  *
  * @template TModel of Model
+ * @implements BackboneInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
@@ -35,6 +34,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     public readonly CacheInterface $cache;
     public readonly ConnectionInterface $connection;
+    /** @var class-string<Model> */
     public readonly string $class;
     public readonly int $id;
 
@@ -420,6 +420,51 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
+     * @since 2.3.0
+     */
+    public function destroy(): void
+    {
+        $primaryKey = $this->getPrimaryKeyValues();
+
+        if ($primaryKey === null) {
+            throw new MissingPrimaryKeyException($this->class);
+        }
+
+        $this->cache->unset($this->class, $primaryKey);
+
+        $softDeleteColumn = $this->structure->softDeleteColumn;
+
+        if ($softDeleteColumn === null) {
+            $this->class::delete($primaryKey);
+
+            return;
+        }
+
+        $this->class::update($primaryKey, [
+            $softDeleteColumn => literal('now()')
+        ]);
+
+        // note(Bas): re-read the soft-delete timestamp from the DB so the
+        //  in-memory instance reflects the deleted state. Drop derived
+        //  caches because relations/macros may depend on the deletion.
+        $record = $this->class::select()
+            ->withoutModel()
+            ->withDeleted()
+            ->wherePrimaryKey($this->class, $primaryKey)
+            ->single();
+
+        if ($record !== null) {
+            $this->data->replaceWith($record);
+        }
+
+        $this->castCache->clear();
+        $this->macroCache->clear();
+        $this->relationCache->clear();
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
      * @since 1.0.19
      */
     public function save(): void
@@ -435,8 +480,6 @@ final class Backbone implements AccessInterface, BackboneInterface
         if (empty($values)) {
             return;
         }
-
-        $wasNew = $this->isNew;
 
         if ($this->isNew) {
             // note(Bas): saves a new record for the model.
@@ -455,7 +498,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
                 // note(Bas): RETURNING * only returns physical table columns. When the model
                 //  has computed columns (populated via getQueryableColumns/getQueryableJoins),
-                //  those won't be present in the result. Fall back to a full select query.
+                //  those won't be present in the result. Fall back to a full SELECT query.
                 if ($this->hasComputedProperties()) {
                     $record = $this->class::select()
                         ->withoutModel()
@@ -463,7 +506,26 @@ final class Backbone implements AccessInterface, BackboneInterface
                         ->single();
                 }
             } else {
-                $primaryKeyValue = $query->runReturning(array_column($primaryKey, 'key'));
+                // note(Bas): databases without RETURNING support (e.g., MySQL) need to
+                //  reconstruct the primary key from explicit input values, falling back
+                //  to lastInsertId() for auto-increment columns.
+                $query->run();
+
+                $primaryKeyValue = [];
+                $autoIncrementCount = 0;
+
+                foreach ($primaryKey as $pkProperty) {
+                    if (array_key_exists($pkProperty->key, $values) && !($values[$pkProperty->key] instanceof QueryValueInterface)) {
+                        $primaryKeyValue[$pkProperty->key] = $values[$pkProperty->key];
+                    } else {
+                        $primaryKeyValue[$pkProperty->key] = $this->connection->lastInsertIdInteger();
+                        ++$autoIncrementCount;
+                    }
+                }
+
+                if ($autoIncrementCount > 1) {
+                    throw new MissingPrimaryKeyException($this->class);
+                }
 
                 $record = $this->class::select()
                     ->withoutModel()
@@ -476,20 +538,30 @@ final class Backbone implements AccessInterface, BackboneInterface
 
             $this->cache->set($this->class, $primaryKeyValue, $this->currentInstance);
         } else {
-            // note(Bas): saves the modified fields of an existing record.
-            $primaryKey = array_map(fn(ColumnDefinition $property) => $this->getValue($property->name), $primaryKey);
-            $this->class::update($primaryKey, $values);
+            // note(Bas): saves the modified fields of an existing record. We
+            //  only re-SELECT when the model has computed columns the caller
+            //  may read back; otherwise we skip the round-trip.
+            $primaryKeyValues = array_map(fn(ColumnDefinition $property) => $this->getValue($property->name), $primaryKey);
+            $this->class::update($primaryKeyValues, $values);
+
+            if ($this->hasComputedProperties()) {
+                $record = $this->class::select()
+                    ->withoutModel()
+                    ->wherePrimaryKey($this->class, $primaryKeyValues)
+                    ->single();
+
+                if ($record !== null) {
+                    $this->data->replaceWith($record);
+                }
+            }
         }
 
         $this->runSaveTasks();
 
-        // For new records the data was fully replaced, so all caches are stale.
-        // For existing records, setColumnValue already cleared cast cache entries
-        // for each modified property, so only macro and relation caches need clearing.
-        if ($wasNew) {
-            $this->castCache->clear();
-        }
-
+        // For new records the data was fully replaced; for existing records we
+        // either reloaded `$this->data` (when refresh was requested) or only
+        // wrote the dirty fields. Clearing derived caches is safe in both cases.
+        $this->castCache->clear();
         $this->macroCache->clear();
         $this->relationCache->clear();
 
@@ -588,7 +660,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * Returns TRUE when the model's structure has at least one computed column.
-     * Computed columns are not returned by `RETURNING *` and require a separate select.
+     * Computed columns are not returned by `RETURNING *` and require a separate SELECT.
      *
      * @return bool
      * @author Bas Milius <bas@mili.us>
@@ -596,13 +668,7 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     private function hasComputedProperties(): bool
     {
-        foreach ($this->structure->properties as $property) {
-            if ($property instanceof ColumnDefinition && $property->isComputed) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($this->structure->properties, fn($property) => $property instanceof ColumnDefinition && $property->isComputed);
     }
 
     /**
@@ -667,7 +733,13 @@ final class Backbone implements AccessInterface, BackboneInterface
             return;
         }
 
-        yield $polymorphic->column => array_find_key($polymorphic->map, fn(string $class) => $class === $this->class);
+        $discriminator = array_find_key($polymorphic->map, fn(string $class) => $class === $this->class);
+
+        if ($discriminator === null) {
+            throw new MissingPolymorphicMappingException($this->class, $polymorphic->column);
+        }
+
+        yield $polymorphic->column => $discriminator;
     }
 
 }

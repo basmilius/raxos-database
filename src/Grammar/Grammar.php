@@ -6,6 +6,7 @@ namespace Raxos\Database\Grammar;
 use Raxos\Contract\Database\GrammarInterface;
 use Raxos\Database\Query\Error\UnsupportedException;
 use function array_map;
+use function count;
 use function explode;
 use function implode;
 use function str_contains;
@@ -19,6 +20,8 @@ use function str_contains;
  */
 abstract readonly class Grammar implements GrammarInterface
 {
+
+    private const int ESCAPE_CACHE_LIMIT = 4096;
 
     /**
      * Grammar constructor.
@@ -103,14 +106,13 @@ abstract readonly class Grammar implements GrammarInterface
     }
 
     /**
-     * Escapes the column.
+     * Escapes the given identifier.
      *
      * @param string $value
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
-     * @see Grammar::realEscape()
      */
     public function escape(string $value): string
     {
@@ -118,7 +120,15 @@ abstract readonly class Grammar implements GrammarInterface
 
         $key = static::class . ':' . $value;
 
-        return $cache[$key] ??= $this->escapeImpl($value);
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
+        if (count($cache) >= self::ESCAPE_CACHE_LIMIT) {
+            $cache = [];
+        }
+
+        return $cache[$key] = $this->escapeImpl($value);
     }
 
     /**

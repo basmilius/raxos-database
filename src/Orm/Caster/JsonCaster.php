@@ -6,10 +6,12 @@ namespace Raxos\Database\Orm\Caster;
 use JsonException;
 use Raxos\Contract\Database\Orm\CasterInterface;
 use Raxos\Database\Orm\Model;
+use function error_log;
 use function is_string;
 use function json_decode;
 use function json_encode;
 use function json_validate;
+use function sprintf;
 use const JSON_HEX_AMP;
 use const JSON_HEX_APOS;
 use const JSON_HEX_QUOT;
@@ -34,7 +36,16 @@ final readonly class JsonCaster implements CasterInterface
      */
     public function decode(float|int|string|null $value, Model $instance): mixed
     {
-        if (!is_string($value) || !json_validate($value)) {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        if (!json_validate($value)) {
+            error_log(sprintf(
+                '[raxos/database] JsonCaster::decode() received invalid JSON for %s; returning null.',
+                $instance::class
+            ));
+
             return null;
         }
 

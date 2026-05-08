@@ -66,6 +66,7 @@ final readonly class HasManyThrough implements AttributeInterface, RelationAttri
      * @param string|null $declaringKeyTable
      * @param bool $eagerLoad
      * @param string|null $orderBy
+     * @param bool $withDeleted
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
@@ -82,7 +83,8 @@ final readonly class HasManyThrough implements AttributeInterface, RelationAttri
         public ?string $declaringKey = null,
         public ?string $declaringKeyTable = null,
         public bool $eagerLoad = false,
-        public ?string $orderBy = null
+        public ?string $orderBy = null,
+        public bool $withDeleted = false
     ) {}
 
 }

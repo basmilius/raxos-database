@@ -45,6 +45,7 @@ final readonly class BelongsTo implements AttributeInterface, RelationAttributeI
      * @param string|null $declaringKey
      * @param string|null $declaringKeyTable
      * @param bool $eagerLoad
+     * @param bool $withDeleted
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
@@ -54,7 +55,8 @@ final readonly class BelongsTo implements AttributeInterface, RelationAttributeI
         public ?string $referenceKeyTable = null,
         public ?string $declaringKey = null,
         public ?string $declaringKeyTable = null,
-        public bool $eagerLoad = false
+        public bool $eagerLoad = false,
+        public bool $withDeleted = false
     ) {}
 
 }

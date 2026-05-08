@@ -24,7 +24,7 @@ final readonly class GroupConcat implements QueryExpressionInterface
      * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
      * @param bool $distinct
      * @param QueryLiteralInterface|string|null $orderBy
-     * @param string|null $separator
+     * @param QueryLiteralInterface|string|null $separator
      * @param int|null $limit
      * @param int|null $offset
      *

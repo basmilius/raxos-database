@@ -108,7 +108,9 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      */
     public function query(Model $instance): QueryInterface
     {
-        return $this->referenceStructure->class::where($this->referenceKey, $instance->{$this->declaringKey->column});
+        return $this->referenceStructure->class::where($this->referenceKey, $instance->{$this->declaringKey->column})
+            ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                ->withDeleted());
     }
 
     /**
@@ -119,7 +121,9 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     public function rawQuery(): QueryInterface
     {
         return $this->referenceStructure->class::select(prepared: false)
-            ->where($this->referenceKey, $this->declaringKey);
+            ->where($this->referenceKey, $this->declaringKey)
+            ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                ->withDeleted());
     }
 
     /**
@@ -143,6 +147,8 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         if ($uncached->isNotEmpty()) {
             $this->referenceStructure->class::select()
                 ->whereIn($this->referenceKey, $uncached)
+                ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                    ->withDeleted())
                 ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
                 ->array();
         }

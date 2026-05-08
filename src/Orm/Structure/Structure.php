@@ -12,7 +12,7 @@ use Raxos\Database\Db;
 use Raxos\Database\Logger\EagerLoadEvent;
 use Raxos\Database\Orm\{Backbone, Model};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
-use Raxos\Database\Orm\Definition\{ColumnDefinition, EmbeddedDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
+use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InvalidColumnException, MissingPolymorphicDiscriminatorException, MissingPropertyException, MissingRelationImplementationException, ReflectionErrorException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
 use Raxos\Database\Query\Literal\ColumnLiteral;
@@ -148,18 +148,17 @@ final class Structure implements StructureInterface, SerializableInterface
         if (self::ENABLE_LAZY_GHOST) {
             $class = $this->class;
             $parent = $this->parent;
-            $structure = $this;
 
             try {
                 /** @var TModel $instance */
-                $instance = new ReflectionClass($class)->newLazyGhost(static function (Model $instance) use ($class, $structure, $data): void {
+                $instance = new ReflectionClass($class)->newLazyGhost(function (Model $instance) use ($class, $data): void {
                     if (is_subclass_of($class, InitializeInterface::class)) {
                         $data = $class::onInitialize($data);
                     }
 
-                    $backbone = new Backbone($structure, $data);
+                    $backbone = new Backbone($this, $data);
 
-                    if ($structure->isBackboneInitializable) {
+                    if ($this->isBackboneInitializable) {
                         $class::onBackboneInitialized($backbone, $data);
                     }
 

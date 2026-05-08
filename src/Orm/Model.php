@@ -10,7 +10,7 @@ use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, OrmExceptio
 use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
 use Raxos\Contract\DebuggableInterface;
 use Raxos\Database\Orm\Definition\{EmbeddedDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{MissingFunctionException, MissingPrimaryKeyException};
+use Raxos\Database\Orm\Error\MissingFunctionException;
 use Raxos\Database\Orm\Structure\{StructureGenerator, StructureHelper};
 use Raxos\Database\Query\Select;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
@@ -19,7 +19,6 @@ use function array_diff_key;
 use function array_key_exists;
 use function array_merge_recursive;
 use function implode;
-use function Raxos\Database\Query\literal;
 use function sprintf;
 
 /**
@@ -73,21 +72,13 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      */
     public function destroy(): void
     {
-        $primaryKey = $this->backbone->getPrimaryKeyValues();
+        $previous = $this->backbone->currentInstance;
+        $this->backbone->currentInstance = $this;
 
-        if ($primaryKey === null) {
-            throw new MissingPrimaryKeyException(static::class);
-        }
-
-        $cache = $this->backbone->cache;
-        $cache->unset(static::class, $primaryKey);
-
-        if ($this->backbone->structure->softDeleteColumn !== null) {
-            self::update($primaryKey, [
-                $this->backbone->structure->softDeleteColumn => literal('now()')
-            ]);
-        } else {
-            self::delete($primaryKey);
+        try {
+            $this->backbone->destroy();
+        } finally {
+            $this->backbone->currentInstance = $previous;
         }
     }
 
@@ -103,8 +94,14 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      */
     public function save(): void
     {
+        $previous = $this->backbone->currentInstance;
         $this->backbone->currentInstance = $this;
-        $this->backbone->save();
+
+        try {
+            $this->backbone->save();
+        } finally {
+            $this->backbone->currentInstance = $previous;
+        }
     }
 
     /**
@@ -176,9 +173,14 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      */
     public function getValue(string $key): mixed
     {
+        $previous = $this->backbone->currentInstance;
         $this->backbone->currentInstance = $this;
 
-        return $this->backbone->getValue($key);
+        try {
+            return $this->backbone->getValue($key);
+        } finally {
+            $this->backbone->currentInstance = $previous;
+        }
     }
 
     /**
@@ -188,9 +190,14 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      */
     public function hasValue(string $key): bool
     {
+        $previous = $this->backbone->currentInstance;
         $this->backbone->currentInstance = $this;
 
-        return $this->backbone->hasValue($key);
+        try {
+            return $this->backbone->hasValue($key);
+        } finally {
+            $this->backbone->currentInstance = $previous;
+        }
     }
 
     /**
@@ -200,8 +207,14 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      */
     public function setValue(string $key, mixed $value): void
     {
+        $previous = $this->backbone->currentInstance;
         $this->backbone->currentInstance = $this;
-        $this->backbone->setValue($key, $value);
+
+        try {
+            $this->backbone->setValue($key, $value);
+        } finally {
+            $this->backbone->currentInstance = $previous;
+        }
     }
 
     /**
@@ -211,8 +224,14 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      */
     public function unsetValue(string $key): void
     {
+        $previous = $this->backbone->currentInstance;
         $this->backbone->currentInstance = $this;
-        $this->backbone->unsetValue($key);
+
+        try {
+            $this->backbone->unsetValue($key);
+        } finally {
+            $this->backbone->currentInstance = $previous;
+        }
     }
 
     /**
@@ -235,51 +254,56 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     public function toArray(): array
     {
         $result = [];
+        $previous = $this->backbone->currentInstance;
         $this->backbone->currentInstance = $this;
         $noVisibilityOverrides = empty($this->visible) && empty($this->hidden);
 
-        foreach ($this->backbone->structure->properties as $property) {
-            $key = $property->alias ?? $property->name;
+        try {
+            foreach ($this->backbone->structure->properties as $property) {
+                $key = $property->alias ?? $property->name;
 
-            if ($noVisibilityOverrides) {
-                $visible = StructureHelper::isVisible($property, false, false);
-            } else {
-                $visible = StructureHelper::isVisible(
-                    $property,
-                    array_key_exists($property->name, $this->visible),
-                    array_key_exists($property->name, $this->hidden)
-                );
-            }
-
-            if (!$visible) {
-                continue;
-            }
-
-            if ($property instanceof EmbeddedDefinition) {
-                $value = $this->backbone->getValue($property->name);
-                $result[$key] = $value !== null ? self::embeddedToArray($property, $value) : null;
-
-                continue;
-            }
-
-            $only = $this->visible[$property->name] ?? null;
-            $value = $this->backbone->getValue($property->name);
-
-            if ($property instanceof RelationDefinition && $property->visibleOnly !== null) {
-                $only = array_merge_recursive($property->visibleOnly, $only ?? []);
-            }
-
-            if ($only !== null) {
-                if ($value instanceof self) {
-                    $value = $value->only($only)->toArray();
+                if ($noVisibilityOverrides) {
+                    $visible = StructureHelper::isVisible($property, false, false);
                 } else {
-                    if ($value instanceof ModelArrayList) {
-                        $value = $value->map(static fn(self $model) => $model->only($only)->toArray());
+                    $visible = StructureHelper::isVisible(
+                        $property,
+                        array_key_exists($property->name, $this->visible),
+                        array_key_exists($property->name, $this->hidden)
+                    );
+                }
+
+                if (!$visible) {
+                    continue;
+                }
+
+                if ($property instanceof EmbeddedDefinition) {
+                    $value = $this->backbone->getValue($property->name);
+                    $result[$key] = $value !== null ? self::embeddedToArray($property, $value) : null;
+
+                    continue;
+                }
+
+                $only = $this->visible[$property->name] ?? null;
+                $value = $this->backbone->getValue($property->name);
+
+                if ($property instanceof RelationDefinition && $property->visibleOnly !== null) {
+                    $only = array_merge_recursive($property->visibleOnly, $only ?? []);
+                }
+
+                if ($only !== null) {
+                    if ($value instanceof self) {
+                        $value = $value->only($only)->toArray();
+                    } else {
+                        if ($value instanceof ModelArrayList) {
+                            $value = $value->map(static fn(self $model) => $model->only($only)->toArray());
+                        }
                     }
                 }
-            }
 
-            $result[$key] = $value;
+                $result[$key] = $value;
+            }
+        } finally {
+            $this->backbone->currentInstance = $previous;
         }
 
         return $result;

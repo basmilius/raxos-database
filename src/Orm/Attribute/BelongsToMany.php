@@ -52,6 +52,7 @@ final readonly class BelongsToMany implements AttributeInterface, RelationAttrib
      * @param string|null $declaringLinkingKeyTable
      * @param bool $eagerLoad
      * @param string|null $orderBy
+     * @param bool $withDeleted
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
@@ -68,7 +69,8 @@ final readonly class BelongsToMany implements AttributeInterface, RelationAttrib
         public ?string $declaringLinkingKey = null,
         public ?string $declaringLinkingKeyTable = null,
         public bool $eagerLoad = false,
-        public ?string $orderBy = null
+        public ?string $orderBy = null,
+        public bool $withDeleted = false
     ) {}
 
 }

@@ -19,12 +19,16 @@ use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Error\{ConnectionErrorException, InvalidModelException, MissingModelException, SyntaxException, UnexpectedException};
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
+use Throwable;
 use function array_map;
 use function ceil;
 use function class_exists;
+use function error_log;
 use function floor;
 use function is_array;
+use function is_bool;
 use function is_int;
+use function sprintf;
 
 /**
  * Class Statement
@@ -87,7 +91,15 @@ class Statement implements StatementInterface
     {
         try {
             $this->pdoStatement->closeCursor();
-        } catch (\Throwable) {
+        } catch (Throwable $err) {
+            // note(Bas): destructors must not throw. We intentionally swallow
+            //  but emit to error_log() so cursor-cleanup failures (which can
+            //  cause connection-pool exhaustion under load) leave a trail.
+            error_log(sprintf(
+                '[raxos/database] Statement::__destruct() closeCursor failed: %s (%s)',
+                $err->getMessage(),
+                $err::class
+            ));
         }
     }
 
@@ -181,9 +193,14 @@ class Statement implements StatementInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public final function bind(string $name, string|int|float|null $value, ?int $type = null): static
+    public final function bind(string $name, bool|string|int|float|null $value, ?int $type = null): static
     {
-        $type ??= is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+        $type ??= match (true) {
+            is_bool($value) => PDO::PARAM_BOOL,
+            is_int($value) => PDO::PARAM_INT,
+            $value === null => PDO::PARAM_NULL,
+            default => PDO::PARAM_STR
+        };
 
         $this->pdoStatement->bindValue($name, $value, $type);
 

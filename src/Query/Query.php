@@ -5,6 +5,7 @@ namespace Raxos\Database\Query;
 
 use BackedEnum;
 use Closure;
+use Countable;
 use Generator;
 use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
@@ -44,7 +45,6 @@ use function is_numeric;
 use function is_string;
 use function iterator_to_array;
 use function str_contains;
-use function substr;
 use function trim;
 
 /**
@@ -165,6 +165,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         if ($value instanceof Stringable) {
             $value = (string)$value;
+        }
+
+        if ($value instanceof BackedEnum) {
+            $value = $value->value;
         }
 
         $name = ":{$this->paramsIndex}{$this->paramsCount}";
@@ -994,6 +998,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function havingIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
+        if (self::isEmptyOptions($options)) {
+            return $this->having(Literal::of('1 = 0'));
+        }
+
         return $this->having($field, expr->in(...$options));
     }
 
@@ -1024,6 +1032,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function havingNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
+        if (self::isEmptyOptions($options)) {
+            return $this->having(Literal::of('1 = 1'));
+        }
+
         return $this->having($field, expr->not(expr->in(...$options)));
     }
 
@@ -1068,6 +1080,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orHavingIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
+        if (self::isEmptyOptions($options)) {
+            return $this->orHaving(Literal::of('1 = 0'));
+        }
+
         return $this->orHaving($field, expr->in(...$options));
     }
 
@@ -1088,6 +1104,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orHavingNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
+        if (self::isEmptyOptions($options)) {
+            return $this->orHaving(Literal::of('1 = 1'));
+        }
+
         return $this->orHaving($field, expr->not(expr->in(...$options)));
     }
 
@@ -1118,6 +1138,14 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function limit(int $limit, int $offset = 0): static
     {
+        if ($limit < 0) {
+            throw new IncompleteException("limit() expects a non-negative integer, got {$limit}.");
+        }
+
+        if ($offset < 0) {
+            throw new IncompleteException("limit() offset must be non-negative, got {$offset}.");
+        }
+
         $this->addPiece('limit', $limit);
 
         if ($offset > 0) {
@@ -1134,6 +1162,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function offset(int $offset): static
     {
+        if ($offset < 0) {
+            throw new IncompleteException("offset() expects a non-negative integer, got {$offset}.");
+        }
+
         return $this->addPiece('offset', $offset);
     }
 
@@ -1220,6 +1252,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orWhereIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
+        if (self::isEmptyOptions($options)) {
+            return $this->orWhere(Literal::of('1 = 0'));
+        }
+
         return $this->orWhere($field, expr->in(...$options));
     }
 
@@ -1250,6 +1286,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orWhereNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
+        if (self::isEmptyOptions($options)) {
+            return $this->orWhere(Literal::of('1 = 1'));
+        }
+
         return $this->orWhere($field, expr->not(expr->in(...$options)));
     }
 
@@ -1479,6 +1519,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function whereIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
+        if (self::isEmptyOptions($options)) {
+            return $this->where(Literal::of('1 = 0'));
+        }
+
         return $this->where($field, expr->in(...$options));
     }
 
@@ -1509,6 +1553,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function whereNotIn(QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
     {
+        if (self::isEmptyOptions($options)) {
+            return $this->where(Literal::of('1 = 1'));
+        }
+
         return $this->where($field, expr->not(expr->in(...$options)));
     }
 
@@ -1573,6 +1621,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function wherePrimaryKeyIn(string $modelClass, array $primaryKeys): static
     {
+        if (empty($primaryKeys)) {
+            return $this->where(Literal::of('1 = 0'));
+        }
+
         $structure = StructureGenerator::for($modelClass);
         $properties = $structure->primaryKey;
 
@@ -1749,6 +1801,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated 2.3.0 `SQL_CALC_FOUND_ROWS` is deprecated in MySQL 8.0.17
+     *   and removed in MySQL 8.4. Use {@see self::totalCount()} (a separate
+     *   `COUNT(*)` query) instead.
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1887,21 +1944,25 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     protected function baseJoin(string $clause, string $table, ?callable $fn): static
     {
         $table = $this->grammar->escape($table);
+        $wherePosition = null;
 
         foreach ($this->pieces as $index => $piece) {
             if ($piece->clause === 'where') {
-                $this->position = $index;
+                $wherePosition = $index;
             }
 
-            // note(Bas): this filters out double joins, but we need to figure out
-            //  if we still need to execute the given function.
+            // note(Bas): joins are idempotent on (table, alias). A second
+            //  call with the same identifier is a no-op — callback included —
+            //  to avoid duplicating ON / AND clauses. To join the same
+            //  physical table multiple times, give each occurrence a unique
+            //  alias (e.g. `users as u1`, `users as u2`).
             if (str_contains($piece->clause, 'join') && $piece->data === $table) {
                 return $this;
             }
         }
 
+        $this->position = $wherePosition;
         $this->addPiece($clause, $table);
-
         $this->isOnDefined = false;
 
         if ($fn !== null) {
@@ -2119,6 +2180,26 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
             yield $this->grammar->escape($field) . ' as ' . $alias;
         }
+    }
+
+    /**
+     * @param ArrayableInterface|array $options
+     *
+     * @return bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.3.0
+     */
+    private static function isEmptyOptions(ArrayableInterface|array $options): bool
+    {
+        if (is_array($options)) {
+            return empty($options);
+        }
+
+        if ($options instanceof Countable) {
+            return count($options) === 0;
+        }
+
+        return empty($options->toArray());
     }
 
     /**

@@ -112,7 +112,9 @@ final readonly class HasManyThroughRelation implements RelationInterface
                 ->on($this->referenceKey, $this->referenceLinkingKey))
             ->where($this->declaringLinkingKey, $instance->{$this->declaringKey->column})
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
-                ->orderBy($this->attribute->orderBy));
+                ->orderBy($this->attribute->orderBy))
+            ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                ->withDeleted());
     }
 
     /**
@@ -127,7 +129,9 @@ final readonly class HasManyThroughRelation implements RelationInterface
                 ->on($this->referenceKey, $this->referenceLinkingKey))
             ->where($this->declaringLinkingKey, $this->declaringKey)
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
-                ->orderBy($this->attribute->orderBy));
+                ->orderBy($this->attribute->orderBy))
+            ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                ->withDeleted());
     }
 
     /**
@@ -157,6 +161,8 @@ final readonly class HasManyThroughRelation implements RelationInterface
             ->whereIn($this->declaringLinkingKey, $values)
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
+            ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
+                ->withDeleted())
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
             ->array();
     }

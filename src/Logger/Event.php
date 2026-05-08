@@ -39,6 +39,7 @@ abstract readonly class Event
      * Event constructor.
      *
      * @param Stopwatch $stopwatch
+     * @param bool $captureTrace
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16

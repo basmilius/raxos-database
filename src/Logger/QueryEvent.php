@@ -7,7 +7,11 @@ use Raxos\Contract\Database\Query\QueryInterface;
 use Raxos\Database\Query\Query;
 use Raxos\Foundation\Util\{Stopwatch, StringUtil};
 use ReflectionClass;
+use ReflectionProperty;
+use function htmlspecialchars;
 use function str_replace;
+use const ENT_QUOTES;
+use const ENT_SUBSTITUTE;
 
 /**
  * Class QueryEvent
@@ -46,29 +50,50 @@ final readonly class QueryEvent extends Event
         $query = $this->query;
 
         if ($query instanceof QueryInterface) {
-            $classRef = new ReflectionClass(Query::class);
-            $modelClassRef = $classRef->getProperty('modelClass');
-            $paramsRef = $classRef->getProperty('params');
+            [$modelClassRef, $paramsRef] = self::reflectionProperties();
 
             $params = $paramsRef->getValue($query);
-            $sql = $query->toSql();
+            $sql = htmlspecialchars($query->toSql(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
             foreach ($params as $key => $value) {
-                $sql = str_replace($key, "<abbr title='{$value}'>{$key}</abbr>", $sql);
+                $escapedValue = htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $escapedKey = htmlspecialchars($key, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $sql = str_replace($escapedKey, "<abbr title=\"{$escapedValue}\">{$escapedKey}</abbr>", $sql);
             }
 
             $modelClass = $modelClassRef->getValue($query);
 
             if ($modelClass !== null) {
-                $short = StringUtil::shortClassName($modelClass);
+                $short = htmlspecialchars(StringUtil::shortClassName($modelClass), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $modelClassEscaped = htmlspecialchars($modelClass, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
-                $query = "<abbr title='{$modelClass}'>{$short}</abbr>: {$sql}";
+                $query = "<abbr title=\"{$modelClassEscaped}\">{$short}</abbr>: {$sql}";
             } else {
                 $query = $sql;
             }
         }
 
         return $this->printBase($query, $backtrace);
+    }
+
+    /**
+     * @return array{0: ReflectionProperty, 1: ReflectionProperty}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.3.0
+     */
+    private static function reflectionProperties(): array
+    {
+        static $cache = null;
+
+        if ($cache === null) {
+            $classRef = new ReflectionClass(Query::class);
+            $cache = [
+                $classRef->getProperty('modelClass'),
+                $classRef->getProperty('params')
+            ];
+        }
+
+        return $cache;
     }
 
 }

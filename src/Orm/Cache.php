@@ -8,10 +8,12 @@ use Raxos\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use function array_first;
 use function array_map;
+use function array_shift;
 use function count;
 use function is_int;
 use function is_string;
 use function json_encode;
+use function ksort;
 
 /**
  * Class Cache
@@ -24,6 +26,19 @@ final class Cache implements CacheInterface, DebuggableInterface
 {
 
     private array $instances = [];
+    private int $size = 0;
+
+    /**
+     * Cache constructor.
+     *
+     * @param int $maxSize
+     *
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.3.0
+     */
+    public function __construct(
+        public readonly int $maxSize = 0
+    ) {}
 
     /**
      * {@inheritdoc}
@@ -44,6 +59,7 @@ final class Cache implements CacheInterface, DebuggableInterface
      */
     public function flush(string $modelClass): void
     {
+        $this->size -= count($this->instances[$modelClass] ?? []);
         $this->instances[$modelClass] = [];
     }
 
@@ -55,6 +71,7 @@ final class Cache implements CacheInterface, DebuggableInterface
     public function flushAll(): void
     {
         $this->instances = [];
+        $this->size = 0;
     }
 
     /**
@@ -89,7 +106,16 @@ final class Cache implements CacheInterface, DebuggableInterface
     public function set(string $modelClass, array|string|int $primaryKey, Model $instance): void
     {
         $key = $this->key($primaryKey);
+
+        if (!isset($this->instances[$modelClass][$key])) {
+            ++$this->size;
+        }
+
         $this->instances[$modelClass][$key] = $instance;
+
+        if ($this->maxSize > 0 && $this->size > $this->maxSize) {
+            $this->evict();
+        }
     }
 
     /**
@@ -100,7 +126,45 @@ final class Cache implements CacheInterface, DebuggableInterface
     public function unset(string $modelClass, array|string|int $primaryKey): void
     {
         $key = $this->key($primaryKey);
+
+        if (isset($this->instances[$modelClass][$key])) {
+            --$this->size;
+        }
+
         unset($this->instances[$modelClass][$key]);
+    }
+
+    /**
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.3.0
+     */
+    private function evict(): void
+    {
+        while ($this->size > $this->maxSize) {
+            $evicted = false;
+
+            foreach ($this->instances as $modelClass => $entries) {
+                if (empty($entries)) {
+                    continue;
+                }
+
+                array_shift($this->instances[$modelClass]);
+                --$this->size;
+                $evicted = true;
+
+                if ($this->size <= $this->maxSize) {
+                    return;
+                }
+            }
+
+            // Safeguard: if `$size` and the actual contents drift apart for
+            // any reason, bail out instead of looping forever.
+            if (!$evicted) {
+                $this->size = 0;
+                return;
+            }
+        }
     }
 
     /**
@@ -133,6 +197,11 @@ final class Cache implements CacheInterface, DebuggableInterface
                 return $value;
             }
         }
+
+        // note(Bas): for composite primary keys, sort by key so callers
+        //  passing the same logical key in different orders still hit the
+        //  same cache slot.
+        ksort($primaryKey);
 
         return json_encode($primaryKey);
     }
