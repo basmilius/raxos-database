@@ -25,7 +25,7 @@ use function Raxos\Database\Query\literal;
  * @package Raxos\Database\Connection
  * @since 1.4.0
  */
-final class MySql extends Connection
+class MySql extends Connection
 {
 
     /**

@@ -25,7 +25,7 @@ use function Raxos\Database\Query\literal;
  * @package Raxos\Database\Connection
  * @since 1.4.0
  */
-final class MariaDb extends Connection
+class MariaDb extends Connection
 {
 
     /**

@@ -24,7 +24,7 @@ use function Raxos\Database\Query\literal;
  * @package Raxos\Database\Connection
  * @since 1.4.0
  */
-final class SQLite extends Connection
+class SQLite extends Connection
 {
 
     /**
