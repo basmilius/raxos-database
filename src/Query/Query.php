@@ -357,6 +357,25 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
+     * Adopts the clause-tracking state of the given query, so that subsequent
+     * clause calls continue correctly after wrapping an existing query. Unlike
+     * {@see self::merge()} this does not copy any pieces; it only carries over
+     * the defined clauses and the current clause.
+     *
+     * @param QueryInterface $query
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.3.0
+     * @internal
+     */
+    protected function adoptClauseState(QueryInterface $query): void
+    {
+        $this->definedClauses = $query->definedClauses;
+        $this->currentClause = $query->currentClause;
+    }
+
+    /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
