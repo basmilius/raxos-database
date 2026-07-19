@@ -283,20 +283,35 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
                     continue;
                 }
 
-                $only = $this->visible[$property->name] ?? null;
+                $whitelist = $property instanceof RelationDefinition ? $property->visibleOnly : null;
+                $nestedVisible = $this->visible[$property->name] ?? null;
+                $nestedHidden = $this->hidden[$property->name] ?? null;
                 $value = $this->backbone->getValue($property->name);
 
-                if ($property instanceof RelationDefinition && $property->visibleOnly !== null) {
-                    $only = array_merge_recursive($property->visibleOnly, $only ?? []);
-                }
-
-                if ($only !== null) {
-                    if ($value instanceof self) {
-                        $value = $value->only($only)->toArray();
-                    } else {
-                        if ($value instanceof ModelArrayList) {
-                            $value = $value->map(static fn(self $model) => $model->only($only)->toArray());
+                // note: a #[Visible([...])] whitelist narrows the relation (only), while a
+                // nested makeVisible/makeHidden reveals or hides individual fields on top of
+                // the relation's defaults. These are distinct and applied in that order.
+                if ($whitelist !== null || is_array($nestedVisible) || is_array($nestedHidden)) {
+                    $apply = static function (self $model) use ($whitelist, $nestedVisible, $nestedHidden): array {
+                        if ($whitelist !== null) {
+                            $model = $model->only($whitelist);
                         }
+
+                        if (is_array($nestedVisible)) {
+                            $model = $model->makeVisible($nestedVisible);
+                        }
+
+                        if (is_array($nestedHidden)) {
+                            $model = $model->makeHidden($nestedHidden);
+                        }
+
+                        return $model->toArray();
+                    };
+
+                    if ($value instanceof self) {
+                        $value = $apply($value);
+                    } elseif ($value instanceof ModelArrayList) {
+                        $value = $value->map($apply);
                     }
                 }
 
