@@ -41,6 +41,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
     public readonly BackboneInterface $backbone;
 
     private array $hidden = [];
+    private array $only = [];
     private array $visible = [];
 
     /**
@@ -117,6 +118,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
         $clone = $this->backbone->createInstance();
         $clone->hidden = array_merge_recursive($this->hidden, $keys);
         $clone->visible = array_diff_key($this->visible, $clone->hidden);
+        $clone->only = $this->only;
 
         return $clone;
     }
@@ -134,6 +136,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
         $clone = $this->backbone->createInstance();
         $clone->visible = array_merge_recursive($this->visible, $keys);
         $clone->hidden = array_diff_key($this->hidden, $clone->visible);
+        $clone->only = $this->only;
 
         return $clone;
     }
@@ -149,11 +152,19 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
         $keys = StructureHelper::normalizeKeys($keys);
 
         $hidden = [];
+        $only = [];
         $visible = [];
 
         foreach ($this->backbone->structure->properties as $property) {
             if (array_key_exists($property->name, $keys)) {
-                $visible[$property->name] = $keys[$property->name];
+                // note: keep the property visible via the marker, but record a nested
+                // sub-map in $only so it narrows the relation (restrictive), unlike a
+                // nested makeVisible which reveals additively.
+                $visible[$property->name] = null;
+
+                if (is_array($keys[$property->name])) {
+                    $only[$property->name] = $keys[$property->name];
+                }
             } else {
                 $hidden[$property->name] = null;
             }
@@ -161,6 +172,7 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
 
         $clone = $this->backbone->createInstance();
         $clone->hidden = $hidden;
+        $clone->only = $only;
         $clone->visible = $visible;
 
         return $clone;
@@ -284,17 +296,22 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
                 }
 
                 $whitelist = $property instanceof RelationDefinition ? $property->visibleOnly : null;
+                $nestedOnly = $this->only[$property->name] ?? null;
                 $nestedVisible = $this->visible[$property->name] ?? null;
                 $nestedHidden = $this->hidden[$property->name] ?? null;
                 $value = $this->backbone->getValue($property->name);
 
-                // note: a #[Visible([...])] whitelist narrows the relation (only), while a
-                // nested makeVisible/makeHidden reveals or hides individual fields on top of
-                // the relation's defaults. These are distinct and applied in that order.
-                if ($whitelist !== null || is_array($nestedVisible) || is_array($nestedHidden)) {
-                    $apply = static function (self $model) use ($whitelist, $nestedVisible, $nestedHidden): array {
+                // note: a #[Visible([...])] whitelist and a nested only() both narrow the
+                // relation (restrictive); a nested makeVisible/makeHidden reveals or hides
+                // individual fields on top of the relation's defaults. Applied in that order.
+                if ($whitelist !== null || is_array($nestedOnly) || is_array($nestedVisible) || is_array($nestedHidden)) {
+                    $apply = static function (self $model) use ($whitelist, $nestedOnly, $nestedVisible, $nestedHidden): array {
                         if ($whitelist !== null) {
                             $model = $model->only($whitelist);
+                        }
+
+                        if (is_array($nestedOnly)) {
+                            $model = $model->only($nestedOnly);
                         }
 
                         if (is_array($nestedVisible)) {
