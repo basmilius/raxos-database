@@ -6,6 +6,7 @@ namespace Raxos\Database\Orm;
 use Raxos\Collection\ArrayList;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\VisibilityInterface;
+use Raxos\Contract\ProxyableInterface;
 
 /**
  * Class ModelArrayList
@@ -18,8 +19,18 @@ use Raxos\Contract\Database\Orm\VisibilityInterface;
  * @package Raxos\Database\Orm
  * @since 1.0.17
  */
-class ModelArrayList extends ArrayList implements VisibilityInterface
+class ModelArrayList extends ArrayList implements ProxyableInterface, VisibilityInterface
 {
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.4.0
+     */
+    public function proxy(): ModelArrayListProxy
+    {
+        return new ModelArrayListProxy($this);
+    }
 
     /**
      * {@inheritdoc}

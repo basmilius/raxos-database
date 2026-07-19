@@ -8,7 +8,7 @@ use Raxos\Contract\Collection\ArrayableInterface;
 use Raxos\Contract\Database\DatabaseExceptionInterface;
 use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, OrmExceptionInterface, QueryableInterface, VisibilityInterface};
 use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface};
-use Raxos\Contract\DebuggableInterface;
+use Raxos\Contract\{DebuggableInterface, ProxyableInterface};
 use Raxos\Database\Orm\Definition\{EmbeddedDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\MissingFunctionException;
 use Raxos\Database\Orm\Structure\{StructureGenerator, StructureHelper};
@@ -31,7 +31,7 @@ use function sprintf;
  * @package Raxos\Database\Orm
  * @since 1.0.0
  */
-abstract class Model implements AccessInterface, ArrayableInterface, DebuggableInterface, JsonSerializable, QueryableInterface, Stringable, VisibilityInterface
+abstract class Model implements AccessInterface, ArrayableInterface, DebuggableInterface, JsonSerializable, ProxyableInterface, QueryableInterface, Stringable, VisibilityInterface
 {
 
     use ArrayAccessible;
@@ -176,6 +176,16 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
         $clone->visible = $visible;
 
         return $clone;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 2.4.0
+     */
+    public function proxy(): ModelProxy
+    {
+        return new ModelProxy($this);
     }
 
     /**
