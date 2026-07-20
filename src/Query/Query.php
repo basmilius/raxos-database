@@ -149,7 +149,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         }
 
         if ($value instanceof QueryExpressionInterface) {
-            $value->compile($this, $this->connection, $this->grammar);
+            return $this->compileColumnField($value);
         }
 
         if (is_bool($value)) {
@@ -1001,7 +1001,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function groupBy(QueryValueInterface|QueryLiteralInterface|array|string $fields, bool $withRollup = false): static
+    public function groupBy(QueryValueInterface|array|string $fields, bool $withRollup = false): static
     {
         if (!is_array($fields)) {
             $fields = [$fields];
@@ -1047,7 +1047,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function havingIn(QueryValueInterface|QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    public function havingIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->having(Literal::of('1 = 0'));
@@ -1071,7 +1071,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function havingNotNull(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function havingNotNull(QueryValueInterface|string $field): static
     {
         return $this->having($field, Expr::isNotNull());
     }
@@ -1081,7 +1081,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function havingNotIn(QueryValueInterface|QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    public function havingNotIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->having(Literal::of('1 = 1'));
@@ -1095,7 +1095,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function havingNull(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function havingNull(QueryValueInterface|string $field): static
     {
         return $this->having($field, Expr::isNull());
     }
@@ -1129,7 +1129,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function orHavingIn(QueryValueInterface|QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    public function orHavingIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->orHaving(Literal::of('1 = 0'));
@@ -1153,7 +1153,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function orHavingNotIn(QueryValueInterface|QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    public function orHavingNotIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->orHaving(Literal::of('1 = 1'));
@@ -1167,7 +1167,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function orHavingNotNull(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function orHavingNotNull(QueryValueInterface|string $field): static
     {
         return $this->orHaving($field, Expr::isNotNull());
     }
@@ -1177,7 +1177,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function orHavingNull(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function orHavingNull(QueryValueInterface|string $field): static
     {
         return $this->orHaving($field, Expr::isNull());
     }
@@ -1250,8 +1250,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         foreach ($fields as $key => $value) {
             if ($value instanceof ColumnRef) {
-                $fields[$key] = $value->column;
-            } elseif (str_contains($value, '=')) {
+                $value = $value->column;
+            }
+
+            if (str_contains($value, '=')) {
                 $fields[$key] = $value;
             } else {
                 $value = $this->grammar->escape($value);
@@ -1301,7 +1303,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereIn(QueryValueInterface|QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    public function orWhereIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->orWhere(Literal::of('1 = 0'));
@@ -1335,7 +1337,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function orWhereNotIn(QueryValueInterface|QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    public function orWhereNotIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->orWhere(Literal::of('1 = 1'));
@@ -1349,7 +1351,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereNotNull(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function orWhereNotNull(QueryValueInterface|string $field): static
     {
         return $this->orWhere($field, Expr::isNotNull());
     }
@@ -1359,7 +1361,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereNull(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function orWhereNull(QueryValueInterface|string $field): static
     {
         return $this->orWhere($field, Expr::isNull());
     }
@@ -1384,7 +1386,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orderBy(QueryValueInterface|QueryLiteralInterface|array|string $fields): static
+    public function orderBy(QueryValueInterface|array|string $fields): static
     {
         if (!is_array($fields)) {
             $fields = [$fields];
@@ -1406,7 +1408,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orderByAsc(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function orderByAsc(QueryValueInterface|string $field): static
     {
         $clause = $this->currentClause === 'order by' ? trim($this->grammar->columnSeparator) : 'order by';
 
@@ -1418,7 +1420,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orderByDesc(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function orderByDesc(QueryValueInterface|string $field): static
     {
         $clause = $this->currentClause === 'order by' ? trim($this->grammar->columnSeparator) : 'order by';
 
@@ -1554,7 +1556,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereIn(QueryValueInterface|QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    public function whereIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->where(Literal::of('1 = 0'));
@@ -1588,7 +1590,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function whereNotIn(QueryValueInterface|QueryLiteralInterface|string $field, ArrayableInterface|array $options): static
+    public function whereNotIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->where(Literal::of('1 = 1'));
@@ -1602,7 +1604,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereNotNull(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function whereNotNull(QueryValueInterface|string $field): static
     {
         return $this->where($field, Expr::isNotNull());
     }
@@ -1612,7 +1614,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereNull(QueryValueInterface|QueryLiteralInterface|string $field): static
+    public function whereNull(QueryValueInterface|string $field): static
     {
         return $this->where($field, Expr::isNull());
     }
@@ -2248,7 +2250,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     /**
      * Unwraps the select fields into their rendered SQL form. An `int` key
      * yields no alias, a `string` key yields an identifier-escaped alias.
-     * Sub-queries and expressions merge their bound parameters into the host.
+     * Sub-queries and expressions merge their bound parameters into the host;
+     * an aliasless expression is rendered bare. Scalar `int`/`float`/`bool`
+     * values are emitted as literals; array values are not supported.
      *
      * @param array $fields
      *

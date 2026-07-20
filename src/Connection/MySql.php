@@ -111,10 +111,11 @@ class MySql extends Connection
      */
     public function foundRows(): int
     {
-        return $this->column(
+        return (int)$this->column(
             $this
                 ->query()
                 ->select(literal('found_rows()'))
+                ->toSql()
         );
     }
 

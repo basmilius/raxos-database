@@ -352,7 +352,7 @@ trait Queryable
     /**
      * Returns a `having $column in ($options)` query for the model.
      *
-     * @param QueryValueInterface|QueryLiteralInterface|string $column
+     * @param QueryValueInterface|string $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
@@ -363,7 +363,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingIn()
      */
-    public static function havingIn(QueryValueInterface|QueryLiteralInterface|string $column, ArrayableInterface|array $options): QueryInterface
+    public static function havingIn(QueryValueInterface|string $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->havingIn($column, $options);
@@ -391,7 +391,7 @@ trait Queryable
     /**
      * Returns a `having $column not in ($options)` query for the model.
      *
-     * @param QueryValueInterface|QueryLiteralInterface|string $column
+     * @param QueryValueInterface|string $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
@@ -402,7 +402,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingNotIn()
      */
-    public static function havingNotIn(QueryValueInterface|QueryLiteralInterface|string $column, ArrayableInterface|array $options): QueryInterface
+    public static function havingNotIn(QueryValueInterface|string $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->havingNotIn($column, $options);
@@ -411,7 +411,7 @@ trait Queryable
     /**
      * Returns a `having $column is not null` query for the model.
      *
-     * @param QueryValueInterface|QueryLiteralInterface|string $column
+     * @param QueryValueInterface|string $column
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -421,7 +421,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingNotNull()
      */
-    public static function havingNotNull(QueryValueInterface|QueryLiteralInterface|string $column): QueryInterface
+    public static function havingNotNull(QueryValueInterface|string $column): QueryInterface
     {
         return self::select()
             ->havingNotNull($column);
@@ -430,7 +430,7 @@ trait Queryable
     /**
      * Returns a `having $column is null` query for the model.
      *
-     * @param QueryValueInterface|QueryLiteralInterface|string $column
+     * @param QueryValueInterface|string $column
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -440,7 +440,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingNull()
      */
-    public static function havingNull(QueryValueInterface|QueryLiteralInterface|string $column): QueryInterface
+    public static function havingNull(QueryValueInterface|string $column): QueryInterface
     {
         return self::select()
             ->havingNull($column);
@@ -566,7 +566,7 @@ trait Queryable
     /**
      * Returns a `where $column in ($options)` query for the model.
      *
-     * @param QueryValueInterface|QueryLiteralInterface|string $column
+     * @param QueryValueInterface|string $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
@@ -577,7 +577,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereIn()
      */
-    public static function whereIn(QueryValueInterface|QueryLiteralInterface|string $column, ArrayableInterface|array $options): QueryInterface
+    public static function whereIn(QueryValueInterface|string $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->whereIn($column, $options);
@@ -605,7 +605,7 @@ trait Queryable
     /**
      * Returns a `where $column not in ($options)` query for the model.
      *
-     * @param QueryValueInterface|QueryLiteralInterface|string $column
+     * @param QueryValueInterface|string $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
@@ -616,7 +616,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereNotIn()
      */
-    public static function whereNotIn(QueryValueInterface|QueryLiteralInterface|string $column, ArrayableInterface|array $options): QueryInterface
+    public static function whereNotIn(QueryValueInterface|string $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->whereNotIn($column, $options);
@@ -625,7 +625,7 @@ trait Queryable
     /**
      * Returns a `where $column is not null` query for the model.
      *
-     * @param QueryValueInterface|QueryLiteralInterface|string $column
+     * @param QueryValueInterface|string $column
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -635,7 +635,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereNotNull()
      */
-    public static function whereNotNull(QueryValueInterface|QueryLiteralInterface|string $column): QueryInterface
+    public static function whereNotNull(QueryValueInterface|string $column): QueryInterface
     {
         return self::select()
             ->whereNotNull($column);
@@ -644,7 +644,7 @@ trait Queryable
     /**
      * Returns a `where $column is null` query for the model.
      *
-     * @param QueryValueInterface|QueryLiteralInterface|string $column
+     * @param QueryValueInterface|string $column
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -654,7 +654,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereNull()
      */
-    public static function whereNull(QueryValueInterface|QueryLiteralInterface|string $column): QueryInterface
+    public static function whereNull(QueryValueInterface|string $column): QueryInterface
     {
         return self::select()
             ->whereNull($column);
