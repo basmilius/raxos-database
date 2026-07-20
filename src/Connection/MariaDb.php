@@ -113,7 +113,7 @@ class MariaDb extends Connection
     {
         return $this->column(
             $this
-                ->query(prepared: false)
+                ->query()
                 ->select(literal('found_rows()'))
         );
     }
@@ -127,7 +127,7 @@ class MariaDb extends Connection
     {
         try {
             $results = $this
-                ->query(prepared: false)
+                ->query()
                 ->select(['TABLE_NAME', 'COLUMN_NAME'])
                 ->from('information_schema.COLUMNS')
                 ->where('TABLE_SCHEMA', literal('DATABASE()'))
@@ -177,9 +177,9 @@ class MariaDb extends Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
-    public function query(bool $prepared = true): QueryInterface
+    public function query(): QueryInterface
     {
-        return new MariaDbQuery($this, $prepared);
+        return new MariaDbQuery($this);
     }
 
     /**

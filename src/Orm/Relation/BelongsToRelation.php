@@ -118,7 +118,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      */
     public function rawQuery(): QueryInterface
     {
-        return $this->referenceStructure->class::select(prepared: false)
+        return $this->referenceStructure->class::select()
             ->where($this->referenceKey, $this->declaringKey)
             ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
                 ->withDeleted());

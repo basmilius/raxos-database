@@ -119,7 +119,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
      */
     public function rawQuery(): QueryInterface
     {
-        return $this->referenceStructure->class::select(prepared: false)
+        return $this->referenceStructure->class::select()
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceKey, $this->referenceLinkingKey))
             ->where($this->declaringLinkingKey, $this->declaringKey)

@@ -77,8 +77,6 @@ trait Queryable
     /**
      * Starts a new query for the model.
      *
-     * @param bool $prepared
-     *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
      * @throws OrmExceptionInterface
@@ -86,10 +84,10 @@ trait Queryable
      * @since 1.0.17
      * @see ConnectionInterface::query()
      */
-    public static function query(bool $prepared = true): QueryInterface
+    public static function query(): QueryInterface
     {
         return StructureGenerator::for(static::class)->connection
-            ->query($prepared)
+            ->query()
             ->withModel(static::class);
     }
 
@@ -452,7 +450,6 @@ trait Queryable
      * Returns a new select query for the model.
      *
      * @param QueryValueInterface|Stringable|array|string|int $keys
-     * @param bool $prepared
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -462,16 +459,15 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::select()
      */
-    public static function select(QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function select(QueryValueInterface|Stringable|array|string|int $keys = []): QueryInterface
     {
-        return self::baseSelect(self::query($prepared)->select(...), $keys);
+        return self::baseSelect(self::query()->select(...), $keys);
     }
 
     /**
      * Returns a new select distinct query for the model.
      *
      * @param QueryValueInterface|Stringable|array|string|int $keys
-     * @param bool $prepared
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -481,16 +477,15 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectDistinct()
      */
-    public static function selectDistinct(QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function selectDistinct(QueryValueInterface|Stringable|array|string|int $keys = []): QueryInterface
     {
-        return self::baseSelect(self::query($prepared)->selectDistinct(...), $keys);
+        return self::baseSelect(self::query()->selectDistinct(...), $keys);
     }
 
     /**
      * Returns a new select found rows query for the model.
      *
      * @param QueryValueInterface|Stringable|array|string|int $keys
-     * @param bool $prepared
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -500,9 +495,9 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectFoundRows()
      */
-    public static function selectFoundRows(QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function selectFoundRows(QueryValueInterface|Stringable|array|string|int $keys = []): QueryInterface
     {
-        return self::baseSelect(self::query($prepared)->selectFoundRows(...), $keys);
+        return self::baseSelect(self::query()->selectFoundRows(...), $keys);
     }
 
     /**
@@ -510,7 +505,6 @@ trait Queryable
      *
      * @param string $suffix
      * @param QueryValueInterface|Stringable|array|string|int $keys
-     * @param bool $prepared
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -520,9 +514,9 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectSuffix()
      */
-    public static function selectSuffix(string $suffix, QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function selectSuffix(string $suffix, QueryValueInterface|Stringable|array|string|int $keys = []): QueryInterface
     {
-        return self::baseSelect(static fn(array $keys) => self::query($prepared)->selectSuffix($suffix, $keys), $keys);
+        return self::baseSelect(static fn(array $keys) => self::query()->selectSuffix($suffix, $keys), $keys);
     }
 
     /**

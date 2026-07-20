@@ -88,14 +88,12 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * Query constructor.
      *
      * @param ConnectionInterface $connection
-     * @param bool $prepared
      *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
     public function __construct(
-        public readonly ConnectionInterface $connection,
-        public readonly bool $prepared = true
+        public readonly ConnectionInterface $connection
     )
     {
         $this->grammar = $connection->grammar;
@@ -149,18 +147,6 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         if ($value instanceof QueryExpressionInterface) {
             $value->compile($this, $this->connection, $this->grammar);
-        }
-
-        if (!$this->prepared) {
-            if (is_int($value)) {
-                return $value;
-            }
-
-            try {
-                return $this->connection->quote((string)$value);
-            } catch (DatabaseExceptionInterface $err) {
-                throw new ConnectionErrorException($err);
-            }
         }
 
         if (is_bool($value)) {
@@ -2346,7 +2332,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     {
         return [
             'sql' => $this->toSql(),
-            'type' => $this->prepared ? 'PREPARED QUERY' : 'RAW QUERY',
+            'type' => 'PREPARED QUERY',
             'params' => $this->params
         ];
     }

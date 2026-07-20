@@ -123,7 +123,7 @@ final readonly class HasOneThroughRelation implements RelationInterface
      */
     public function rawQuery(): QueryInterface
     {
-        return $this->referenceStructure->class::select(prepared: false)
+        return $this->referenceStructure->class::select()
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
             ->where($this->declaringLinkingKey, $this->declaringKey)

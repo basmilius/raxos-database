@@ -103,7 +103,7 @@ abstract class Connection implements ConnectionInterface
         $this->ensureConnected();
 
         if ($query instanceof QueryInterface) {
-            $query = $query->toSql();
+            return $this->runWithRecovery(static fn(): string|int|false => $query->statement()->fetchColumn());
         }
 
         return $this->runWithRecovery(function () use ($query): string|int|false {
@@ -147,7 +147,7 @@ abstract class Connection implements ConnectionInterface
         $this->ensureConnected();
 
         if ($query instanceof QueryInterface) {
-            $query = $query->toSql();
+            return $this->runWithRecovery(static fn(): int => $query->statement()->run());
         }
 
         return $this->runWithRecovery(function () use ($query): int {

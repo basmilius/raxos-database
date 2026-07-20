@@ -90,7 +90,7 @@ class SQLite extends Connection
     {
         try {
             $results = $this
-                ->query(prepared: false)
+                ->query()
                 ->select(['TABLE_NAME' => 'm.name', 'COLUMN_NAME' => 'p.name'])
                 ->from('sqlite_master', 'm')
                 ->leftOuterJoin('pragma_table_info((m.name)) p', static fn(QueryInterface $query) => $query
@@ -132,9 +132,9 @@ class SQLite extends Connection
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
-    public function query(bool $prepared = true): QueryInterface
+    public function query(): QueryInterface
     {
-        return new SQLiteQuery($this, $prepared);
+        return new SQLiteQuery($this);
     }
 
     /**

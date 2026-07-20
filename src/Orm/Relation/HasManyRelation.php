@@ -98,7 +98,7 @@ final readonly class HasManyRelation implements RelationInterface
      */
     public function rawQuery(): QueryInterface
     {
-        return $this->referenceStructure->class::select(prepared: false)
+        return $this->referenceStructure->class::select()
             ->where($this->referenceKey, $this->declaringKey)
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
