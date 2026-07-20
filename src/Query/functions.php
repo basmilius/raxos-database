@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Query;
 
-use Raxos\Contract\Database\Query\QueryLiteralInterface;
+use Closure;
+use Raxos\Contract\Database\ConnectionInterface;
+use Raxos\Contract\Database\Query\{QueryInterface, QueryLiteralInterface};
 use Raxos\Database\Query\Expression\ColumnRef;
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
@@ -40,6 +42,24 @@ function column(string $column, ?string $table = null, ?string $schema = null): 
 function literal(Stringable|string|int|float|bool $value): QueryLiteralInterface
 {
     return Literal::of($value);
+}
+
+/**
+ * Returns a reusable sub-query partial. The `$query` closure is invoked lazily
+ * when the partial is compiled, with the connection of the host query, so the
+ * partial can be constructed without a live connection and used anywhere an
+ * expression is accepted (e.g., Expr::exists()).
+ *
+ * @param Closure(ConnectionInterface):QueryInterface $query
+ *
+ * @return Partial
+ * @author Bas Milius <bas@mili.us>
+ * @since 3.0.0
+ * @see Partial
+ */
+function partial(Closure $query): Partial
+{
+    return new Partial($query);
 }
 
 /**
