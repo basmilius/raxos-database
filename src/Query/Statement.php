@@ -10,7 +10,7 @@ use PDOStatement;
 use Raxos\Collection\{ArrayList, Paginated};
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
-use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\{OrmExceptionInterface, PrimerTiming};
 use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryExceptionInterface, QueryInterface, StatementInterface};
 use Raxos\Database\Error\{ExecutionException, NotConnectedException};
 use Raxos\Database\Logger\QueryEvent;
@@ -392,10 +392,15 @@ class Statement implements StatementInterface
 
         if ($this->query instanceof InternalQueryInterface) {
             $this->query->invokeBeforeRelationsHook($list);
+            $this->query->invokePrimers($list, PrimerTiming::BeforeRelations, $this->connection);
         }
 
         $structure = StructureGenerator::for($this->modelClass);
         $structure->eagerLoadRelations($list, $this->eagerLoad, $this->eagerLoadDisable);
+
+        if ($this->query instanceof InternalQueryInterface) {
+            $this->query->invokePrimers($list, PrimerTiming::AfterRelations, $this->connection);
+        }
     }
 
 }

@@ -13,7 +13,7 @@ use PDO;
 use Raxos\Collection\Paginated;
 use Raxos\Contract\Collection\{ArrayableInterface, ArrayListInterface};
 use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface};
-use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\{OrmExceptionInterface, PrimerInterface, PrimerTiming};
 use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryExceptionInterface, QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface, StatementInterface};
 use Raxos\Contract\DebuggableInterface;
 use Raxos\Database\Orm\{Model, ModelArrayList};
@@ -83,6 +83,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     private readonly int $paramsIndex;
 
     private ?Closure $beforeRelations = null;
+
+    /** @var array<string, list<PrimerInterface|callable>> */
+    private array $primers = [];
 
     /**
      * Query constructor.
@@ -852,6 +855,34 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.0.0
+     */
+    public function prime(PrimerInterface|callable $primer, PrimerTiming $timing = PrimerTiming::AfterRelations): static
+    {
+        $this->primers[$timing->name][] = $primer;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.0.0
+     */
+    public function invokePrimers(ArrayListInterface $instances, PrimerTiming $timing, ConnectionInterface $connection): void
+    {
+        foreach ($this->primers[$timing->name] ?? [] as $primer) {
+            if ($primer instanceof PrimerInterface) {
+                $primer->prime($instances, $connection);
+            } else {
+                $primer($instances, $connection);
+            }
+        }
+    }
+
+    /**
      * Resets the builder.
      *
      * @return static<TModel>
@@ -866,6 +897,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $this->params = [];
         $this->paramsCount = 0;
         $this->pieces = [];
+        $this->primers = [];
 
         return $this;
     }
