@@ -5,7 +5,7 @@ namespace Raxos\Database\Query\Expression;
 
 use BackedEnum;
 use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
-use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
+use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryValueInterface};
 use Stringable;
 
 /**
@@ -23,8 +23,8 @@ final readonly class GroupConcat implements QueryExpressionInterface
      *
      * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
      * @param bool $distinct
-     * @param QueryLiteralInterface|string|null $orderBy
-     * @param QueryLiteralInterface|string|null $separator
+     * @param QueryValueInterface|string|null $orderBy
+     * @param QueryValueInterface|string|null $separator
      * @param int|null $limit
      * @param int|null $offset
      *
@@ -34,8 +34,8 @@ final readonly class GroupConcat implements QueryExpressionInterface
     public function __construct(
         public BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
         public bool $distinct = false,
-        public QueryLiteralInterface|string|null $orderBy = null,
-        public QueryLiteralInterface|string|null $separator = null,
+        public QueryValueInterface|string|null $orderBy = null,
+        public QueryValueInterface|string|null $separator = null,
         public ?int $limit = null,
         public ?int $offset = null
     ) {}

@@ -15,7 +15,7 @@ use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, Ha
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InvalidColumnException, MissingPolymorphicDiscriminatorException, MissingPropertyException, MissingRelationImplementationException, ReflectionErrorException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
-use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Expression\ColumnRef;
 use ReflectionClass;
 use ReflectionException;
 use function array_key_exists;
@@ -278,7 +278,7 @@ final class Structure implements StructureInterface, SerializableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function getColumn(string $key, ?string $table = null): ColumnLiteral
+    public function getColumn(string $key, ?string $table = null): ColumnRef
     {
         static $cache = [];
 
@@ -289,9 +289,7 @@ final class Structure implements StructureInterface, SerializableInterface
             throw new InvalidColumnException($this->class, $key);
         }
 
-        $grammarClass = $this->connection->grammar::class;
-
-        return $cache["{$grammarClass}:{$table}:{$key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $table);
+        return $cache["{$table}:{$key}"] ??= new ColumnRef($property->key, $table);
     }
 
     /**
@@ -333,7 +331,7 @@ final class Structure implements StructureInterface, SerializableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function getRelationPrimaryKey(): ColumnLiteral
+    public function getRelationPrimaryKey(): ColumnRef
     {
         static $cache = [];
 
@@ -343,9 +341,7 @@ final class Structure implements StructureInterface, SerializableInterface
             $property = $property[0];
         }
 
-        $grammarClass = $this->connection->grammar::class;
-
-        return $cache["{$grammarClass}:{$this->table}:{$property->key}"] ??= new ColumnLiteral($this->connection->grammar, $property->key, $this->table);
+        return $cache["{$this->table}:{$property->key}"] ??= new ColumnRef($property->key, $this->table);
     }
 
     /**

@@ -10,7 +10,7 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasMany;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Expression\ColumnRef;
 
 /**
  * Class HasManyRelation
@@ -26,8 +26,8 @@ use Raxos\Database\Query\Literal\ColumnLiteral;
 final readonly class HasManyRelation implements RelationInterface
 {
 
-    public ColumnLiteral $declaringKey;
-    public ColumnLiteral $referenceKey;
+    public ColumnRef $declaringKey;
+    public ColumnRef $referenceKey;
 
     public StructureInterface $referenceStructure;
 
@@ -53,14 +53,12 @@ final readonly class HasManyRelation implements RelationInterface
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
         );
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $declaringPrimaryKey->asForeignKeyFor($this->referenceStructure)

@@ -5,11 +5,10 @@ namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Collection\ArrayList;
 use Raxos\Contract\Collection\ArrayListInterface;
-use Raxos\Contract\Database\GrammarInterface;
 use Raxos\Contract\Database\Orm\StructureInterface;
 use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryInterface};
 use Raxos\Database\Orm\Model;
-use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Expression\ColumnRef;
 use function is_numeric;
 
 /**
@@ -23,40 +22,37 @@ final class RelationHelper
 {
 
     /**
-     * Composes a column literal based on the given column and table.
+     * Composes a column reference based on the given column and table.
      *
-     * @param GrammarInterface $grammar
      * @param string|null $column
      * @param string|null $table
-     * @param ColumnLiteral $default
+     * @param ColumnRef $default
      *
-     * @return ColumnLiteral
+     * @return ColumnRef
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function composeKey(GrammarInterface $grammar, ?string $column, ?string $table, ColumnLiteral $default): ColumnLiteral
+    public static function composeKey(?string $column, ?string $table, ColumnRef $default): ColumnRef
     {
         static $cache = [];
 
         $column ??= $default->column;
         $table ??= $default->table;
 
-        $grammarClass = $grammar::class;
-
-        return $cache["{$grammarClass}:{$table}:{$column}"] ??= new ColumnLiteral($grammar, $column, $table);
+        return $cache["{$table}:{$column}"] ??= new ColumnRef($column, $table);
     }
 
     /**
      * Returns the value of the declaring key.
      *
      * @param Model $instance
-     * @param ColumnLiteral $declaringKey
+     * @param ColumnRef $declaringKey
      *
      * @return mixed
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function declaringKeyValue(Model $instance, ColumnLiteral $declaringKey): mixed
+    public static function declaringKeyValue(Model $instance, ColumnRef $declaringKey): mixed
     {
         $declaringValue = $instance->{$declaringKey->column};
 
@@ -72,13 +68,13 @@ final class RelationHelper
      *
      * @param mixed $declaringValue
      * @param StructureInterface $referenceStructure
-     * @param ColumnLiteral $referenceKey
+     * @param ColumnRef $referenceKey
      *
      * @return Model|null
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function findCached(mixed $declaringValue, StructureInterface $referenceStructure, ColumnLiteral $referenceKey): ?Model
+    public static function findCached(mixed $declaringValue, StructureInterface $referenceStructure, ColumnRef $referenceKey): ?Model
     {
         return $referenceStructure->connection->cache
             ->find($referenceStructure->class, static fn(Model $model) => $model->{$referenceKey->column} === $declaringValue);

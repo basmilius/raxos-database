@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Raxos\Database\Query\Expression;
 
 use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
-use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryLiteralInterface};
+use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryValueInterface};
 use Stringable;
 
 /**
@@ -20,15 +20,15 @@ final readonly class Between implements QueryExpressionInterface
     /**
      * Between constructor.
      *
-     * @param QueryLiteralInterface|Stringable|string|float|int $min
-     * @param QueryLiteralInterface|Stringable|string|float|int $max
+     * @param QueryValueInterface|Stringable|string|float|int $min
+     * @param QueryValueInterface|Stringable|string|float|int $max
      *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
     public function __construct(
-        public QueryLiteralInterface|Stringable|string|float|int $min,
-        public QueryLiteralInterface|Stringable|string|float|int $max
+        public QueryValueInterface|Stringable|string|float|int $min,
+        public QueryValueInterface|Stringable|string|float|int $max
     ) {}
 
     /**

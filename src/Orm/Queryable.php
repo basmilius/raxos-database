@@ -10,8 +10,7 @@ use Raxos\Contract\Database\Orm\OrmExceptionInterface;
 use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
 use Raxos\Database\Orm\Error\NotFoundException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Literal\ColumnLiteral;
-use Raxos\Database\Query\Select;
+use Raxos\Database\Query\Expression\ColumnRef;
 use Stringable;
 use function array_values;
 use function is_array;
@@ -33,19 +32,19 @@ trait Queryable
      * @param string $key
      * @param string $table
      *
-     * @return ColumnLiteral
+     * @return ColumnRef
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public static function alias(string $key, string $table): ColumnLiteral
+    public static function alias(string $key, string $table): ColumnRef
     {
         static $cache = [];
 
         $structure = StructureGenerator::for(static::class);
 
         if ($key === '*') {
-            return $cache["{$structure->table}:{$table}:*"] ??= new ColumnLiteral($structure->connection->grammar, '*', $table);
+            return $cache["{$structure->table}:{$table}:*"] ??= new ColumnRef('*', $table);
         }
 
         return $cache["{$structure->table}:{$table}:{$key}"] ??= $structure->getColumn($key, $table);
@@ -56,20 +55,20 @@ trait Queryable
      *
      * @param string $key
      *
-     * @return ColumnLiteral
+     * @return ColumnRef
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      * @see StructureInterface::getColumn()
      */
-    public static function col(string $key): ColumnLiteral
+    public static function col(string $key): ColumnRef
     {
         static $cache = [];
 
         $structure = StructureGenerator::for(static::class);
 
         if ($key === '*') {
-            return $cache["{$structure->table}:*"] ??= new ColumnLiteral($structure->connection->grammar, '*', $structure->table);
+            return $cache["{$structure->table}:*"] ??= new ColumnRef('*', $structure->table);
         }
 
         return $cache["{$structure->table}:{$key}"] ??= $structure->getColumn($key);
@@ -355,7 +354,7 @@ trait Queryable
     /**
      * Returns a `having $column in ($options)` query for the model.
      *
-     * @param ColumnLiteral $column
+     * @param QueryValueInterface|QueryLiteralInterface|string $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
@@ -366,7 +365,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingIn()
      */
-    public static function havingIn(ColumnLiteral $column, ArrayableInterface|array $options): QueryInterface
+    public static function havingIn(QueryValueInterface|QueryLiteralInterface|string $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->havingIn($column, $options);
@@ -394,7 +393,7 @@ trait Queryable
     /**
      * Returns a `having $column not in ($options)` query for the model.
      *
-     * @param ColumnLiteral $column
+     * @param QueryValueInterface|QueryLiteralInterface|string $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
@@ -405,7 +404,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingNotIn()
      */
-    public static function havingNotIn(ColumnLiteral $column, ArrayableInterface|array $options): QueryInterface
+    public static function havingNotIn(QueryValueInterface|QueryLiteralInterface|string $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->havingNotIn($column, $options);
@@ -414,7 +413,7 @@ trait Queryable
     /**
      * Returns a `having $column is not null` query for the model.
      *
-     * @param ColumnLiteral $column
+     * @param QueryValueInterface|QueryLiteralInterface|string $column
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -424,7 +423,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingNotNull()
      */
-    public static function havingNotNull(ColumnLiteral $column): QueryInterface
+    public static function havingNotNull(QueryValueInterface|QueryLiteralInterface|string $column): QueryInterface
     {
         return self::select()
             ->havingNotNull($column);
@@ -433,7 +432,7 @@ trait Queryable
     /**
      * Returns a `having $column is null` query for the model.
      *
-     * @param ColumnLiteral $column
+     * @param QueryValueInterface|QueryLiteralInterface|string $column
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -443,7 +442,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingNull()
      */
-    public static function havingNull(ColumnLiteral $column): QueryInterface
+    public static function havingNull(QueryValueInterface|QueryLiteralInterface|string $column): QueryInterface
     {
         return self::select()
             ->havingNull($column);
@@ -452,7 +451,7 @@ trait Queryable
     /**
      * Returns a new select query for the model.
      *
-     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
+     * @param QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
      * @return QueryInterface<static>
@@ -463,7 +462,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::select()
      */
-    public static function select(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function select(QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
         return self::baseSelect(self::query($prepared)->select(...), $keys);
     }
@@ -471,7 +470,7 @@ trait Queryable
     /**
      * Returns a new select distinct query for the model.
      *
-     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
+     * @param QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
      * @return QueryInterface<static>
@@ -482,7 +481,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectDistinct()
      */
-    public static function selectDistinct(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function selectDistinct(QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
         return self::baseSelect(self::query($prepared)->selectDistinct(...), $keys);
     }
@@ -490,7 +489,7 @@ trait Queryable
     /**
      * Returns a new select found rows query for the model.
      *
-     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
+     * @param QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
      * @return QueryInterface<static>
@@ -501,7 +500,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectFoundRows()
      */
-    public static function selectFoundRows(Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function selectFoundRows(QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
         return self::baseSelect(self::query($prepared)->selectFoundRows(...), $keys);
     }
@@ -510,7 +509,7 @@ trait Queryable
      * Returns a new select suffix query for the model.
      *
      * @param string $suffix
-     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
+     * @param QueryValueInterface|Stringable|array|string|int $keys
      * @param bool $prepared
      *
      * @return QueryInterface<static>
@@ -521,9 +520,9 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectSuffix()
      */
-    public static function selectSuffix(string $suffix, Select|QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
+    public static function selectSuffix(string $suffix, QueryValueInterface|Stringable|array|string|int $keys = [], bool $prepared = true): QueryInterface
     {
-        return self::baseSelect(static fn(array|string|int $keys) => self::query($prepared)->selectSuffix($suffix, $keys), $keys);
+        return self::baseSelect(static fn(array $keys) => self::query($prepared)->selectSuffix($suffix, $keys), $keys);
     }
 
     /**
@@ -573,7 +572,7 @@ trait Queryable
     /**
      * Returns a `where $column in ($options)` query for the model.
      *
-     * @param ColumnLiteral $column
+     * @param QueryValueInterface|QueryLiteralInterface|string $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
@@ -584,7 +583,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereIn()
      */
-    public static function whereIn(ColumnLiteral $column, ArrayableInterface|array $options): QueryInterface
+    public static function whereIn(QueryValueInterface|QueryLiteralInterface|string $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->whereIn($column, $options);
@@ -612,7 +611,7 @@ trait Queryable
     /**
      * Returns a `where $column not in ($options)` query for the model.
      *
-     * @param ColumnLiteral $column
+     * @param QueryValueInterface|QueryLiteralInterface|string $column
      * @param ArrayableInterface<QueryInterface|QueryLiteralInterface|Stringable|string|float|int>|array<QueryInterface|QueryLiteralInterface|Stringable|string|float|int> $options
      *
      * @return QueryInterface<static>
@@ -623,7 +622,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereNotIn()
      */
-    public static function whereNotIn(ColumnLiteral $column, ArrayableInterface|array $options): QueryInterface
+    public static function whereNotIn(QueryValueInterface|QueryLiteralInterface|string $column, ArrayableInterface|array $options): QueryInterface
     {
         return self::select()
             ->whereNotIn($column, $options);
@@ -632,7 +631,7 @@ trait Queryable
     /**
      * Returns a `where $column is not null` query for the model.
      *
-     * @param ColumnLiteral $column
+     * @param QueryValueInterface|QueryLiteralInterface|string $column
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -642,7 +641,7 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereNotNull()
      */
-    public static function whereNotNull(ColumnLiteral $column): QueryInterface
+    public static function whereNotNull(QueryValueInterface|QueryLiteralInterface|string $column): QueryInterface
     {
         return self::select()
             ->whereNotNull($column);
@@ -651,7 +650,7 @@ trait Queryable
     /**
      * Returns a `where $column is null` query for the model.
      *
-     * @param ColumnLiteral $column
+     * @param QueryValueInterface|QueryLiteralInterface|string $column
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -661,17 +660,21 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereNull()
      */
-    public static function whereNull(ColumnLiteral $column): QueryInterface
+    public static function whereNull(QueryValueInterface|QueryLiteralInterface|string $column): QueryInterface
     {
         return self::select()
             ->whereNull($column);
     }
 
     /**
-     * Returns a new select query for the model.
+     * Returns a new select query for the model. The columns from
+     * `getQueryableColumns()` are passed as a single associative array to the
+     * variadic select, where string keys become aliases. Passing the array as
+     * one argument (instead of unpacking it) keeps it robust regardless of the
+     * key order.
      *
-     * @param callable(Select):QueryInterface<static> $compose
-     * @param Select|QueryValueInterface|Stringable|array|string|int $keys
+     * @param callable $compose
+     * @param QueryValueInterface|Stringable|array|string|int $keys
      *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface
@@ -680,14 +683,10 @@ trait Queryable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    private static function baseSelect(callable $compose, Select|QueryValueInterface|Stringable|array|string|int $keys): QueryInterface
+    private static function baseSelect(callable $compose, QueryValueInterface|Stringable|array|string|int $keys): QueryInterface
     {
-        if (!($keys instanceof Select)) {
-            if (!is_array($keys)) {
-                $keys = [$keys];
-            }
-
-            $keys = Select::of($keys);
+        if (!is_array($keys)) {
+            $keys = [$keys];
         }
 
         return static::getQueryableJoins(

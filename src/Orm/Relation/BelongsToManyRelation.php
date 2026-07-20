@@ -10,8 +10,7 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsToMany;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Literal\ColumnLiteral;
-use Raxos\Database\Query\Select;
+use Raxos\Database\Query\Expression\ColumnRef;
 use function array_column;
 use function array_filter;
 use function array_unique;
@@ -33,10 +32,10 @@ use function sort;
 final readonly class BelongsToManyRelation implements RelationInterface
 {
 
-    public ColumnLiteral $declaringKey;
-    public ColumnLiteral $declaringLinkingKey;
-    public ColumnLiteral $referenceKey;
-    public ColumnLiteral $referenceLinkingKey;
+    public ColumnRef $declaringKey;
+    public ColumnRef $declaringLinkingKey;
+    public ColumnRef $referenceKey;
+    public ColumnRef $referenceLinkingKey;
 
     public StructureInterface $referenceStructure;
 
@@ -74,28 +73,24 @@ final readonly class BelongsToManyRelation implements RelationInterface
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
         );
 
         $this->declaringLinkingKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringLinkingKey,
             $this->attribute->declaringLinkingKeyTable,
             $declaringPrimaryKey->asForeignKeyForTable($linkingTable)
         );
 
         $this->referenceLinkingKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceLinkingKey,
             $this->attribute->referenceLinkingKeyTable,
             $referencePrimaryKey->asForeignKeyForTable($linkingTable)
         );
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $referencePrimaryKey
@@ -165,7 +160,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
             return;
         }
 
-        $pivotSelect = new Select()->add($this->declaringLinkingKey, $this->referenceLinkingKey);
+        $pivotSelect = [$this->declaringLinkingKey, $this->referenceLinkingKey];
 
         $pairs = $this->declaringStructure->connection->query()
             ->select($pivotSelect)

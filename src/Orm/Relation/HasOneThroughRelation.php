@@ -10,7 +10,7 @@ use Raxos\Database\Orm\{Error\ReferenceModelMissingException, Model, ModelArrayL
 use Raxos\Database\Orm\Attribute\HasOneThrough;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Expression\ColumnRef;
 use function array_column;
 use function array_filter;
 use function array_unique;
@@ -31,10 +31,10 @@ use function array_values;
 final readonly class HasOneThroughRelation implements RelationInterface
 {
 
-    public ColumnLiteral $declaringKey;
-    public ColumnLiteral $declaringLinkingKey;
-    public ColumnLiteral $referenceKey;
-    public ColumnLiteral $referenceLinkingKey;
+    public ColumnRef $declaringKey;
+    public ColumnRef $declaringLinkingKey;
+    public ColumnRef $referenceKey;
+    public ColumnRef $referenceLinkingKey;
 
     public StructureInterface $linkingStructure;
     public StructureInterface $referenceStructure;
@@ -65,28 +65,24 @@ final readonly class HasOneThroughRelation implements RelationInterface
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
         );
 
         $this->declaringLinkingKey = RelationHelper::composeKey(
-            $this->linkingStructure->connection->grammar,
             $this->attribute->declaringLinkingKey,
             $this->attribute->declaringLinkingKeyTable,
             $declaringPrimaryKey->asForeignKeyFor($this->linkingStructure)
         );
 
         $this->referenceLinkingKey = RelationHelper::composeKey(
-            $this->linkingStructure->connection->grammar,
             $this->attribute->referenceLinkingKey,
             $this->attribute->referenceLinkingKeyTable,
             $referencePrimaryKey->asForeignKeyFor($this->linkingStructure)
         );
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $referencePrimaryKey

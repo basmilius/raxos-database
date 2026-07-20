@@ -19,12 +19,11 @@ use Raxos\Contract\Database\Orm\AttributeInterface;
  *     #[Computed]
  *     public string $claims;
  *
- *     public static function getQueryableColumns(Select $select): Select {
- *         return $select->add(
- *             self::col('*'),
- *
- *             claims: (((sub query)))
- *         );
+ *     public static function getQueryableColumns(array $columns): array {
+ *         return [
+ *             ...$columns,
+ *             'claims' => (((sub query))),
+ *         ];
  *     }
  * }
  * </code>

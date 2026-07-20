@@ -10,7 +10,7 @@ use Raxos\Database\Orm\{Error\ReferenceModelMissingException, Model, ModelArrayL
 use Raxos\Database\Orm\Attribute\HasOne;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Expression\ColumnRef;
 use function assert;
 
 /**
@@ -27,8 +27,8 @@ use function assert;
 final readonly class HasOneRelation implements RelationInterface, WritableRelationInterface
 {
 
-    public ColumnLiteral $declaringKey;
-    public ColumnLiteral $referenceKey;
+    public ColumnRef $declaringKey;
+    public ColumnRef $referenceKey;
 
     public StructureInterface $referenceStructure;
 
@@ -55,14 +55,12 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
         $declaringPrimaryKey = $this->declaringStructure->getRelationPrimaryKey();
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $declaringPrimaryKey->asForeignKeyFor($this->referenceStructure),
         );
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey

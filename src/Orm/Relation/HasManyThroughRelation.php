@@ -10,8 +10,7 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasManyThrough;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Literal\ColumnLiteral;
-use Raxos\Database\Query\Select;
+use Raxos\Database\Query\Expression\ColumnRef;
 
 /**
  * Class HasManyThroughRelation
@@ -28,10 +27,10 @@ use Raxos\Database\Query\Select;
 final readonly class HasManyThroughRelation implements RelationInterface
 {
 
-    public ColumnLiteral $declaringKey;
-    public ColumnLiteral $declaringLinkingKey;
-    public ColumnLiteral $referenceKey;
-    public ColumnLiteral $referenceLinkingKey;
+    public ColumnRef $declaringKey;
+    public ColumnRef $declaringLinkingKey;
+    public ColumnRef $referenceKey;
+    public ColumnRef $referenceLinkingKey;
 
     public StructureInterface $linkingStructure;
     public StructureInterface $referenceStructure;
@@ -60,28 +59,24 @@ final readonly class HasManyThroughRelation implements RelationInterface
         $linkingPrimaryKey = $this->linkingStructure->getRelationPrimaryKey();
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $declaringPrimaryKey
         );
 
         $this->declaringLinkingKey = RelationHelper::composeKey(
-            $this->linkingStructure->connection->grammar,
             $this->attribute->declaringLinkingKey,
             $this->attribute->declaringLinkingKeyTable,
             $declaringPrimaryKey->asForeignKeyFor($this->linkingStructure)
         );
 
         $this->referenceLinkingKey = RelationHelper::composeKey(
-            $this->linkingStructure->connection->grammar,
             $this->attribute->referenceLinkingKey,
             $this->attribute->referenceLinkingKeyTable,
             $linkingPrimaryKey
         );
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $linkingPrimaryKey->asForeignKeyFor($this->referenceStructure)
@@ -150,10 +145,10 @@ final readonly class HasManyThroughRelation implements RelationInterface
             return;
         }
 
-        $select = new Select()->add(
+        $select = [
             $this->referenceStructure->class::col('*'),
-            __local_linking_key: $this->declaringLinkingKey
-        );
+            '__local_linking_key' => $this->declaringLinkingKey,
+        ];
 
         $this->referenceStructure->class::select($select)
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query

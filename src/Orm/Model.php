@@ -12,7 +12,6 @@ use Raxos\Contract\{DebuggableInterface, ProxyableInterface};
 use Raxos\Database\Orm\Definition\{EmbeddedDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\MissingFunctionException;
 use Raxos\Database\Orm\Structure\{StructureGenerator, StructureHelper};
-use Raxos\Database\Query\Select;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
 use Stringable;
 use function array_diff_key;
@@ -438,9 +437,9 @@ abstract class Model implements AccessInterface, ArrayableInterface, DebuggableI
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function getQueryableColumns(Select $select): Select
+    public static function getQueryableColumns(array $columns): array
     {
-        return $select;
+        return $columns;
     }
 
     /**

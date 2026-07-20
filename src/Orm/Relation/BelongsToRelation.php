@@ -11,7 +11,7 @@ use Raxos\Database\Orm\Attribute\BelongsTo;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\{ReferenceModelMissingException};
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Literal\ColumnLiteral;
+use Raxos\Database\Query\Expression\ColumnRef;
 use function assert;
 
 /**
@@ -28,8 +28,8 @@ use function assert;
 final readonly class BelongsToRelation implements RelationInterface, WritableRelationInterface
 {
 
-    public ColumnLiteral $declaringKey;
-    public ColumnLiteral $referenceKey;
+    public ColumnRef $declaringKey;
+    public ColumnRef $referenceKey;
 
     public bool $referenceKeyIsPrimaryKey;
     public StructureInterface $referenceStructure;
@@ -57,14 +57,12 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         $referencePrimaryKey = $this->referenceStructure->getRelationPrimaryKey();
 
         $this->declaringKey = RelationHelper::composeKey(
-            $this->referenceStructure->connection->grammar,
             $this->attribute->declaringKey,
             $this->attribute->declaringKeyTable,
             $referencePrimaryKey->asForeignKeyFor($this->declaringStructure)
         );
 
         $this->referenceKey = RelationHelper::composeKey(
-            $this->declaringStructure->connection->grammar,
             $this->attribute->referenceKey,
             $this->attribute->referenceKeyTable,
             $referencePrimaryKey

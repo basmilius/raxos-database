@@ -221,9 +221,9 @@ final class Expr implements QueryExpressionsInterface
      * @since 2.0.0
      */
     public function groupConcat(
-        QueryLiteralInterface|string $expr,
+        QueryValueInterface|string $expr,
         bool $distinct = false,
-        QueryLiteralInterface|string|null $orderBy = null,
+        QueryValueInterface|string|null $orderBy = null,
         ?string $separator = null,
         ?int $limit = null,
         ?int $offset = null
