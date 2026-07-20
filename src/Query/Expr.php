@@ -1570,7 +1570,7 @@ final class Expr
 
     /**
      * `when ... then ...`
-     * `else ...` d
+     * `else ...`
      *
      * @param QueryExpressionInterface $when
      * @param QueryExpressionInterface|QueryValueInterface $then

@@ -21,6 +21,7 @@ use Raxos\Contract\Database\Orm\AttributeInterface;
  *
  *     public static function getQueryableColumns(array $columns): array {
  *         return [
+ *             self::col('*'),
  *             ...$columns,
  *             'claims' => (((sub query))),
  *         ];

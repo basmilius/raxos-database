@@ -20,7 +20,7 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\InvalidRelationException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Error\{ConnectionErrorException, IncompleteException, MissingAliasException, MissingClauseException, MissingModelException, MissingResultException, StructureErrorException, TooFewPrimaryKeyValuesException, TooManyPrimaryKeyValuesException};
+use Raxos\Database\Query\Error\{ConnectionErrorException, IncompleteException, MissingAliasException, MissingClauseException, MissingModelException, MissingResultException, StructureErrorException, TooFewPrimaryKeyValuesException, TooManyPrimaryKeyValuesException, UnsupportedException};
 use Raxos\Database\Query\Expression\ColumnRef;
 use Raxos\Database\Query\Literal\Literal;
 use stdClass;
@@ -364,7 +364,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
-     * Adopts the clause-tracking state of the given query, so that subsequent
+     * Adopts the clause-tracking state of the given query so that later
      * clause calls continue correctly after wrapping an existing query. Unlike
      * {@see self::merge()} this does not copy any pieces; it only carries over
      * the defined clauses and the current clause.
@@ -1674,7 +1674,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
         if ($this->grammar->supportsRowValueConstructors) {
             // Generate: (`col1`, `col2`) IN ((v1, v2), (v3, v4))
-            $colTuple = '(' . implode(', ', $columns) . ')';
+            $colTuple = '(' . implode(', ', array_map($this->compileColumnField(...), $columns)) . ')';
             $rowTuples = [];
 
             foreach ($primaryKeys as $primaryKey) {
@@ -2077,8 +2077,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * Base function to create joinable derived table (`join (subquery) as alias`)
-     * expressions. Bewust `raw(toSql())` + `mergeParams()` en niet `merge()`,
-     * zodat de splice-volgorde van joins vóór `where` intact blijft.
+     * expressions. Intentionally uses `raw(toSql())` + `mergeParams()` instead of
+     * `merge()`, so the splice order of joins before `where` stays intact.
      *
      * @param string $clause
      * @param QueryInterface $query
@@ -2086,6 +2086,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param callable|null $on
      *
      * @return static<TModel>
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
@@ -2282,6 +2283,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $literal = is_bool($value) ? (string)(int)$value : (string)$value;
 
                 yield $alias !== null ? "{$literal} as {$alias}" : $literal;
+            } elseif (is_array($value)) {
+                throw new UnsupportedException('A select field value cannot be an array; alias a column with a string key instead.');
             } else {
                 $escaped = $this->grammar->escape((string)$value);
 
@@ -2291,7 +2294,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
-     * Renders a column-referencing field to its SQL form. An expression (e.g.
+     * Renders a column-referencing field to its SQL form. An expression (e.g.,
      * a {@see Expression\ColumnRef}) is compiled and its bound parameters merged
      * into the host; a literal is stringified as-is; a plain string is escaped
      * as a column identifier.
