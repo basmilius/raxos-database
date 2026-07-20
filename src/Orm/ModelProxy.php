@@ -65,6 +65,7 @@ final readonly class ModelProxy implements ArrayAccess, DebuggableInterface, Pro
      * @param string $name
      *
      * @return bool
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.4.0
      */
@@ -119,6 +120,7 @@ final readonly class ModelProxy implements ArrayAccess, DebuggableInterface, Pro
 
     /**
      * {@inheritdoc}
+     * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.4.0
      */

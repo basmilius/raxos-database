@@ -88,7 +88,7 @@ final class StructureHelper
                 // note: nested sub-maps address a related model, so they must not be
                 // resolved against this structure; they are re-normalized against the
                 // relation's own structure when applied to it during serialization.
-                $result[$normalizeKey($key)] = self::normalizeKeys($value, null);
+                $result[$normalizeKey($key)] = self::normalizeKeys($value);
             }
         }
 

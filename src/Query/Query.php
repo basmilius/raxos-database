@@ -374,7 +374,6 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @return void
      * @author Bas Milius <bas@mili.us>
      * @since 2.3.0
-     * @internal
      */
     protected function adoptClauseState(QueryInterface $query): void
     {
@@ -2036,6 +2035,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param callable|null $fn
      *
      * @return static<TModel>
+     * @throws QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
