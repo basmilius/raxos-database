@@ -8,8 +8,6 @@ use Raxos\Database\Query\Expression\ColumnRef;
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
 
-const expr = new Expr();
-
 /**
  * Returns a grammar-less `$table`.`$column` reference. Escaped lazily when the
  * expression is compiled, so it can be used inside other expressions and joins

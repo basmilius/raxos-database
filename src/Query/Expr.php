@@ -5,30 +5,35 @@ namespace Raxos\Database\Query;
 
 use BackedEnum;
 use Raxos\Contract\Collection\ArrayableInterface;
-use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryExpressionsInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
+use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
 use function array_filter;
 use function array_values;
 
 /**
- * Class Expression
+ * Class Expr
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
  * @since 2.0.0
  */
-final class Expr implements QueryExpressionsInterface
+final class Expr
 {
 
     #region Comparison Operators
 
     /**
-     * {@inheritdoc}
+     * `$leftExpr = $rightExpr`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function eq(
+    public static function eq(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
@@ -37,11 +42,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `$leftExpr > $rightExpr`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function gt(
+    public static function gt(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
@@ -50,11 +60,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `$leftExpr >= $rightExpr`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function gte(
+    public static function gte(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
@@ -63,11 +78,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `$leftExpr < $rightExpr`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function lt(
+    public static function lt(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
@@ -76,11 +96,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `$leftExpr <= $rightExpr`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function lte(
+    public static function lte(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
@@ -89,31 +114,39 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `is not null`
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function isNotNull(): QueryExpressionInterface
+    public static function isNotNull(): QueryExpressionInterface
     {
         return new Expression\Raw('is not null');
     }
 
     /**
-     * {@inheritdoc}
+     * `is null`
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function isNull(): QueryExpressionInterface
+    public static function isNull(): QueryExpressionInterface
     {
         return new Expression\Raw('is null');
     }
 
     /**
-     * {@inheritdoc}
+     * `not $expression`
+     *
+     * @param QueryExpressionInterface $expr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function not(
+    public static function not(
         QueryExpressionInterface $expr
     ): QueryExpressionInterface
     {
@@ -121,11 +154,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `between $lower and $upper`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $lower
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $upper
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function between(
+    public static function between(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $lower,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $upper
     ): QueryExpressionInterface
@@ -134,11 +172,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `coalesce(...$values)`
+     *
+     * @param BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool ...$values
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function coalesce(
+    public static function coalesce(
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool ...$values
     ): QueryExpressionInterface
     {
@@ -146,11 +188,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `greatest(...$values)`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool ...$values
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function greatest(
+    public static function greatest(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool ...$values
     ): QueryExpressionInterface
     {
@@ -158,11 +204,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `in(...$values)`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool ...$values
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function in(
+    public static function in(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool ...$values
     ): QueryExpressionInterface
     {
@@ -170,11 +220,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `least(...$values)`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool ...$values
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function least(
+    public static function least(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool ...$values
     ): QueryExpressionInterface
     {
@@ -186,11 +240,16 @@ final class Expr implements QueryExpressionsInterface
     #region Aggregate Functions
 
     /**
-     * {@inheritdoc}
+     * `avg([$distinct] $expr)`
+     *
+     * @param QueryExpressionInterface|string $expr
+     * @param bool $distinct
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function avg(
+    public static function avg(
         QueryExpressionInterface|string $expr,
         bool $distinct = false
     ): QueryExpressionInterface
@@ -199,11 +258,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `count([$distinct] $expr)`
+     *
+     * @param QueryInterface|QueryValueInterface|string|null $expr
+     * @param bool $distinct
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function count(
+    public static function count(
         QueryInterface|QueryValueInterface|string|null $expr = null,
         bool $distinct = false
     ): QueryExpressionInterface
@@ -216,11 +280,20 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `group_concat([$distinct] $expr [$orderBy] [$separator] [$limit] [$offset])`
+     *
+     * @param QueryValueInterface|string $expr
+     * @param bool $distinct
+     * @param QueryValueInterface|string|null $orderBy
+     * @param string|null $separator
+     * @param int|null $limit
+     * @param int|null $offset
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function groupConcat(
+    public static function groupConcat(
         QueryValueInterface|string $expr,
         bool $distinct = false,
         QueryValueInterface|string|null $orderBy = null,
@@ -240,11 +313,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `max([$distinct] $expr)`
+     *
+     * @param QueryExpressionInterface|string $expr
+     * @param bool $distinct
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function max(
+    public static function max(
         QueryExpressionInterface|string $expr,
         bool $distinct = false
     ): QueryExpressionInterface
@@ -253,11 +331,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `min([$distinct] $expr)`
+     *
+     * @param QueryExpressionInterface|string $expr
+     * @param bool $distinct
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function min(
+    public static function min(
         QueryExpressionInterface|string $expr,
         bool $distinct = false
     ): QueryExpressionInterface
@@ -266,11 +349,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `sum([$distinct] $expr)`
+     *
+     * @param QueryExpressionInterface|string $expr
+     * @param bool $distinct
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function sum(
+    public static function sum(
         QueryExpressionInterface|string $expr,
         bool $distinct = false
     ): QueryExpressionInterface
@@ -283,11 +371,17 @@ final class Expr implements QueryExpressionsInterface
     #region Control Flow Functions
 
     /**
-     * {@inheritdoc}
+     * `if($expr, $then, $else)`
+     *
+     * @param BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr
+     * @param BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $then
+     * @param BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $else
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function if(
+    public static function if(
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr,
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $then,
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $else
@@ -301,11 +395,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `ifnull($expr1, $expr2)`
+     *
+     * @param BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr1
+     * @param BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr2
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function ifNull(
+    public static function ifNull(
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr1,
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr2
     ): QueryExpressionInterface
@@ -317,11 +416,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `nullif($expr1, $expr2)`
+     *
+     * @param BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr1
+     * @param BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr2
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function nullIf(
+    public static function nullIf(
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr1,
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr2
     ): QueryExpressionInterface
@@ -337,41 +441,51 @@ final class Expr implements QueryExpressionsInterface
     #region Date & Time Functions
 
     /**
-     * {@inheritdoc}
+     * `current_date()`
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function currentDate(): QueryExpressionInterface
+    public static function currentDate(): QueryExpressionInterface
     {
         return new Expression\Raw('current_date()');
     }
 
     /**
-     * {@inheritdoc}
+     * `current_time()`
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function currentTime(): QueryExpressionInterface
+    public static function currentTime(): QueryExpressionInterface
     {
         return new Expression\Raw('current_time()');
     }
 
     /**
-     * {@inheritdoc}
+     * `current_timestamp()`
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function currentTimestamp(): QueryExpressionInterface
+    public static function currentTimestamp(): QueryExpressionInterface
     {
         return new Expression\Raw('current_timestamp()');
     }
 
     /**
-     * {@inheritdoc}
+     * `date($expr)`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function date(
+    public static function date(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
     ): QueryExpressionInterface
     {
@@ -379,11 +493,17 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `date_add($expr, interval $value $unit)`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
+     * @param int $value
+     * @param DateTimeUnit $unit
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function dateAdd(
+    public static function dateAdd(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
         int $value,
         DateTimeUnit $unit
@@ -396,11 +516,17 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `date_format($expr, $format [, $locale])`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
+     * @param string $format
+     * @param string|null $locale
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function dateFormat(
+    public static function dateFormat(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
         string $format,
         ?string $locale = null
@@ -419,11 +545,17 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `date_sub($expr, interval $value $unit)`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
+     * @param int $value
+     * @param DateTimeUnit $unit
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function dateSub(
+    public static function dateSub(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
         int $value,
         DateTimeUnit $unit
@@ -436,11 +568,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `datediff($expr1, $expr2)`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr1
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr2
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function datediff(
+    public static function datediff(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr1,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr2
     ): QueryExpressionInterface
@@ -449,11 +586,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `day($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
+     * @see self::dayOfMonth()
      */
-    public function day(
+    public static function day(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -461,11 +603,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `dayname($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function dayName(
+    public static function dayName(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -473,11 +619,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `dayofmonth($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
+     * @see self::day()
      */
-    public function dayOfMonth(
+    public static function dayOfMonth(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -485,11 +636,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `dayofweek($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function dayOfWeek(
+    public static function dayOfWeek(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -497,11 +652,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `dayofyear($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function dayOfYear(
+    public static function dayOfYear(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -509,11 +668,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `extract($unit from $date)`
+     *
+     * @param DateTimeUnit $unit
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function extract(
+    public static function extract(
         DateTimeUnit $unit,
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
@@ -522,11 +686,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `from_unixtime($unixtime [, $format])`
+     *
+     * @param QueryValueInterface|Stringable|string|int $unixtime
+     * @param string|null $format
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function fromUnixtime(
+    public static function fromUnixtime(
         QueryValueInterface|Stringable|string|int $unixtime,
         ?string $format = null
     ): QueryExpressionInterface
@@ -535,11 +704,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `hour($time)`
+     *
+     * @param QueryValueInterface|Stringable|string $time
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function hour(
+    public static function hour(
         QueryValueInterface|Stringable|string $time
     ): QueryExpressionInterface
     {
@@ -547,11 +720,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `last_day($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function lastDay(
+    public static function lastDay(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -559,11 +736,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `microsecond($time)`
+     *
+     * @param QueryValueInterface|Stringable|string $time
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function microsecond(
+    public static function microsecond(
         QueryValueInterface|Stringable|string $time
     ): QueryExpressionInterface
     {
@@ -571,11 +752,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `minute($time)`
+     *
+     * @param QueryValueInterface|Stringable|string $time
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function minute(
+    public static function minute(
         QueryValueInterface|Stringable|string $time
     ): QueryExpressionInterface
     {
@@ -583,11 +768,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `month($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function month(
+    public static function month(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -595,11 +784,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `monthname($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function monthname(
+    public static function monthname(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -607,21 +800,27 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `now()`
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function now(): QueryExpressionInterface
+    public static function now(): QueryExpressionInterface
     {
         return new Expression\Raw('now()');
     }
 
     /**
-     * {@inheritdoc}
+     * `quarter($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function quarter(
+    public static function quarter(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -629,11 +828,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `second($time)`
+     *
+     * @param QueryValueInterface|Stringable|string $time
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function second(
+    public static function second(
         QueryValueInterface|Stringable|string $time
     ): QueryExpressionInterface
     {
@@ -641,11 +844,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `time($expr)`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function time(
+    public static function time(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
     ): QueryExpressionInterface
     {
@@ -653,11 +860,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `unix_timestamp($date)`
+     *
+     * @param QueryValueInterface|Stringable|string|null $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function unixTimestamp(
+    public static function unixTimestamp(
         QueryValueInterface|Stringable|string|null $date = null
     ): QueryExpressionInterface
     {
@@ -665,11 +876,28 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `week($date [, $mode])`
+     *
+     * <table>
+     *     <tr><th>Mode</th> <th>1st day of week</th> <th>Range</th> <th>Week 1 is the 1st week with</th></tr>
+     *     <tr><td>0</td> <td>Sunday</td> <td>0-53</td> <td>a Sunday in this year</td></tr>
+     *     <tr><td>1</td> <td>Monday</td> <td>0-53</td> <td>more than 3 days this year</td></tr>
+     *     <tr><td>2</td> <td>Sunday</td> <td>1-53</td> <td>a Sunday in this year</td></tr>
+     *     <tr><td>3</td> <td>Monday</td> <td>1-53</td> <td>more than 3 days this year</td></tr>
+     *     <tr><td>4</td> <td>Sunday</td> <td>0-53</td> <td>more than 3 days this year</td></tr>
+     *     <tr><td>5</td> <td>Monday</td> <td>0-53</td> <td>a Monday in this year</td></tr>
+     *     <tr><td>6</td> <td>Sunday</td> <td>1-53</td> <td>more than 3 days this year</td></tr>
+     *     <tr><td>7</td> <td>Monday</td> <td>1-53</td> <td>a Monday in this year</td></tr>
+     * </table>
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     * @param int $mode
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function week(
+    public static function week(
         QueryValueInterface|Stringable|string $date,
         int $mode = 3
     ): QueryExpressionInterface
@@ -678,11 +906,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `weekday($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function weekDay(
+    public static function weekDay(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -690,11 +922,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `weekofyear($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function weekOfYear(
+    public static function weekOfYear(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -702,11 +938,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `year($date)`
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function year(
+    public static function year(
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
@@ -714,11 +954,28 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `yearweek($date [, $mode])`
+     *
+     * <table>
+     *     <tr><th>Mode</th> <th>1st day of week</th> <th>Range</th> <th>Week 1 is the 1st week with</th></tr>
+     *     <tr><td>0</td> <td>Sunday</td> <td>0-53</td> <td>a Sunday in this year</td></tr>
+     *     <tr><td>1</td> <td>Monday</td> <td>0-53</td> <td>more than 3 days this year</td></tr>
+     *     <tr><td>2</td> <td>Sunday</td> <td>1-53</td> <td>a Sunday in this year</td></tr>
+     *     <tr><td>3</td> <td>Monday</td> <td>1-53</td> <td>more than 3 days this year</td></tr>
+     *     <tr><td>4</td> <td>Sunday</td> <td>0-53</td> <td>more than 3 days this year</td></tr>
+     *     <tr><td>5</td> <td>Monday</td> <td>0-53</td> <td>a Monday in this year</td></tr>
+     *     <tr><td>6</td> <td>Sunday</td> <td>1-53</td> <td>more than 3 days this year</td></tr>
+     *     <tr><td>7</td> <td>Monday</td> <td>1-53</td> <td>a Monday in this year</td></tr>
+     * </table>
+     *
+     * @param QueryValueInterface|Stringable|string $date
+     * @param int $mode
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function yearWeek(
+    public static function yearWeek(
         QueryValueInterface|Stringable|string $date,
         int $mode = 3
     ): QueryExpressionInterface
@@ -731,11 +988,15 @@ final class Expr implements QueryExpressionsInterface
     #region Numeric Functions
 
     /**
-     * {@inheritdoc}
+     * `abs($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function abs(
+    public static function abs(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -743,11 +1004,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `acos($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function acos(
+    public static function acos(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -755,11 +1020,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `$leftExpr + $rightExpr`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function add(
+    public static function add(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
@@ -768,11 +1038,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `asin($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function asin(
+    public static function asin(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -780,11 +1054,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `atan($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function atan(
+    public static function atan(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -792,11 +1070,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `atan2($x, $y)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     * @param QueryValueInterface|Stringable|string|int|float|bool $y
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function atan2(
+    public static function atan2(
         QueryValueInterface|Stringable|string|int|float|bool $x,
         QueryValueInterface|Stringable|string|int|float|bool $y
     ): QueryExpressionInterface
@@ -805,11 +1088,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `ceil($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function ceil(
+    public static function ceil(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -817,11 +1104,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `ceiling($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function ceiling(
+    public static function ceiling(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -829,11 +1120,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `cos($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function cos(
+    public static function cos(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -841,11 +1136,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `cot($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function cot(
+    public static function cot(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -853,11 +1152,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `degrees($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function degrees(
+    public static function degrees(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -865,11 +1168,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `$leftExpr / $rightExpr`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function div(
+    public static function div(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
@@ -878,11 +1186,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `exp($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function exp(
+    public static function exp(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -890,11 +1202,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `floor($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function floor(
+    public static function floor(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -902,11 +1218,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `ln($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function ln(
+    public static function ln(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -914,11 +1234,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `log([$b, ] $x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     * @param QueryValueInterface|Stringable|string|int|float|bool|null $b
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function log(
+    public static function log(
         QueryValueInterface|Stringable|string|int|float|bool $x,
         QueryValueInterface|Stringable|string|int|float|bool|null $b = null
     ): QueryExpressionInterface
@@ -927,11 +1252,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `log10($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function log10(
+    public static function log10(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -939,11 +1268,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `log2($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function log2(
+    public static function log2(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -951,11 +1284,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `$leftExpr % $rightExpr`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function mod(
+    public static function mod(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
@@ -964,11 +1302,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `$leftExpr * $rightExpr`
+     *
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr
+     * @param BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function mul(
+    public static function mul(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $leftExpr,
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
@@ -977,11 +1320,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `oct($n)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $n
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function oct(
+    public static function oct(
         QueryValueInterface|Stringable|string|int|float|bool $n
     ): QueryExpressionInterface
     {
@@ -989,21 +1336,28 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `pi()`
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function pi(): QueryExpressionInterface
+    public static function pi(): QueryExpressionInterface
     {
         return new Expression\Raw('pi()');
     }
 
     /**
-     * {@inheritdoc}
+     * `pow($x, $y)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     * @param QueryValueInterface|Stringable|string|int|float|bool $y
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function pow(
+    public static function pow(
         QueryValueInterface|Stringable|string|int|float|bool $x,
         QueryValueInterface|Stringable|string|int|float|bool $y
     ): QueryExpressionInterface
@@ -1012,11 +1366,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `radians($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function radians(
+    public static function radians(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -1024,11 +1382,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `rand([$n])`
+     *
+     * @param int|null $n
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function rand(
+    public static function rand(
         ?int $n = null
     ): QueryExpressionInterface
     {
@@ -1036,11 +1398,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `round($x [, $d])`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     * @param int|null $d
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function round(
+    public static function round(
         QueryValueInterface|Stringable|string|int|float|bool $x,
         ?int $d = null
     ): QueryExpressionInterface
@@ -1049,11 +1416,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `sign($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function sign(
+    public static function sign(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -1061,11 +1432,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `sin($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function sin(
+    public static function sin(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -1073,11 +1448,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `sqrt($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function sqrt(
+    public static function sqrt(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -1085,11 +1464,15 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `tan($x)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function tan(
+    public static function tan(
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
@@ -1097,11 +1480,16 @@ final class Expr implements QueryExpressionsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * `truncate($x, $d)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float|bool $x
+     * @param int $d
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function truncate(
+    public static function truncate(
         QueryValueInterface|Stringable|string|int|float|bool $x,
         int $d
     ): QueryExpressionInterface
@@ -1114,31 +1502,47 @@ final class Expr implements QueryExpressionsInterface
     #region String Functions
 
     /**
-     * {@inheritdoc}
+     * `concat(...$values)`
+     *
+     * @param iterable<BackedEnum|QueryValueInterface|Stringable|string|int|float|bool> $values
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function concat(iterable $values): QueryExpressionInterface
+    public static function concat(iterable $values): QueryExpressionInterface
     {
         return new Expression\Func('concat', [...$values]);
     }
 
     /**
-     * {@inheritdoc}
+     * `concat_ws($separator, ...$values)`
+     *
+     * @param string $separator
+     * @param iterable<BackedEnum|QueryValueInterface|Stringable|string|int|float|bool> $values
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function concatWs(string $separator, iterable $values): QueryExpressionInterface
+    public static function concatWs(string $separator, iterable $values): QueryExpressionInterface
     {
         return new Expression\Func('concat_ws', [$separator, ...$values]);
     }
 
     /**
-     * {@inheritdoc}
+     * `match($fields) against ($expr)`
+     *
+     * @param QueryLiteralInterface|QueryExpressionInterface|Stringable|ArrayableInterface<QueryInterface|QueryValueInterface|Stringable|string|int|float>|string|float|int|array<QueryInterface|QueryValueInterface|Stringable|string|int|float> $fields
+     * @param QueryLiteralInterface|QueryExpressionInterface|Stringable|string|float|int $expr
+     * @param bool $booleanMode
+     * @param bool $queryExpansion
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function matchAgainst(
+    public static function matchAgainst(
         QueryLiteralInterface|QueryExpressionInterface|Stringable|ArrayableInterface|string|float|int|array $fields,
         QueryLiteralInterface|QueryExpressionInterface|Stringable|string|float|int $expr,
         bool $booleanMode = false,
@@ -1155,20 +1559,27 @@ final class Expr implements QueryExpressionsInterface
     /**
      * Returns a new CASE expression builder.
      *
+     * @return Expression\CaseStatement
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function case(): Expression\CaseStatement
+    public static function case(): Expression\CaseStatement
     {
         return new Expression\CaseStatement();
     }
 
     /**
-     * {@inheritdoc}
+     * `when ... then ...`
+     * `else ...` d
+     *
+     * @param QueryExpressionInterface $when
+     * @param QueryExpressionInterface|QueryValueInterface $then
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function when(
+    public static function when(
         QueryExpressionInterface $when,
         QueryExpressionInterface|QueryValueInterface $then
     ): QueryExpressionInterface
@@ -1179,58 +1590,80 @@ final class Expr implements QueryExpressionsInterface
     #endregion
 
     /**
-     * {@inheritdoc}
+     * `exists $expr`
+     *
+     * @param QueryInterface|QueryExpressionInterface $expr
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function exists(QueryInterface|QueryExpressionInterface $expr): QueryExpressionInterface
+    public static function exists(QueryInterface|QueryExpressionInterface $expr): QueryExpressionInterface
     {
         if ($expr instanceof QueryInterface) {
-            $expr = $this->subQuery($expr);
+            $expr = self::subQuery($expr);
         }
 
         return new Expression\Exists($expr);
     }
 
     /**
-     * {@inheritdoc}
+     * `$name(...$params)`
+     *
+     * @param string $name
+     * @param array<BackedEnum|QueryValueInterface|Stringable|string|int|float|bool> $params
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function func(string $name, array $params): QueryExpressionInterface
+    public static function func(string $name, array $params): QueryExpressionInterface
     {
         return new Expression\Func($name, $params);
     }
 
     /**
-     * {@inheritdoc}
+     * `sha1($value)`
+     *
+     * @param QueryValueInterface|Stringable|string|int|float $value
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function sha1(QueryValueInterface|Stringable|string|int|float $value): QueryExpressionInterface
+    public static function sha1(QueryValueInterface|Stringable|string|int|float $value): QueryExpressionInterface
     {
         return new Expression\Func('sha1', [$value]);
     }
 
     /**
-     * {@inheritdoc}
+     * `($subQuery)`
+     *
+     * @param QueryInterface $query
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function subQuery(QueryInterface $query): QueryExpressionInterface
+    public static function subQuery(QueryInterface $query): QueryExpressionInterface
     {
         return new Expression\SubQuery($query);
     }
 
     /**
-     * {@inheritdoc}
+     * `@$name:= ($subQuery)`
+     *
+     * @param string $name
+     * @param QueryInterface|Expression\SubQuery $subQuery
+     *
+     * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function variable(string $name, QueryInterface|Expression\SubQuery $subQuery): QueryExpressionInterface
+    public static function variable(string $name, QueryInterface|Expression\SubQuery $subQuery): QueryExpressionInterface
     {
         if ($subQuery instanceof QueryInterface) {
-            $subQuery = $this->subQuery($subQuery);
+            $subQuery = self::subQuery($subQuery);
         }
 
         return new Expression\Variable($name, $subQuery);

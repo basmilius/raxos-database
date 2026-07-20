@@ -118,7 +118,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             $rhs = $cmp;
 
             // note(Bas): a ColumnRef is a bare column reference, not a
-            //  self-contained predicate like expr->in()/between(), so it still
+            //  self-contained predicate like Expr::in()/between(), so it still
             //  needs an explicit `=` operator between the two operands.
             if (!($rhs instanceof QueryExpressionInterface) || $rhs instanceof ColumnRef) {
                 $cmp = '=';
@@ -1022,7 +1022,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function havingExists(QueryInterface $query): static
     {
-        return $this->having(expr->exists(expr->subQuery($query)));
+        return $this->having(Expr::exists(Expr::subQuery($query)));
     }
 
     /**
@@ -1036,7 +1036,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->having(Literal::of('1 = 0'));
         }
 
-        return $this->having($field, expr->in(...$options));
+        return $this->having($field, Expr::in(...$options));
     }
 
     /**
@@ -1046,7 +1046,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function havingNotExists(QueryInterface $query): static
     {
-        return $this->having(expr->not(expr->exists(expr->subQuery($query))));
+        return $this->having(Expr::not(Expr::exists(Expr::subQuery($query))));
     }
 
     /**
@@ -1056,7 +1056,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function havingNotNull(QueryValueInterface|QueryLiteralInterface|string $field): static
     {
-        return $this->having($field, expr->isNotNull());
+        return $this->having($field, Expr::isNotNull());
     }
 
     /**
@@ -1070,7 +1070,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->having(Literal::of('1 = 1'));
         }
 
-        return $this->having($field, expr->not(expr->in(...$options)));
+        return $this->having($field, Expr::not(Expr::in(...$options)));
     }
 
     /**
@@ -1080,7 +1080,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function havingNull(QueryValueInterface|QueryLiteralInterface|string $field): static
     {
-        return $this->having($field, expr->isNull());
+        return $this->having($field, Expr::isNull());
     }
 
     /**
@@ -1104,7 +1104,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orHavingExists(QueryInterface $query): static
     {
-        return $this->orHaving(expr->exists(expr->subQuery($query)));
+        return $this->orHaving(Expr::exists(Expr::subQuery($query)));
     }
 
     /**
@@ -1118,7 +1118,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->orHaving(Literal::of('1 = 0'));
         }
 
-        return $this->orHaving($field, expr->in(...$options));
+        return $this->orHaving($field, Expr::in(...$options));
     }
 
     /**
@@ -1128,7 +1128,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orHavingNotExists(QueryInterface $query): static
     {
-        return $this->orHaving(expr->not(expr->exists(expr->subQuery($query))));
+        return $this->orHaving(Expr::not(Expr::exists(Expr::subQuery($query))));
     }
 
     /**
@@ -1142,7 +1142,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->orHaving(Literal::of('1 = 1'));
         }
 
-        return $this->orHaving($field, expr->not(expr->in(...$options)));
+        return $this->orHaving($field, Expr::not(Expr::in(...$options)));
     }
 
     /**
@@ -1152,7 +1152,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orHavingNotNull(QueryValueInterface|QueryLiteralInterface|string $field): static
     {
-        return $this->orHaving($field, expr->isNotNull());
+        return $this->orHaving($field, Expr::isNotNull());
     }
 
     /**
@@ -1162,7 +1162,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orHavingNull(QueryValueInterface|QueryLiteralInterface|string $field): static
     {
-        return $this->orHaving($field, expr->isNull());
+        return $this->orHaving($field, Expr::isNull());
     }
 
     /**
@@ -1266,7 +1266,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orWhereExists(QueryInterface $query): static
     {
-        return $this->orWhere(expr->exists(expr->subQuery($query)));
+        return $this->orWhere(Expr::exists(Expr::subQuery($query)));
     }
 
     /**
@@ -1290,7 +1290,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->orWhere(Literal::of('1 = 0'));
         }
 
-        return $this->orWhere($field, expr->in(...$options));
+        return $this->orWhere($field, Expr::in(...$options));
     }
 
     /**
@@ -1300,7 +1300,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orWhereNotExists(QueryInterface $query): static
     {
-        return $this->orWhere(expr->not(expr->exists(expr->subQuery($query))));
+        return $this->orWhere(Expr::not(Expr::exists(Expr::subQuery($query))));
     }
 
     /**
@@ -1324,7 +1324,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->orWhere(Literal::of('1 = 1'));
         }
 
-        return $this->orWhere($field, expr->not(expr->in(...$options)));
+        return $this->orWhere($field, Expr::not(Expr::in(...$options)));
     }
 
     /**
@@ -1334,7 +1334,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orWhereNotNull(QueryValueInterface|QueryLiteralInterface|string $field): static
     {
-        return $this->orWhere($field, expr->isNotNull());
+        return $this->orWhere($field, Expr::isNotNull());
     }
 
     /**
@@ -1344,7 +1344,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function orWhereNull(QueryValueInterface|QueryLiteralInterface|string $field): static
     {
-        return $this->orWhere($field, expr->isNull());
+        return $this->orWhere($field, Expr::isNull());
     }
 
     /**
@@ -1519,7 +1519,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function whereExists(QueryInterface $query): static
     {
-        return $this->where(expr->exists(expr->subQuery($query)));
+        return $this->where(Expr::exists(Expr::subQuery($query)));
     }
 
     /**
@@ -1543,7 +1543,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->where(Literal::of('1 = 0'));
         }
 
-        return $this->where($field, expr->in(...$options));
+        return $this->where($field, Expr::in(...$options));
     }
 
     /**
@@ -1553,7 +1553,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function whereNotExists(QueryInterface $query): static
     {
-        return $this->where(expr->not(expr->exists(expr->subQuery($query))));
+        return $this->where(Expr::not(Expr::exists(Expr::subQuery($query))));
     }
 
     /**
@@ -1577,7 +1577,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             return $this->where(Literal::of('1 = 1'));
         }
 
-        return $this->where($field, expr->not(expr->in(...$options)));
+        return $this->where($field, Expr::not(Expr::in(...$options)));
     }
 
     /**
@@ -1587,7 +1587,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function whereNotNull(QueryValueInterface|QueryLiteralInterface|string $field): static
     {
-        return $this->where($field, expr->isNotNull());
+        return $this->where($field, Expr::isNotNull());
     }
 
     /**
@@ -1597,7 +1597,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function whereNull(QueryValueInterface|QueryLiteralInterface|string $field): static
     {
-        return $this->where($field, expr->isNull());
+        return $this->where($field, Expr::isNull());
     }
 
     /**
@@ -1649,7 +1649,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $properties = $structure->primaryKey;
 
         if (count($properties) === 1) {
-            return $this->where($structure->getColumn($properties[0]->key), expr->in(...$primaryKeys));
+            return $this->where($structure->getColumn($properties[0]->key), Expr::in(...$primaryKeys));
         }
 
         $columns = array_map(static fn(PropertyDefinition $property) => $structure->getColumn($property->name), $properties);
@@ -2174,9 +2174,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             }
 
             if ($negate) {
-                $clause(expr->not(expr->exists(expr->subQuery($query))));
+                $clause(Expr::not(Expr::exists(Expr::subQuery($query))));
             } else {
-                $clause(expr->exists(expr->subQuery($query)));
+                $clause(Expr::exists(Expr::subQuery($query)));
             }
 
             return $this;
