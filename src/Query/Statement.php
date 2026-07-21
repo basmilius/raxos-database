@@ -354,13 +354,17 @@ class Statement implements StatementInterface
             throw new MissingModelException();
         }
 
-        if ($this->connection->logger->enabled) {
-            $stopwatch = new Stopwatch(__METHOD__);
-            $result = $stopwatch->run($this->pdoStatement->execute(...));
+        try {
+            if ($this->connection->logger->enabled) {
+                $stopwatch = new Stopwatch(__METHOD__);
+                $result = $stopwatch->run($this->pdoStatement->execute(...));
 
-            $this->connection->logger->log(new QueryEvent($this->query, $stopwatch));
-        } else {
-            $result = $this->pdoStatement->execute();
+                $this->connection->logger->log(new QueryEvent($this->query, $stopwatch));
+            } else {
+                $result = $this->pdoStatement->execute();
+            }
+        } catch (PDOException $err) {
+            throw ExecutionException::fromException($err);
         }
 
         if ($result === false) {
