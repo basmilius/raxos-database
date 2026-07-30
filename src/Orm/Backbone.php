@@ -7,7 +7,7 @@ use BackedEnum;
 use Generator;
 use JetBrains\PhpStorm\ExpectedValues;
 use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
-use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, MutationListenerInterface, OrmExceptionInterface, StructureInterface, WritableRelationInterface};
+use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, ModelInterface, MutationListenerInterface, OrmExceptionInterface, StructureInterface, WritableRelationInterface};
 use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface, QueryValueInterface};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, EmbeddedDefinition, MacroDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, MissingPolymorphicMappingException, MissingPrimaryKeyException, NotFoundException, PropertyReadFailedException, PropertyWriteFailedException};
@@ -43,11 +43,12 @@ final class Backbone implements AccessInterface, BackboneInterface
     public readonly BackpackInterface $macroCache;
     public readonly BackpackInterface $relationCache;
 
-    public ?Model $currentInstance = null;
+    public ?ModelInterface $currentInstance = null;
 
     /** @var array<string, true> */
     private array $modified = [];
     private array $saveTasks = [];
+    private ?Model $writableInstance = null;
 
     private static int $backboneId = 0;
 
@@ -85,6 +86,8 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     public function addInstance(Model $instance): void
     {
+        $this->writableInstance ??= $instance;
+
         foreach ($this->structure->propertyNames as $name) {
             unset($instance->{$name});
         }
@@ -98,6 +101,16 @@ final class Backbone implements AccessInterface, BackboneInterface
     public function createInstance(): Model
     {
         return new $this->class(backbone: $this);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.1.0
+     */
+    public function instance(): Model
+    {
+        return $this->writableInstance ??= $this->createInstance();
     }
 
     /**
@@ -129,7 +142,7 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     public function getCastedValue(string $caster, #[ExpectedValues(['decode', 'encode'])] string $mode, mixed $value): mixed
     {
-        return Singleton::get($caster)->{$mode}($value, $this->currentInstance);
+        return Singleton::get($caster)->{$mode}($value, $this->instance());
     }
 
     /**
@@ -177,7 +190,7 @@ final class Backbone implements AccessInterface, BackboneInterface
         }
 
         $callback = $property->callback;
-        $result = $callback($this->currentInstance);
+        $result = $callback($this->instance());
 
         if ($property->isCached) {
             $this->macroCache->setValue($property->name, $result);
@@ -199,7 +212,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
         $result = $this->structure
             ->getRelation($property)
-            ->fetch($this->currentInstance);
+            ->fetch($this->instance());
 
         $this->relationCache->setValue($property->name, $result);
 
@@ -247,7 +260,7 @@ final class Backbone implements AccessInterface, BackboneInterface
             throw new ImmutableRelationException($this->class, $property->name);
         }
 
-        $relation->write($this->currentInstance, $property, $value);
+        $relation->write($this->instance(), $property, $value);
         $this->relationCache->setValue($property->name, $value);
     }
 
@@ -536,7 +549,7 @@ final class Backbone implements AccessInterface, BackboneInterface
             $this->data->replaceWith($record);
             $this->isNew = false;
 
-            $this->cache->set($this->class, $primaryKeyValue, $this->currentInstance);
+            $this->cache->set($this->class, $primaryKeyValue, $this->instance());
         } else {
             // note(Bas): saves the modified fields of an existing record. We
             //  only re-SELECT when the model has computed columns the caller

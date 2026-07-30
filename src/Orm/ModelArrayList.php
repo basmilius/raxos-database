@@ -5,31 +5,33 @@ namespace Raxos\Database\Orm;
 
 use Raxos\Collection\ArrayList;
 use Raxos\Contract\Collection\ArrayListInterface;
-use Raxos\Contract\Database\Orm\VisibilityInterface;
-use Raxos\Contract\ProxyableInterface;
+use Raxos\Contract\Database\Orm\{ModelInterface, VisibilityInterface};
 
 /**
  * Class ModelArrayList
  *
  * @template TKey of array-key
- * @template TValue of Model
+ * @template TValue of ModelInterface
  * @implements ArrayListInterface<TKey, TValue>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm
  * @since 1.0.17
  */
-class ModelArrayList extends ArrayList implements ProxyableInterface, VisibilityInterface
+class ModelArrayList extends ArrayList implements VisibilityInterface
 {
 
     /**
-     * {@inheritdoc}
+     * Returns a list of read-only views of the models, sharing their backbones.
+     * Safe to expose to untrusted consumers such as template engines.
+     *
+     * @return static
      * @author Bas Milius <bas@mili.us>
-     * @since 2.4.0
+     * @since 3.1.0
      */
-    public function proxy(): ModelArrayListProxy
+    public function readonly(): static
     {
-        return new ModelArrayListProxy($this);
+        return $this->map(static fn(ModelInterface $model) => $model->readonly());
     }
 
     /**
@@ -39,7 +41,7 @@ class ModelArrayList extends ArrayList implements ProxyableInterface, Visibility
      */
     public function makeHidden(array|string $keys): static
     {
-        return $this->map(static fn(Model $model) => $model->makeHidden($keys));
+        return $this->map(static fn(ModelInterface $model) => $model->makeHidden($keys));
     }
 
     /**
@@ -49,7 +51,7 @@ class ModelArrayList extends ArrayList implements ProxyableInterface, Visibility
      */
     public function makeVisible(array|string $keys): static
     {
-        return $this->map(static fn(Model $model) => $model->makeVisible($keys));
+        return $this->map(static fn(ModelInterface $model) => $model->makeVisible($keys));
     }
 
     /**
@@ -59,7 +61,7 @@ class ModelArrayList extends ArrayList implements ProxyableInterface, Visibility
      */
     public function only(array|string $keys): static
     {
-        return $this->map(static fn(Model $model) => $model->only($keys));
+        return $this->map(static fn(ModelInterface $model) => $model->only($keys));
     }
 
 }
