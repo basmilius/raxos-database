@@ -78,7 +78,7 @@ trait ModelReadable
     public function only(array|string $keys): static
     {
         /** @noinspection PhpUnhandledExceptionInspection */
-        $keys = StructureHelper::normalizeKeys($keys);
+        $keys = StructureHelper::normalizeKeys($keys, $this->backbone->structure);
 
         $hidden = [];
         $only = [];

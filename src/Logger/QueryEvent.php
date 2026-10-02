@@ -43,7 +43,7 @@ final readonly class QueryEvent extends Event
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 3.2.0
      */
     public function print(bool $backtrace): string
     {
@@ -71,6 +71,8 @@ final readonly class QueryEvent extends Event
             } else {
                 $query = $sql;
             }
+        } else {
+            $query = htmlspecialchars($query, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         }
 
         return $this->printBase($query, $backtrace);

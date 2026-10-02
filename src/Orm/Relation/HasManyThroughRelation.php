@@ -6,11 +6,12 @@ namespace Raxos\Database\Orm\Relation;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface};
 use Raxos\Contract\Database\Query\QueryInterface;
-use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasManyThrough;
 use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Expression\ColumnRef;
+use Raxos\Database\Query\Literal\Literal;
 
 /**
  * Class HasManyThroughRelation
@@ -98,14 +99,14 @@ final readonly class HasManyThroughRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function query(Model $instance): QueryInterface
     {
         return $this->referenceStructure->class::select()
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceKey, $this->referenceLinkingKey))
-            ->where($this->declaringLinkingKey, $instance->{$this->declaringKey->column})
+            ->where($this->declaringLinkingKey, $instance->backbone->getValue($this->declaringKey->column) ?? Literal::of('NULL'))
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
             ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
@@ -132,13 +133,14 @@ final readonly class HasManyThroughRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
         $values = $instances
             ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
             ->column($this->declaringKey->column)
+            ->filter(static fn(mixed $value): bool => $value !== null)
             ->unique();
 
         if ($values->isEmpty()) {
@@ -170,7 +172,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
+     * @since 3.2.0
      */
     private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
     {
@@ -185,7 +187,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
                 continue;
             }
 
-            $matched = $map[$instance->{$this->declaringKey->column}] ?? [];
+            $matched = $map[$instance->backbone->getValue($this->declaringKey->column)] ?? [];
 
             $instance->backbone->relationCache->setValue(
                 $this->property->name,

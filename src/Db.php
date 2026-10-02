@@ -3,11 +3,12 @@ declare(strict_types=1);
 
 namespace Raxos\Database;
 
+use Attribute;
 use BackedEnum;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use Raxos\Contract\Database\Query\{QueryInterface, StatementInterface};
 use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
+use Raxos\Contract\Database\Query\{QueryInterface, StatementInterface};
 use Raxos\Database\Error\InvalidConnectionException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
 
@@ -58,7 +59,7 @@ class Db
      * @return ConnectionInterface|null
      * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 3.2.0
      */
     public static function get(?string $id = null): ?ConnectionInterface
     {
@@ -69,7 +70,7 @@ class Db
             return null;
         }
 
-        if (!self::$connected[$id] && !$connection->connected) {
+        if (!$connection->connected) {
             $connection->connect();
             self::$connected[$id] = true;
         }

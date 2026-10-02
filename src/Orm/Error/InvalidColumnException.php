@@ -23,7 +23,7 @@ final class InvalidColumnException extends Exception implements OrmExceptionInte
      * @param string $propertyName
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
+     * @since 3.2.0
      */
     public function __construct(
         public readonly string $modelClass,
@@ -32,7 +32,7 @@ final class InvalidColumnException extends Exception implements OrmExceptionInte
     {
         parent::__construct(
             'db_orm_invalid_column',
-            "Property {$this->modelClass->{$this->propertyName}} is not a valid column.",
+            "Property {$this->modelClass}::{$this->propertyName} is not a valid column.",
         );
     }
 

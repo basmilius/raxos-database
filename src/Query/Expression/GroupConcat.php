@@ -6,6 +6,7 @@ namespace Raxos\Database\Query\Expression;
 use BackedEnum;
 use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
 use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryValueInterface};
+use Raxos\Database\Query\Literal\Literal;
 use Stringable;
 
 /**
@@ -43,7 +44,7 @@ final readonly class GroupConcat implements QueryExpressionInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
+     * @since 3.2.0
      */
     public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
     {
@@ -51,7 +52,10 @@ final readonly class GroupConcat implements QueryExpressionInterface
         $this->distinct && $query->raw('distinct ');
         $query->compile($this->expr);
         $this->orderBy && $query->raw(' order by ')->compile($this->orderBy);
-        $this->separator !== null && $query->raw(' separator ')->compile($this->separator);
+        if ($this->separator !== null) {
+            // MySQL and MariaDB require a string literal after SEPARATOR.
+            $query->raw(' separator ')->compile(is_string($this->separator) ? Literal::string($this->separator) : $this->separator);
+        }
         $this->limit && $query->raw(" limit {$this->limit}");
         $this->offset && $query->raw(" offset {$this->offset}");
         $query->raw(')');

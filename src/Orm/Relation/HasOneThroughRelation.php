@@ -6,11 +6,13 @@ namespace Raxos\Database\Orm\Relation;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface};
 use Raxos\Contract\Database\Query\QueryInterface;
-use Raxos\Database\Orm\{Error\ReferenceModelMissingException, Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasOneThrough;
 use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Error\ReferenceModelMissingException;
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Expression\ColumnRef;
+use Raxos\Database\Query\Literal\Literal;
 use function array_column;
 use function array_filter;
 use function array_unique;
@@ -104,14 +106,14 @@ final readonly class HasOneThroughRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
+     * @since 3.2.0
      */
     public function query(Model $instance): QueryInterface
     {
         return $this->referenceStructure->class::select()
             ->join($this->linkingStructure->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
-            ->where($this->declaringLinkingKey, $instance->{$this->declaringKey->column})
+            ->where($this->declaringLinkingKey, $instance->backbone->getValue($this->declaringKey->column) ?? Literal::of('NULL'))
             ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
                 ->withDeleted());
     }
@@ -135,13 +137,14 @@ final readonly class HasOneThroughRelation implements RelationInterface
      * {@inheritdoc}
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
+     * @since 3.2.0
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
         $values = $instances
             ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
             ->column($this->declaringKey->column)
+            ->filter(static fn(mixed $value): bool => $value !== null)
             ->unique();
 
         if ($values->isEmpty()) {
@@ -154,7 +157,7 @@ final readonly class HasOneThroughRelation implements RelationInterface
             ->array();
 
         $referenceKeyValues = array_column($pairs, $this->referenceLinkingKey->column)
-                |> array_filter(...)
+                |> (static fn(array $values): array => array_filter($values, static fn(mixed $value): bool => $value !== null))
                 |> array_unique(...)
                 |> array_values(...);
 
@@ -175,11 +178,12 @@ final readonly class HasOneThroughRelation implements RelationInterface
         $declaringMap = [];
 
         foreach ($pairs as $pair) {
-            $declaringMap[$pair[$this->declaringLinkingKey->column]] = $referenceMap[$pair[$this->referenceLinkingKey->column]] ?? null;
+            $key = $pair[$this->referenceLinkingKey->column];
+            $declaringMap[$pair[$this->declaringLinkingKey->column]] = $key !== null ? ($referenceMap[$key] ?? null) : null;
         }
 
         foreach ($instances as $instance) {
-            $result = $declaringMap[$instance->{$this->declaringKey->column}] ?? null;
+            $result = ($key = $instance->backbone->getValue($this->declaringKey->column)) !== null ? ($declaringMap[$key] ?? null) : null;
 
             if ($result === null && $instance->backbone->relationCache->hasValue($this->property->name)) {
                 continue;

@@ -478,7 +478,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.19
+     * @since 3.2.0
      */
     public function save(): void
     {
@@ -491,6 +491,9 @@ final class Backbone implements AccessInterface, BackboneInterface
         $values = iterator_to_array($this->getSaveableValues());
 
         if (empty($values)) {
+            $this->runSaveTasks();
+            $this->relationCache->clear();
+
             return;
         }
 
@@ -690,7 +693,7 @@ final class Backbone implements AccessInterface, BackboneInterface
      * @return Generator<string, mixed>
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.19
+     * @since 3.2.0
      */
     private function getSaveableValues(): Generator
     {
@@ -703,6 +706,8 @@ final class Backbone implements AccessInterface, BackboneInterface
                 foreach ($property->allColumns() as $column) {
                     if ($this->data->hasValue($column->key)) {
                         $value = $this->data->getValue($column->key);
+                    } elseif ($this->isNew) {
+                        continue;
                     } else {
                         $value = literal('default');
                     }
@@ -732,6 +737,8 @@ final class Backbone implements AccessInterface, BackboneInterface
                     $value = $this->getCastedValue($property->caster, 'encode', $value);
                 }
             } elseif ($property->isComputed || $property->isPrimaryKey) {
+                continue;
+            } elseif ($this->isNew) {
                 continue;
             } else {
                 $value = literal('default');

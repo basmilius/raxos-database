@@ -112,13 +112,13 @@ abstract readonly class Grammar implements GrammarInterface
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
+     * @since 3.2.0
      */
     public function escape(string $value): string
     {
         static $cache = [];
 
-        $key = static::class . ':' . $value;
+        $key = static::class . ':' . implode('', $this->escapers) . ':' . $value;
 
         if (isset($cache[$key])) {
             return $cache[$key];
@@ -138,11 +138,11 @@ abstract readonly class Grammar implements GrammarInterface
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
-     * @since 1.2.0
+     * @since 3.2.0
      */
     private function escapeImpl(string $value): string
     {
-        if (empty($value)) {
+        if ($value === '') {
             return $value;
         }
 

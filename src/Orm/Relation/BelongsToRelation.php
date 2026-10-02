@@ -8,10 +8,11 @@ use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, Struc
 use Raxos\Contract\Database\Query\QueryInterface;
 use Raxos\Database\Orm\Attribute\BelongsTo;
 use Raxos\Database\Orm\Definition\RelationDefinition;
-use Raxos\Database\Orm\Error\{ReferenceModelMissingException};
-use Raxos\Database\Orm\Structure\StructureGenerator;
+use Raxos\Database\Orm\Error\ReferenceModelMissingException;
 use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Expression\ColumnRef;
+use Raxos\Database\Query\Literal\Literal;
 use function assert;
 
 /**
@@ -102,11 +103,11 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function query(Model $instance): QueryInterface
     {
-        return $this->referenceStructure->class::where($this->referenceKey, $instance->{$this->declaringKey->column})
+        return $this->referenceStructure->class::where($this->referenceKey, $instance->backbone->getValue($this->declaringKey->column) ?? Literal::of('NULL'))
             ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
                 ->withDeleted());
     }
@@ -127,7 +128,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
@@ -135,6 +136,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
             $this->referenceStructure,
             $instances
                 ->column($this->declaringKey->column)
+            ->filter(static fn(mixed $value): bool => $value !== null)
                 ->unique(),
             $this->referenceKeyIsPrimaryKey ? null : $this->referenceKey
         );
@@ -173,7 +175,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
+     * @since 3.2.0
      */
     private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
     {
@@ -184,7 +186,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
         }
 
         foreach ($instances as $instance) {
-            $result = $map[$instance->{$this->declaringKey->column}] ?? null;
+            $result = ($key = $instance->backbone->getValue($this->declaringKey->column)) !== null ? ($map[$key] ?? null) : null;
 
             if ($result === null && $instance->backbone->relationCache->hasValue($this->property->name)) {
                 continue;

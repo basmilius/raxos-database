@@ -25,7 +25,7 @@ final class PropertyWriteFailedException extends Exception implements OrmExcepti
      * @param Throwable|null $previous
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
+     * @since 3.2.0
      */
     public function __construct(
         public readonly string $modelClass,
@@ -35,7 +35,7 @@ final class PropertyWriteFailedException extends Exception implements OrmExcepti
     {
         parent::__construct(
             'db_orm_property_write_failed',
-            "Cannot write to property {$this->modelClass->{$this->propertyName}} because of an error.",
+            "Cannot write to property {$this->modelClass}::{$this->propertyName} because of an error.",
             previous: $previous,
         );
     }

@@ -12,14 +12,14 @@ use JsonSerializable;
 use PDO;
 use Raxos\Collection\Paginated;
 use Raxos\Contract\Collection\{ArrayableInterface, ArrayListInterface};
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface};
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, PrimerInterface, PrimerTiming};
 use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryExceptionInterface, QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface, StatementInterface};
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface};
 use Raxos\Contract\DebuggableInterface;
 use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\InvalidRelationException;
-use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Error\{ConnectionErrorException, IncompleteException, MissingAliasException, MissingClauseException, MissingModelException, MissingResultException, StructureErrorException, TooFewPrimaryKeyValuesException, TooManyPrimaryKeyValuesException, UnsupportedException};
 use Raxos\Database\Query\Expression\ColumnRef;
 use Raxos\Database\Query\Literal\Literal;
@@ -391,17 +391,26 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 3.2.0
      */
     public function parenthesis(callable $fn, bool $patch = true): static
     {
-        $index = count($this->pieces);
+        $originalPosition = $this->position;
+        $originalClause = $this->currentClause;
+        $index = $originalPosition ?? count($this->pieces);
+        $this->position = $index;
 
-        $this->parenthesisOpen();
-        $fn($this);
-        $this->parenthesisClose();
+        try {
+            $this->parenthesisOpen();
+            $fn($this);
+            $this->parenthesisClose();
+        } finally {
+            if ($originalPosition === null) {
+                $this->position = null;
+            }
+        }
 
-        if ($patch) {
+        if ($patch && $this->pieces[$index + 1]->clause !== ')') {
             $clausePlusOne = $this->pieces[$index + 1]->clause;
             $open = $this->pieces[$index];
             $inner = $this->pieces[$index + 1];
@@ -413,6 +422,25 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
             );
 
             $this->pieces[$index + 1] = new Piece('', $inner->data, $inner->separator);
+
+            if ($originalPosition === null && !$this->isDoingJoin && in_array($clausePlusOne, ['where', 'and', 'or'], true)) {
+                $depth = 0;
+
+                for ($tail = 0; $tail < $index; ++$tail) {
+                    $clause = $this->pieces[$tail]->clause;
+
+                    if (str_ends_with($clause, '(')) {
+                        ++$depth;
+                    } elseif ($clause === ')') {
+                        --$depth;
+                    } elseif ($depth === 0 && in_array($clause, ['group by', 'having', 'order by', 'limit', 'offset', 'union', 'union all', 'returning', 'for update'], true)) {
+                        $group = array_splice($this->pieces, $index);
+                        array_splice($this->pieces, $tail, 0, $group);
+                        $this->currentClause = $originalClause;
+                        break;
+                    }
+                }
+            }
         }
 
         return $this;

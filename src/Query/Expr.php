@@ -501,7 +501,7 @@ final class Expr
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
+     * @since 3.2.0
      */
     public static function dateAdd(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
@@ -511,7 +511,7 @@ final class Expr
     {
         return new Expression\Func('date_add', [
             $expr,
-            Literal::string("interval {$value} {$unit->value}")
+            Literal::of("interval {$value} {$unit->value}")
         ]);
     }
 
@@ -553,7 +553,7 @@ final class Expr
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
+     * @since 3.2.0
      */
     public static function dateSub(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
@@ -563,7 +563,7 @@ final class Expr
     {
         return new Expression\Func('date_sub', [
             $expr,
-            Literal::string("interval {$value} {$unit->value}")
+            Literal::of("interval {$value} {$unit->value}")
         ]);
     }
 

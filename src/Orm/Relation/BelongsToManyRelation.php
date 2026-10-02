@@ -6,11 +6,12 @@ namespace Raxos\Database\Orm\Relation;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface};
 use Raxos\Contract\Database\Query\QueryInterface;
-use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\BelongsToMany;
 use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Expression\ColumnRef;
+use Raxos\Database\Query\Literal\Literal;
 use function array_column;
 use function array_filter;
 use function array_unique;
@@ -112,14 +113,14 @@ final readonly class BelongsToManyRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function query(Model $instance): QueryInterface
     {
         return $this->referenceStructure->class::select()
             ->join($this->declaringLinkingKey->table, fn(QueryInterface $query) => $query
                 ->on($this->referenceLinkingKey, $this->referenceKey))
-            ->where($this->declaringLinkingKey, $instance->{$this->declaringKey->column})
+            ->where($this->declaringLinkingKey, $instance->backbone->getValue($this->declaringKey->column) ?? Literal::of('NULL'))
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
             ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
@@ -147,13 +148,14 @@ final readonly class BelongsToManyRelation implements RelationInterface
      * {@inheritdoc}
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
         $values = $instances
             ->filter(fn(Model $instance) => !$instance->backbone->relationCache->hasValue($this->property->name))
             ->column($this->declaringKey->column)
+            ->filter(static fn(mixed $value): bool => $value !== null)
             ->unique();
 
         if ($values->isEmpty()) {
@@ -169,7 +171,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
             ->array();
 
         $referenceKeyValues = array_column($pairs, $this->referenceLinkingKey->column)
-                |> array_filter(...)
+                |> (static fn(array $values): array => array_filter($values, static fn(mixed $value): bool => $value !== null))
                 |> array_unique(...)
                 |> array_values(...);
 
@@ -184,8 +186,10 @@ final readonly class BelongsToManyRelation implements RelationInterface
             : [];
 
         $referenceMap = [];
+        $referenceOrder = [];
 
-        foreach ($referenceModels as $reference) {
+        foreach ($referenceModels as $position => $reference) {
+            $referenceOrder[$reference->{$this->referenceKey->column}] = $position;
             $referenceMap[$reference->{$this->referenceKey->column}] = $reference;
         }
 
@@ -200,6 +204,14 @@ final readonly class BelongsToManyRelation implements RelationInterface
             }
         }
 
+        if ($this->attribute->orderBy !== null) {
+            foreach ($declaringMap as &$references) {
+                usort($references, fn(Model $left, Model $right): int =>
+                    $referenceOrder[$left->{$this->referenceKey->column}] <=> $referenceOrder[$right->{$this->referenceKey->column}]);
+            }
+            unset($references);
+        }
+
         foreach ($instances as $instance) {
             if ($instance->backbone->relationCache->hasValue($this->property->name)) {
                 continue;
@@ -207,7 +219,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
 
             $instance->backbone->relationCache->setValue(
                 $this->property->name,
-                new ModelArrayList($declaringMap[$instance->{$this->declaringKey->column}] ?? [])
+                new ModelArrayList($declaringMap[$instance->backbone->getValue($this->declaringKey->column)] ?? [])
             );
         }
     }

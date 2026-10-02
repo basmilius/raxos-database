@@ -144,11 +144,11 @@ final class StructureGenerator
      * @return ClassStructureDefinition
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     private static function class(ReflectionClass $class, ?StructureInterface $parent = null): ClassStructureDefinition
     {
-        $connectionId = $parent?->connection->id ?? 'default';
+        $connectionId = $parent?->connectionId ?? 'default';
         $onDuplicateKeyUpdate = null;
         $polymorphic = null;
         $softDeleteColumn = $parent?->softDeleteColumn;

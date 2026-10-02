@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Error;
 
-use Raxos\Contract\Database\Orm\CasterInterface;
-use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\{CasterInterface, OrmExceptionInterface};
 use Raxos\Error\Exception;
 
 /**
@@ -24,7 +23,7 @@ final class InvalidCasterException extends Exception implements OrmExceptionInte
      * @param string $propertyName
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
+     * @since 3.2.0
      */
     public function __construct(
         public readonly string $modelClass,
@@ -35,7 +34,7 @@ final class InvalidCasterException extends Exception implements OrmExceptionInte
 
         parent::__construct(
             'db_orm_invalid_caster',
-            "Property {$this->modelClass->{$this->propertyName}} is not a valid caster. Casters should implement {$casterInterface}.",
+            "Property {$this->modelClass}::{$this->propertyName} is not a valid caster. Casters should implement {$casterInterface}.",
         );
     }
 

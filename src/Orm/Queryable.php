@@ -35,7 +35,7 @@ trait Queryable
      * @return ColumnRef
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 2.1.0
+     * @since 3.2.0
      */
     public static function alias(string $key, string $table): ColumnRef
     {
@@ -47,7 +47,7 @@ trait Queryable
             return $cache["{$structure->table}:{$table}:*"] ??= new ColumnRef('*', $table);
         }
 
-        return $cache["{$structure->table}:{$table}:{$key}"] ??= $structure->getColumn($key, $table);
+        return $structure->getColumn($key, $table);
     }
 
     /**
@@ -58,7 +58,7 @@ trait Queryable
      * @return ColumnRef
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      * @see StructureInterface::getColumn()
      */
     public static function col(string $key): ColumnRef
@@ -71,7 +71,7 @@ trait Queryable
             return $cache["{$structure->table}:*"] ??= new ColumnRef('*', $structure->table);
         }
 
-        return $cache["{$structure->table}:{$key}"] ??= $structure->getColumn($key);
+        return $structure->getColumn($key);
     }
 
     /**

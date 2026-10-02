@@ -10,8 +10,8 @@ use Raxos\Contract\Database\Orm\{BackboneInitializedInterface, CustomRelationAtt
 use Raxos\Contract\SerializableInterface;
 use Raxos\Database\Db;
 use Raxos\Database\Logger\EagerLoadEvent;
-use Raxos\Database\Orm\{Backbone, Model};
 use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
+use Raxos\Database\Orm\{Backbone, Model};
 use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\{InvalidColumnException, MissingPolymorphicDiscriminatorException, MissingPropertyException, MissingRelationImplementationException, ReflectionErrorException};
 use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
@@ -276,7 +276,7 @@ final class Structure implements StructureInterface, SerializableInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
+     * @since 3.2.0
      */
     public function getColumn(string $key, ?string $table = null): ColumnRef
     {
@@ -289,7 +289,7 @@ final class Structure implements StructureInterface, SerializableInterface
             throw new InvalidColumnException($this->class, $key);
         }
 
-        return $cache["{$table}:{$key}"] ??= new ColumnRef($property->key, $table);
+        return $cache["{$table}:{$property->key}"] ??= new ColumnRef($property->key, $table);
     }
 
     /**

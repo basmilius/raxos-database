@@ -9,7 +9,6 @@ use Raxos\Contract\Database\Orm\StructureInterface;
 use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryInterface};
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Expression\ColumnRef;
-use function is_numeric;
 
 /**
  * Class RelationHelper
@@ -50,13 +49,13 @@ final class RelationHelper
      *
      * @return mixed
      * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
+     * @since 3.2.0
      */
     public static function declaringKeyValue(Model $instance, ColumnRef $declaringKey): mixed
     {
-        $declaringValue = $instance->{$declaringKey->column};
+        $declaringValue = $instance->backbone->getValue($declaringKey->column);
 
-        if ($declaringValue === null || (is_numeric($declaringValue) && (int)$declaringValue === 0)) {
+        if ($declaringValue === null) {
             return null;
         }
 

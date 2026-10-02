@@ -3,14 +3,17 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Relation;
 
+use Raxos\Collection\ArrayList;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface, WritableRelationInterface};
 use Raxos\Contract\Database\Query\QueryInterface;
 use Raxos\Database\Orm\Attribute\HasOne;
 use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Error\ReferenceModelMissingException;
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Orm\{Error\ReferenceModelMissingException, Model, ModelArrayList};
 use Raxos\Database\Query\Expression\ColumnRef;
+use Raxos\Database\Query\Literal\Literal;
 use function assert;
 
 /**
@@ -70,7 +73,7 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function fetch(Model $instance): Model|ModelArrayList|null
     {
@@ -86,7 +89,7 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
             $this->referenceKey
         );
 
-        if ($cached !== null) {
+        if ($cached !== null && $this->attribute->orderBy === null) {
             return $cached;
         }
 
@@ -98,11 +101,11 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function query(Model $instance): QueryInterface
     {
-        return $this->referenceStructure->class::where($this->referenceKey, $instance->{$this->declaringKey->column})
+        return $this->referenceStructure->class::where($this->referenceKey, $instance->backbone->getValue($this->declaringKey->column) ?? Literal::of('NULL'))
             ->conditional($this->attribute->orderBy !== null, fn(QueryInterface $query) => $query
                 ->orderBy($this->attribute->orderBy))
             ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
@@ -127,17 +130,19 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
-        [$cached, $uncached] = RelationHelper::partitionModels(
-            $this->referenceStructure,
-            $instances
-                ->column($this->declaringKey->column)
-                ->unique(),
-            $this->referenceKey
-        );
+        $values = $instances
+            ->filter(fn(Model $instance): bool => !$instance->backbone->relationCache->hasValue($this->property->name))
+            ->column($this->declaringKey->column)
+            ->filter(static fn(mixed $value): bool => $value !== null)
+            ->unique();
+
+        [$cached, $uncached] = $this->attribute->orderBy === null
+            ? RelationHelper::partitionModels($this->referenceStructure, $values, $this->referenceKey)
+            : [new ArrayList(), $values];
 
         if ($cached->isNotEmpty()) {
             $this->onBeforeRelations($cached, $instances);
@@ -158,7 +163,7 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
     public function write(Model $instance, RelationDefinition $property, Model|ModelArrayList|null $newValue): void
     {
@@ -179,7 +184,7 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
         // note(Bas): create a relation between the new value and the instance.
         if ($newValue instanceof Model) {
             $instance->backbone->addSaveTask(function () use ($instance, $newValue): void {
-                $newValue->{$this->referenceKey->column} = $instance->{$this->declaringKey->column};
+                $newValue->{$this->referenceKey->column} = $instance->backbone->getValue($this->declaringKey->column);
                 $newValue->save();
             });
         }
@@ -193,18 +198,18 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 1.1.0
+     * @since 3.2.0
      */
     private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
     {
         $map = [];
 
         foreach ($results as $reference) {
-            $map[$reference->{$this->referenceKey->column}] = $reference;
+            $map[$reference->{$this->referenceKey->column}] ??= $reference;
         }
 
         foreach ($instances as $instance) {
-            $result = $map[$instance->{$this->declaringKey->column}] ?? null;
+            $result = ($key = $instance->backbone->getValue($this->declaringKey->column)) !== null ? ($map[$key] ?? null) : null;
 
             if ($result === null && $instance->backbone->relationCache->hasValue($this->property->name)) {
                 continue;

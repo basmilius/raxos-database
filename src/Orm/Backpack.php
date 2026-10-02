@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
+use ArrayAccess;
 use Raxos\Contract\Database\Orm\BackpackInterface;
 use Raxos\Contract\DebuggableInterface;
 use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
@@ -13,9 +14,9 @@ use function array_key_exists;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Backpack
- * @since 1.0.17
+ * @since 3.2.0
  */
-final class Backpack implements BackpackInterface, DebuggableInterface
+final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterface
 {
 
     use ArrayAccessible;

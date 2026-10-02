@@ -16,7 +16,7 @@ use Raxos\Database\Query\MySqlQuery;
 use SensitiveParameter;
 use Throwable;
 use function array_column;
-use function Raxos\Database\Query\literal;
+use function Raxos\Database\Query\{column, literal};
 
 /**
  * Class MySql
@@ -122,7 +122,7 @@ class MySql extends Connection
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 1.4.0
+     * @since 3.2.0
      */
     public function loadDatabaseSchema(): array
     {
@@ -131,7 +131,8 @@ class MySql extends Connection
                 ->query()
                 ->select(['TABLE_NAME', 'COLUMN_NAME'])
                 ->from('information_schema.COLUMNS')
-                ->where('TABLE_SCHEMA', literal('DATABASE()'))
+                ->where(column('TABLE_SCHEMA'), literal('DATABASE()'))
+                ->orderBy('ORDINAL_POSITION')
                 ->array();
 
             $data = [];
@@ -150,7 +151,7 @@ class MySql extends Connection
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 2.3.0
+     * @since 3.2.0
      */
     protected function loadTableColumns(string $table): ?array
     {
@@ -159,8 +160,9 @@ class MySql extends Connection
                 ->query()
                 ->select(['COLUMN_NAME'])
                 ->from('information_schema.COLUMNS')
-                ->where('TABLE_SCHEMA', literal('DATABASE()'))
-                ->where('TABLE_NAME', $table)
+                ->where(column('TABLE_SCHEMA'), literal('DATABASE()'))
+                ->where(column('TABLE_NAME'), $table)
+                ->orderBy('ORDINAL_POSITION')
                 ->array();
 
             if (empty($results)) {

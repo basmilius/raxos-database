@@ -101,7 +101,7 @@ abstract readonly class Event
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.16
+     * @since 3.2.0
      */
     protected final function printTrace(): string
     {
@@ -124,14 +124,14 @@ abstract readonly class Event
             if (isset($item['class'])) {
                 $class = StringUtil::shortClassName($item['class']);
 
-                $args = array_map($this->convertArg(...), $item['args']);
+                $args = array_map($this->convertArg(...), $item['args'] ?? []);
                 $call = "<abbr title='{$item['class']}'>{$class}</abbr>" . $item['type'] . $item['function'] . '(<span>' . implode(', ', $args) . '</span>)';
             } elseif (isset($item['function'])) {
                 if (in_array($item['function'], $functionsToIgnore)) {
                     continue;
                 }
 
-                $args = array_map($this->convertArg(...), $item['args']);
+                $args = array_map($this->convertArg(...), $item['args'] ?? []);
                 $call = $item['function'] . '(<span>' . implode(', ', $args) . '</span>)';
             }
 
