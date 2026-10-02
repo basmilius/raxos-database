@@ -63,12 +63,59 @@ it('inserts late WHERE and OR predicates before grouping, HAVING and pagination'
         ->and($query->totalCount())->toBe(2);
 });
 
+it('keeps grouped soft-delete predicates before sorting and pagination', function (bool $firstGroup, bool $late): void {
+    $this->connection->pdo->exec('CREATE TABLE soft_items (id INTEGER PRIMARY KEY, group_id INTEGER, deleted_at TEXT)');
+    $this->connection->pdo->exec("INSERT INTO soft_items VALUES (1,1,NULL),(2,1,NULL),(3,2,NULL),(4,2,'2026-01-01'),(5,1,'2026-01-01')");
+    $query = SoftModel::select();
+
+    if ($late) {
+        $query->orderBy(SoftModel::col('id'))->limit(1, 1);
+    }
+
+    if (!$firstGroup) {
+        $query->where(SoftModel::col('id'), '>', 0);
+    }
+
+    $query->parenthesis(static fn ($query) => $query->where(SoftModel::col('group_id'), 1)->orWhere(SoftModel::col('group_id'), 2))
+        ->parenthesis(static fn ($query) => $query->where(SoftModel::col('id'), '>', 1));
+
+    if (!$late) {
+        $query->orderBy(SoftModel::col('id'))->limit(1, 1);
+    }
+
+    $sql = $query->toSql();
+    expect(array_column($query->array(), 'id'))->toBe([3])
+        ->and($query->resultCount())->toBe(1)
+        ->and($query->totalCount())->toBe(2)
+        ->and($query->toSql())->toBe($sql)
+        ->and((clone $query)->withDeleted()->totalCount())->toBe(4);
+})->with([true, false])->with([true, false]);
+
 it('inserts correlated subqueries and their bindings before an existing ORDER BY', function (): void {
     $subquery = Db::query()->select(1)->from('items', 'lookup')
         ->where(column('id', 'lookup'), column('id', 'items'))->where(column('group_id', 'lookup'), 2);
     $query = Db::query()->select('id')->from('items')->orderBy('id')->limit(2)->whereExists($subquery);
     expect($query->array())->toBe([['id' => 3]])->and($query->totalCount())->toBe(1);
 });
+
+it('ignores parentheses in SQL literals and comments when placing model predicates', function (string $predicate): void {
+    $this->connection->pdo->exec('CREATE TABLE soft_items (id INTEGER PRIMARY KEY, group_id INTEGER, deleted_at TEXT)');
+    $this->connection->pdo->exec("INSERT INTO soft_items VALUES (1,1,NULL),(2,1,NULL),(3,2,'2026-01-01')");
+    $query = SoftModel::select()->where(Literal::of($predicate))->orderBy(SoftModel::col('id'))->limit(1);
+    $query->parenthesis(static fn ($query) => $query->where(SoftModel::col('id'), '>', 1));
+    $query->where(SoftModel::col('group_id'), 1);
+
+    expect(array_column($query->array(), 'id'))->toBe([2])
+        ->and($query->resultCount())->toBe(1)
+        ->and($query->totalCount())->toBe(1);
+})->with([
+    "'(' = '('",
+    "')' = ')'",
+    "'it''s (' = 'it''s ('",
+    '"(" = "("',
+    '1 = 1 /* ( */',
+    "1 = 1 -- )\n",
+]);
 
 
 it('executes membership, null and negation predicates including empty lists', function (string $method, array $values, array $ids): void {

@@ -46,8 +46,9 @@ use function is_int;
 use function is_numeric;
 use function is_string;
 use function iterator_to_array;
+use function preg_replace;
 use function str_contains;
-use function str_ends_with;
+use function substr_count;
 use function trim;
 
 /**
@@ -429,16 +430,14 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 for ($tail = 0; $tail < $index; ++$tail) {
                     $clause = $this->pieces[$tail]->clause;
 
-                    if (str_ends_with($clause, '(')) {
-                        ++$depth;
-                    } elseif ($clause === ')') {
-                        --$depth;
-                    } elseif ($depth === 0 && in_array($clause, ['group by', 'having', 'order by', 'limit', 'offset', 'union', 'union all', 'returning', 'for update'], true)) {
+                    if ($depth === 0 && in_array($clause, ['group by', 'having', 'order by', 'limit', 'offset', 'union', 'union all', 'returning', 'for update'], true)) {
                         $group = array_splice($this->pieces, $index);
                         array_splice($this->pieces, $tail, 0, $group);
                         $this->currentClause = $originalClause;
                         break;
                     }
+
+                    $depth += self::parenthesisBalance($clause);
                 }
             }
         }
@@ -2242,11 +2241,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $depth = 0;
 
         foreach ($this->pieces as $index => $piece) {
-            if (str_ends_with($piece->clause, '(')) {
-                ++$depth;
-            } elseif ($piece->clause === ')') {
-                --$depth;
-            } elseif ($depth === 0 && in_array($piece->clause, ['group by', 'having', 'order by', 'limit', 'offset', 'union', 'union all', 'returning', 'for update'], true)) {
+            if ($depth === 0 && in_array($piece->clause, ['group by', 'having', 'order by', 'limit', 'offset', 'union', 'union all', 'returning', 'for update'], true)) {
                 $currentClause = $this->currentClause;
                 $this->position = $index;
 
@@ -2257,6 +2252,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                     $this->currentClause = $currentClause;
                 }
             }
+
+            $depth += self::parenthesisBalance($piece->clause);
         }
 
         return $this->addExpression($clause, $lhs, $cmp, $rhs);
@@ -2493,16 +2490,14 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         $depth = 0;
 
         foreach ($pieces as $index => $piece) {
-            if ($piece->clause === '(') {
-                ++$depth;
-            } elseif ($piece->clause === ')') {
-                --$depth;
-            } elseif ($depth === 0 && $piece->clause === 'where') {
+            if ($depth === 0 && in_array($piece->clause, ['where', 'where ('], true)) {
                 $where = $index;
             } elseif ($depth === 0 && in_array($piece->clause, ['group by', 'having', 'order by', 'limit', 'offset', 'union', 'union all', 'returning', 'for update'], true)) {
                 $end = $index;
                 break;
             }
+
+            $depth += self::parenthesisBalance($piece->clause);
         }
 
         if ($where === null) {
@@ -2514,11 +2509,40 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $predicate = implode($pieces[$where]->separator ?? $this->grammar->columnSeparator, $predicate);
             }
 
+            if ($pieces[$where]->clause === 'where (') {
+                $predicate = '( ' . $predicate;
+            }
+
             $pieces[$where] = new Piece('where', "{$column} is null and ( {$predicate}", $pieces[$where]->separator);
             array_splice($pieces, $end, 0, [new Piece(')')]);
         }
 
         return $pieces;
+    }
+
+    /**
+     * Counts structural parentheses, excluding quoted literals, identifiers and comments.
+     *
+     * @param string $clause
+     * @return int
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.2.0
+     */
+    private static function parenthesisBalance(string $clause): int
+    {
+        if (!str_contains($clause, '(') && !str_contains($clause, ')')) {
+            return 0;
+        }
+
+        $syntax = preg_replace(
+            <<<'REGEX'
+~'(?:''|\\.|[^'\\])*'|"(?:""|\\.|[^"\\])*"|\x60(?:\x60\x60|[^\x60])*\x60|/\*.*?\*/|--(?=\s|$)[^\r\n]*|#[^\r\n]*~s
+REGEX,
+            '',
+            $clause
+        );
+
+        return substr_count($syntax, '(') - substr_count($syntax, ')');
     }
 
 }

@@ -60,6 +60,24 @@ it('serializes the Passly pagination callback with a computed column override', 
         ->and($data['pages'])->toBe(2);
 })->with('mysql servers');
 
+it('executes grouped soft-delete searches with pagination and accurate counts', function (string $variable, bool $firstGroup): void {
+    $this->connection = countTestConnection($variable);
+    $query = CountedModel::select()->orderBy(CountedModel::col('id'))->limit(1, 1);
+
+    if (!$firstGroup) {
+        $query->where(CountedModel::col('id'), '>', 0);
+    }
+
+    $query->parenthesis(static fn ($query) => $query->where(CountedModel::col('group_id'), 1)->orWhere(CountedModel::col('group_id'), 3));
+    $sql = $query->toSql();
+
+    expect(array_column($query->array(), 'id'))->toBe([2])
+        ->and($query->resultCount())->toBe(1)
+        ->and($query->totalCount())->toBe(2)
+        ->and($query->toSql())->toBe($sql)
+        ->and((clone $query)->withDeleted()->totalCount())->toBe(3);
+})->with('mysql servers')->with([true, false]);
+
 it('counts joined wildcards and duplicate explicit aliases with bound predicates', function (string $variable, bool $wildcard): void {
     $this->connection = countTestConnection($variable);
     $query = Db::query()->select($wildcard ? [Literal::of('a.*'), Literal::of('b.*')] : [Literal::of('a.id as duplicate'), Literal::of('b.id as duplicate')])
@@ -71,6 +89,27 @@ it('counts joined wildcards and duplicate explicit aliases with bound predicates
     $sql = $query->toSql();
     expect($query->resultCount())->toBe(2)
         ->and($query->totalCount())->toBe(4)
+        ->and($query->toSql())->toBe($sql);
+})->with('mysql servers')->with([true, false]);
+
+it('balances fulltext expression fragments before soft-delete filters and late predicates', function (string $variable, bool $lateGroup): void {
+    $this->connection = countTestConnection($variable);
+    $this->connection->pdo->exec('ALTER TABLE raxos_test_counts ADD search_text TEXT, ADD FULLTEXT INDEX (search_text)');
+    $this->connection->pdo->exec("UPDATE raxos_test_counts SET search_text = 'festival'");
+    $query = CountedModel::select()->where(CountedModel::col('id'), '>', 0)
+        ->parenthesis(static fn ($query) => $query->where(Expr::matchAgainst(column('search_text', 'raxos_test_counts'), 'festival')))
+        ->orderBy(CountedModel::col('id'))->limit(1);
+
+    if ($lateGroup) {
+        $query->parenthesis(static fn ($query) => $query->where(CountedModel::col('id'), '>', 1));
+    } else {
+        $query->where(CountedModel::col('id'), '>', 1);
+    }
+
+    $sql = $query->toSql();
+    expect(array_column($query->array(), 'id'))->toBe([2])
+        ->and($query->resultCount())->toBe(1)
+        ->and($query->totalCount())->toBe(2)
         ->and($query->toSql())->toBe($sql);
 })->with('mysql servers')->with([true, false]);
 
