@@ -47,6 +47,7 @@ use function is_numeric;
 use function is_string;
 use function iterator_to_array;
 use function str_contains;
+use function str_ends_with;
 use function trim;
 
 /**
@@ -342,7 +343,12 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function merge(QueryInterface $query): static
     {
-        array_push($this->pieces, ...$query->pieces);
+        if ($this->position !== null) {
+            array_splice($this->pieces, $this->position, 0, $query->pieces);
+            $this->position += count($query->pieces);
+        } else {
+            array_push($this->pieces, ...$query->pieces);
+        }
         $this->mergeParams($query);
 
         return $this;
@@ -1254,7 +1260,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static
     {
-        return $this->addExpression('or', $lhs, $cmp, $rhs);
+        return $this->addWhereExpression('or', $lhs, $cmp, $rhs);
     }
 
     /**
@@ -1507,7 +1513,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
     ): static
     {
-        return $this->addExpression($this->isClauseDefined('where') || $this->isDoingJoin ? 'and' : 'where', $lhs, $cmp, $rhs);
+        return $this->addWhereExpression($this->isClauseDefined('where') || $this->isDoingJoin ? 'and' : 'where', $lhs, $cmp, $rhs);
     }
 
     /**
@@ -2186,6 +2192,49 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
+     * @param string $clause
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+     * @return static
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.2.0
+     */
+    private function addWhereExpression(
+        string $clause,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+    ): static
+    {
+        if ($this->position !== null || $this->isDoingJoin) {
+            return $this->addExpression($clause, $lhs, $cmp, $rhs);
+        }
+
+        $depth = 0;
+
+        foreach ($this->pieces as $index => $piece) {
+            if (str_ends_with($piece->clause, '(')) {
+                ++$depth;
+            } elseif ($piece->clause === ')') {
+                --$depth;
+            } elseif ($depth === 0 && in_array($piece->clause, ['group by', 'having', 'order by', 'limit', 'offset', 'union', 'union all', 'returning', 'for update'], true)) {
+                $currentClause = $this->currentClause;
+                $this->position = $index;
+
+                try {
+                    return $this->addExpression($clause, $lhs, $cmp, $rhs);
+                } finally {
+                    $this->position = null;
+                    $this->currentClause = $currentClause;
+                }
+            }
+        }
+
+        return $this->addExpression($clause, $lhs, $cmp, $rhs);
+    }
+
+    /**
      * Base function to create `with` expressions.
      *
      * @param string $clause
@@ -2373,9 +2422,19 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.2.0
      */
-    private function countResults(self $query): int
+    protected function countResults(self $query): int
     {
-        return (int)$this->connection->query()
+        $counter = $this->connection->query();
+
+        if ($counter instanceof self && $counter::class !== static::class) {
+            return $counter->countResults($query);
+        }
+
+        // Nested builders merge stored pieces, so materialize implicit model filters first.
+        $query->pieces = $query->filteredPieces();
+        $query->withDeleted = true;
+
+        return (int)$counter
             ->select(Literal::of('count(*)'))
             ->from($query, '__raxos_count')
             ->statement()

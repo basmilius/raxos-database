@@ -6,6 +6,7 @@ namespace Raxos\Database\Orm;
 use Raxos\Collection\ArrayList;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\{ModelInterface, VisibilityInterface};
+use function array_map;
 
 /**
  * Class ModelArrayList
@@ -31,7 +32,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
      */
     public function readonly(): static
     {
-        return $this->map(static fn(ModelInterface $model) => $model->readonly());
+        return $this->mapModels(static fn(ModelInterface $model): ModelInterface => $model->readonly());
     }
 
     /**
@@ -41,7 +42,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
      */
     public function makeHidden(array|string $keys): static
     {
-        return $this->map(static fn(ModelInterface $model) => $model->makeHidden($keys));
+        return $this->mapModels(static fn(ModelInterface $model): ModelInterface => $model->makeHidden($keys));
     }
 
     /**
@@ -51,7 +52,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
      */
     public function makeVisible(array|string $keys): static
     {
-        return $this->map(static fn(ModelInterface $model) => $model->makeVisible($keys));
+        return $this->mapModels(static fn(ModelInterface $model): ModelInterface => $model->makeVisible($keys));
     }
 
     /**
@@ -61,7 +62,18 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
      */
     public function only(array|string $keys): static
     {
-        return $this->map(static fn(ModelInterface $model) => $model->only($keys));
+        return $this->mapModels(static fn(ModelInterface $model): ModelInterface => $model->only($keys));
+    }
+
+    /**
+     * @param callable(ModelInterface):ModelInterface $fn
+     * @return static
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.2.0
+     */
+    private function mapModels(callable $fn): static
+    {
+        return new static(array_map($fn, $this->data));
     }
 
 }

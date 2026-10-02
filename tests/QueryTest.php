@@ -4,6 +4,8 @@ declare(strict_types=1);
 use Raxos\Database\Connection\SQLite;
 use Raxos\Database\Db;
 use Raxos\Database\Query\Literal\Literal;
+use RaxosTests\Database\SoftModel;
+use function Raxos\Database\Query\column;
 
 beforeEach(function (): void {
     $this->connection = new SQLite('sqlite::memory:');
@@ -37,4 +39,31 @@ it('returns every PDO scalar shape and the no-row sentinel', function (): void {
     expect(Db::column('SELECT 0'))->toBe(0);
     expect(Db::column("SELECT 'text'"))->toBe('text');
     expect(Db::column('SELECT id FROM items WHERE id = -1'))->toBeFalse();
+});
+
+it('preserves implicit soft-delete filters when wrapping counts', function (): void {
+    $this->connection->pdo->exec('CREATE TABLE soft_items (id INTEGER PRIMARY KEY, group_id INTEGER, deleted_at TEXT)');
+    $this->connection->pdo->exec("INSERT INTO soft_items VALUES (1,1,NULL),(2,1,NULL),(3,2,'2026-01-01')");
+    $query = SoftModel::select()->where(SoftModel::col('group_id'), 1)->orWhere(SoftModel::col('group_id'), 2)->limit(1);
+    $sql = $query->toSql();
+    expect($query->resultCount())->toBe(1)
+        ->and($query->totalCount())->toBe(2)
+        ->and($query->toSql())->toBe($sql)
+        ->and(SoftModel::select()->withDeleted()->totalCount())->toBe(3);
+});
+
+it('inserts late WHERE and OR predicates before grouping, HAVING and pagination', function (): void {
+    $query = Db::query()->select('group_id', Literal::of('count(*) as members'))->from('items')
+        ->groupBy('group_id')->having(Literal::of('members > 0'))->orderBy('group_id')->limit(1)
+        ->where(column('group_id'), 2)->orWhere(column('group_id'), 3);
+    expect($query->array())->toBe([['group_id' => 2, 'members' => 1]])
+        ->and($query->resultCount())->toBe(1)
+        ->and($query->totalCount())->toBe(2);
+});
+
+it('inserts correlated subqueries and their bindings before an existing ORDER BY', function (): void {
+    $subquery = Db::query()->select(1)->from('items', 'lookup')
+        ->where(column('id', 'lookup'), column('id', 'items'))->where(column('group_id', 'lookup'), 2);
+    $query = Db::query()->select('id')->from('items')->orderBy('id')->limit(2)->whereExists($subquery);
+    expect($query->array())->toBe([['id' => 3]])->and($query->totalCount())->toBe(1);
 });
