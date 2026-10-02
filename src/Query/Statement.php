@@ -9,20 +9,22 @@ use PDOException;
 use PDOStatement;
 use Raxos\Collection\{ArrayList, Paginated};
 use Raxos\Contract\Collection\ArrayListInterface;
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, PrimerTiming};
 use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryExceptionInterface, QueryInterface, StatementInterface};
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
 use Raxos\Database\Error\{ExecutionException, NotConnectedException};
 use Raxos\Database\Logger\QueryEvent;
-use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Structure\StructureGenerator;
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Query\Error\{ConnectionErrorException, InvalidModelException, MissingModelException, SyntaxException, UnexpectedException};
+use Raxos\Error\InvalidArgumentException;
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
 use Throwable;
 use function array_map;
 use function ceil;
 use function class_exists;
+use function count;
 use function error_log;
 use function floor;
 use function is_array;
@@ -133,15 +135,54 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     * @param int $fetchMode
+     * @param int $batchSize
+     * @param bool $retainCache
+     *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.17
+     * @since 3.2.0
      */
-    public final function cursor(int $fetchMode = PDO::FETCH_ASSOC): Generator
+    public final function cursor(int $fetchMode = PDO::FETCH_ASSOC, int $batchSize = 100, bool $retainCache = false): Generator
     {
+        if ($batchSize < 1) {
+            throw new InvalidArgumentException('Cursor batch size must be positive.');
+        }
+
         $this->execute();
 
-        while ($result = $this->fetch($fetchMode)) {
-            yield $result;
+        try {
+            if ($this->modelClass === null) {
+                while (($result = $this->pdoStatement->fetch($fetchMode)) !== false) {
+                    yield $result;
+                }
+
+                return;
+            }
+
+            do {
+                $rows = [];
+
+                while (count($rows) < $batchSize && ($row = $this->pdoStatement->fetch($fetchMode)) !== false) {
+                    $rows[] = $row;
+                }
+
+                if ($rows === []) {
+                    break;
+                }
+
+                $hydrate = function () use ($rows): array {
+                    $models = array_map($this->createModel(...), $rows);
+                    $this->loadRelationships($models);
+                    return $models;
+                };
+                $models = $retainCache ? $hydrate() : $this->connection->cache->scope($hydrate);
+
+                foreach ($models as $model) {
+                    yield $model;
+                }
+            } while (count($rows) === $batchSize);
+        } finally {
+            $this->pdoStatement->closeCursor();
         }
     }
 

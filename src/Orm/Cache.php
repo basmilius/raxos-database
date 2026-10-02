@@ -7,8 +7,9 @@ use Raxos\Contract\Database\Orm\CacheInterface;
 use Raxos\Contract\DebuggableInterface;
 use Raxos\Foundation\Util\ArrayUtil;
 use function array_first;
+use function array_key_first;
 use function array_map;
-use function array_shift;
+use function array_pop;
 use function count;
 use function is_int;
 use function is_string;
@@ -27,6 +28,13 @@ final class Cache implements CacheInterface, DebuggableInterface
 
     private array $instances = [];
     private int $size = 0;
+
+    /**
+     * @var array<array<class-string, array<array-key, true>>>
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.2.0
+     */
+    private array $scopes = [];
 
     /**
      * Cache constructor.
@@ -109,11 +117,17 @@ final class Cache implements CacheInterface, DebuggableInterface
 
         if (!isset($this->instances[$modelClass][$key])) {
             ++$this->size;
+
+            foreach ($this->scopes as &$scope) {
+                $scope[$modelClass][$key] = true;
+            }
+
+            unset($scope);
         }
 
         $this->instances[$modelClass][$key] = $instance;
 
-        if ($this->maxSize > 0 && $this->size > $this->maxSize) {
+        if ($this->scopes === [] && $this->maxSize > 0 && $this->size > $this->maxSize) {
             $this->evict();
         }
     }
@@ -149,7 +163,7 @@ final class Cache implements CacheInterface, DebuggableInterface
                     continue;
                 }
 
-                array_shift($this->instances[$modelClass]);
+                unset($this->instances[$modelClass][array_key_first($this->instances[$modelClass])]);
                 --$this->size;
                 $evicted = true;
 
@@ -214,6 +228,30 @@ final class Cache implements CacheInterface, DebuggableInterface
     public function __debugInfo(): array
     {
         return array_map(static fn(array $instances) => array_map(strval(...), $instances), $this->instances);
+    }
+
+    /**
+     * Keeps existing identities, releasing only models first loaded by this callback.
+     *
+     * @template T
+     * @param callable():T $fn
+     * @return T
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.2.0
+     */
+    public function scope(callable $fn): mixed
+    {
+        $this->scopes[] = [];
+
+        try {
+            return $fn();
+        } finally {
+            foreach (array_pop($this->scopes) as $class => $keys) {
+                foreach ($keys as $key => $_) {
+                    $this->unset($class, $key);
+                }
+            }
+        }
     }
 
 }

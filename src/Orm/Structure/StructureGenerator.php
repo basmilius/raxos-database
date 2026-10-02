@@ -39,6 +39,20 @@ final class StructureGenerator
     private static array $embeddableStructures = [];
 
     /**
+     * Releases metadata bound to a previous connection registration.
+     * Existing model backbones retain their own connection and data.
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.2.0
+     */
+    public static function clear(): void
+    {
+        self::$structures = [];
+        self::$embeddableStructures = [];
+    }
+
+    /**
      * Registers a structure.
      *
      * @param StructureInterface $structure

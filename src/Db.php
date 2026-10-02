@@ -6,9 +6,10 @@ namespace Raxos\Database;
 use BackedEnum;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
 use Raxos\Contract\Database\Query\{QueryInterface, StatementInterface};
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
 use Raxos\Database\Error\InvalidConnectionException;
+use Raxos\Database\Orm\Structure\StructureGenerator;
 
 /**
  * Class Db
@@ -105,7 +106,13 @@ class Db
      */
     public static function register(ConnectionInterface $connection, ?string $id = null): void
     {
-        self::$connections[$id ??= self::$connectionId] = $connection;
+        $id ??= self::$connectionId;
+
+        if (isset(self::$connections[$id]) && self::$connections[$id] !== $connection) {
+            StructureGenerator::clear();
+        }
+
+        self::$connections[$id] = $connection;
         self::$connected[$id] = false;
     }
 
@@ -143,13 +150,13 @@ class Db
      * @param QueryInterface|string $query
      * @param string|null $id
      *
-     * @return string|int
+     * @return string|int|float|bool|null
      * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 3.2.0
      * @see ConnectionInterface::column()
      */
-    public static function column(QueryInterface|string $query, ?string $id = null): string|int
+    public static function column(QueryInterface|string $query, ?string $id = null): string|int|float|bool|null
     {
         return static::getOrFail($id)->column($query);
     }

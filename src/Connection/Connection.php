@@ -7,9 +7,9 @@ use BackedEnum;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
 use PDOException;
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface, LoggerInterface};
 use Raxos\Contract\Database\Orm\CacheInterface;
 use Raxos\Contract\Database\Query\{QueryInterface, StatementInterface};
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface, LoggerInterface};
 use Raxos\Database\Db;
 use Raxos\Database\Error\{ExecutionException, InvalidTableException, NotConnectedException};
 use Raxos\Database\Query\Error\{NotInTransactionException, RollbackOnlyTransactionException};
@@ -98,15 +98,15 @@ abstract class Connection implements ConnectionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
-    public function column(QueryInterface|string $query): string|int|false
+    public function column(QueryInterface|string $query): string|int|float|bool|null
     {
         $this->ensureConnected();
 
         if ($query instanceof QueryInterface) {
-            return $this->runWithRecovery(static fn(): string|int|false => $query->statement()->fetchColumn());
+            return $this->runWithRecovery(static fn(): string|int|float|bool|null => $query->statement()->fetchColumn());
         }
 
-        return $this->runWithRecovery(function () use ($query): string|int|false {
+        return $this->runWithRecovery(function () use ($query): string|int|float|bool|null {
             try {
                 $smt = $this->pdo->query($query);
             } catch (PDOException $err) {

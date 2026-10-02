@@ -12,14 +12,14 @@ use JsonSerializable;
 use PDO;
 use Raxos\Collection\Paginated;
 use Raxos\Contract\Collection\{ArrayableInterface, ArrayListInterface};
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface};
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, PrimerInterface, PrimerTiming};
 use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryExceptionInterface, QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface, StatementInterface};
+use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface};
 use Raxos\Contract\DebuggableInterface;
-use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
 use Raxos\Database\Orm\Error\InvalidRelationException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
+use Raxos\Database\Orm\{Model, ModelArrayList};
 use Raxos\Database\Query\Error\{ConnectionErrorException, IncompleteException, MissingAliasException, MissingClauseException, MissingModelException, MissingResultException, StructureErrorException, TooFewPrimaryKeyValuesException, TooManyPrimaryKeyValuesException, UnsupportedException};
 use Raxos\Database\Query\Expression\ColumnRef;
 use Raxos\Database\Query\Literal\Literal;
@@ -38,6 +38,7 @@ use function array_unshift;
 use function array_values;
 use function count;
 use function implode;
+use function in_array;
 use function is_array;
 use function is_bool;
 use function is_float;
@@ -556,7 +557,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     {
         $pieces = [];
 
-        foreach ($this->pieces as $piece) {
+        foreach ($this->filteredPieces() as $piece) {
             $data = $piece->data;
 
             if (is_array($data)) {
@@ -565,7 +566,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
             $pieces[] = $piece->clause;
 
-            if (!empty($data)) {
+            if ($data !== null && $data !== '') {
                 $pieces[] = $data;
             }
         }
@@ -580,13 +581,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      */
     public function resultCount(): int
     {
-        $clone = clone $this;
-
-        return (int)$clone
-            ->replaceClause('select', static fn(Piece $piece) => new Piece('select', 'count(*)', null))
-            ->withoutModel()
-            ->statement()
-            ->fetchColumn();
+        return $this->countResults(clone $this);
     }
 
     /**
@@ -597,20 +592,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     public function totalCount(): int
     {
         $original = clone $this;
-
-        if (!$original->isClauseDefined('having')) {
-            $original->replaceClause('select', static fn(Piece $piece) => new Piece($piece->clause, '*', $piece->separator));
-        }
-
         $original->removeClause('limit');
         $original->removeClause('offset');
         $original->removeClause('order by');
 
-        return (int)$original
-            ->replaceClause('select', static fn(Piece $piece) => new Piece('select', 'count(*)', null))
-            ->withoutModel()
-            ->statement()
-            ->fetchColumn();
+        return $this->countResults($original);
     }
 
     /**
@@ -659,14 +645,19 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     * @param int $fetchMode
+     * @param array $options
+     * @param int $batchSize
+     * @param bool $retainCache
+     *
      * @author Bas Milius <bas@mili.us>
-     * @since 1.0.0
+     * @since 3.2.0
      */
-    public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Generator
+    public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = [], int $batchSize = 100, bool $retainCache = false): Generator
     {
         return $this
             ->statement($options)
-            ->cursor($fetchMode);
+            ->cursor($fetchMode, $batchSize, $retainCache);
     }
 
     /**
@@ -784,18 +775,6 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
         if ($this->modelClass !== null) {
             try {
                 $structure = StructureGenerator::for($this->modelClass);
-
-                if (!$this->withDeleted && $structure->softDeleteColumn !== null && $this->isClauseDefined('select')) {
-                    if ($this->isClauseDefined('where')) {
-                        $softDeleteColumn = $this->compileColumnField($structure->getColumn($structure->softDeleteColumn));
-
-                        $this->replaceClause('where', static function (Piece $piece) use ($softDeleteColumn): Piece {
-                            return new Piece('where', "{$softDeleteColumn} is null and", $piece->separator);
-                        });
-                    } else {
-                        $this->whereNull($structure->getColumn($structure->softDeleteColumn));
-                    }
-                }
 
                 $statement = new Statement($this->connection, $this, $options);
                 $statement->withModel($this->modelClass);
@@ -2384,6 +2363,75 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     public function __toString(): string
     {
         return $this->toSql();
+    }
+
+    /**
+     * Counts the result rows, preserving DISTINCT, grouping, HAVING and pagination.
+     *
+     * @param self $query
+     * @return int
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.2.0
+     */
+    private function countResults(self $query): int
+    {
+        return (int)$this->connection->query()
+            ->select(Literal::of('count(*)'))
+            ->from($query, '__raxos_count')
+            ->statement()
+            ->fetchColumn();
+    }
+
+    /**
+     * @return Piece[]
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.2.0
+     */
+    private function filteredPieces(): array
+    {
+        if ($this->modelClass === null || $this->withDeleted || !$this->isClauseDefined('select')) {
+            return $this->pieces;
+        }
+
+        $structure = StructureGenerator::for($this->modelClass);
+
+        if ($structure->softDeleteColumn === null) {
+            return $this->pieces;
+        }
+
+        $column = $this->compileColumnField($structure->getColumn($structure->softDeleteColumn));
+        $pieces = $this->pieces;
+        $where = null;
+        $end = count($pieces);
+        $depth = 0;
+
+        foreach ($pieces as $index => $piece) {
+            if ($piece->clause === '(') {
+                ++$depth;
+            } elseif ($piece->clause === ')') {
+                --$depth;
+            } elseif ($depth === 0 && $piece->clause === 'where') {
+                $where = $index;
+            } elseif ($depth === 0 && in_array($piece->clause, ['group by', 'having', 'order by', 'limit', 'offset', 'union', 'union all', 'returning', 'for update'], true)) {
+                $end = $index;
+                break;
+            }
+        }
+
+        if ($where === null) {
+            array_splice($pieces, $end, 0, [new Piece('where', "{$column} is null")]);
+        } else {
+            $predicate = $pieces[$where]->data;
+
+            if (is_array($predicate)) {
+                $predicate = implode($pieces[$where]->separator ?? $this->grammar->columnSeparator, $predicate);
+            }
+
+            $pieces[$where] = new Piece('where', "{$column} is null and ( {$predicate}", $pieces[$where]->separator);
+            array_splice($pieces, $end, 0, [new Piece(')')]);
+        }
+
+        return $pieces;
     }
 
 }

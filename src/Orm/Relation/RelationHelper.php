@@ -106,15 +106,16 @@ final class RelationHelper
      *
      * @param StructureInterface $referenceStructure
      * @param ArrayListInterface<int, string|int|null> $foreignKeys
+     * @param ColumnRef|null $referenceKey
      *
      * @return array{
      *     0: ArrayListInterface<int, Model>,
      *     1: ArrayListInterface<int, string|int|null>
      * }
      * @author Bas Milius <bas@mili.us>
-     * @since 2.0.0
+     * @since 3.2.0
      */
-    public static function partitionModels(StructureInterface $referenceStructure, ArrayListInterface $foreignKeys): array
+    public static function partitionModels(StructureInterface $referenceStructure, ArrayListInterface $foreignKeys, ?ColumnRef $referenceKey = null): array
     {
         $cache = $referenceStructure->connection->cache;
         $cached = new ArrayList();
@@ -125,8 +126,12 @@ final class RelationHelper
                 continue;
             }
 
-            if ($cache->has($referenceStructure->class, $foreignKey)) {
-                $cached->append($cache->get($referenceStructure->class, $foreignKey));
+            $instance = $referenceKey === null
+                ? $cache->get($referenceStructure->class, $foreignKey)
+                : self::findCached($foreignKey, $referenceStructure, $referenceKey);
+
+            if ($instance !== null) {
+                $cached->append($instance);
                 continue;
             }
 

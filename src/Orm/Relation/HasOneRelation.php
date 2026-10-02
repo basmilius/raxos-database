@@ -6,10 +6,10 @@ namespace Raxos\Database\Orm\Relation;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface, WritableRelationInterface};
 use Raxos\Contract\Database\Query\QueryInterface;
-use Raxos\Database\Orm\{Error\ReferenceModelMissingException, Model, ModelArrayList};
 use Raxos\Database\Orm\Attribute\HasOne;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Structure\StructureGenerator;
+use Raxos\Database\Orm\{Error\ReferenceModelMissingException, Model, ModelArrayList};
 use Raxos\Database\Query\Expression\ColumnRef;
 use function assert;
 
@@ -135,7 +135,8 @@ final readonly class HasOneRelation implements RelationInterface, WritableRelati
             $this->referenceStructure,
             $instances
                 ->column($this->declaringKey->column)
-                ->unique()
+                ->unique(),
+            $this->referenceKey
         );
 
         if ($cached->isNotEmpty()) {

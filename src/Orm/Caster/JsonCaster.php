@@ -10,7 +10,6 @@ use function error_log;
 use function is_string;
 use function json_decode;
 use function json_encode;
-use function json_validate;
 use function sprintf;
 use const JSON_HEX_AMP;
 use const JSON_HEX_APOS;
@@ -40,7 +39,9 @@ final readonly class JsonCaster implements CasterInterface
             return null;
         }
 
-        if (!json_validate($value)) {
+        try {
+            return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
             error_log(sprintf(
                 '[raxos/database] JsonCaster::decode() received invalid JSON for %s; returning null.',
                 $instance::class
@@ -48,8 +49,6 @@ final readonly class JsonCaster implements CasterInterface
 
             return null;
         }
-
-        return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**
