@@ -63,7 +63,7 @@ it('keeps readonly model collections and nested relations backed by the original
     expect($views[0]->name)->toBe('updated');
 });
 
-it('serializes a paginated model list after the Passly visibility callback', function (): void {
+it('serializes a paginated model list after applying a visibility callback', function (): void {
     $page = ParentModel::select()->orderBy(ParentModel::col('id'))->paginate(0, 25, static fn(QueryInterface $query, int $offset, int $limit): ModelArrayList => $query
         ->limit($limit, $offset)
         ->eagerLoad('children')

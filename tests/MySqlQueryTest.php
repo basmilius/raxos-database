@@ -47,7 +47,7 @@ it('counts a wildcard and a computed override without duplicate derived-table co
     expect(CountedModel::select()->withDeleted()->totalCount())->toBe(4);
 })->with('mysql servers');
 
-it('serializes the Passly pagination callback with a computed column override', function (string $variable): void {
+it('serializes a pagination visibility callback with a computed column override', function (string $variable): void {
     $this->connection = countTestConnection($variable);
     $page = CountedModel::select()->orderBy(CountedModel::col('id'))->paginate(0, 2, static fn(QueryInterface $query, int $offset, int $limit): ModelArrayList => $query
         ->limit($limit, $offset)
