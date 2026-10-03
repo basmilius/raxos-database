@@ -33,3 +33,13 @@ it('loads ordered members through teams and reuses the correct per-parent groupi
     $relation->eagerLoad(new ModelArrayList($models));
     expect($models[0]->members->column('id')->toArray())->toBe([102, 101, 100]);
 })->with([false, true]);
+
+it('caches an empty through relation without issuing a lazy query', function (): void {
+    $department = UnitDepartment::select()->wherePrimaryKey(UnitDepartment::class, 2)->eagerLoad('members')->singleOrFail();
+    expect($department->backbone->relationCache->hasValue('members'))->toBeTrue();
+    $this->connection->logger->enable();
+    $before = $this->connection->logger->count();
+    expect($department->members->isEmpty())->toBeTrue()
+        ->and($this->connection->logger->count())->toBe($before);
+    $this->connection->logger->disable();
+});

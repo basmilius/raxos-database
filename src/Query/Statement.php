@@ -431,12 +431,15 @@ class Statement implements StatementInterface
             ? new ModelArrayList([$instances])
             : new ModelArrayList($instances);
 
+        if ($this->query instanceof InternalQueryInterface) {
+            $this->query->invokeBeforeRelationsHook($list);
+        }
+
         if ($list->isEmpty()) {
             return;
         }
 
         if ($this->query instanceof InternalQueryInterface) {
-            $this->query->invokeBeforeRelationsHook($list);
             $this->query->invokePrimers($list, PrimerTiming::BeforeRelations, $this->connection);
         }
 
