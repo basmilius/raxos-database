@@ -21,6 +21,11 @@ it('loads ordered members through teams and reuses the correct per-parent groupi
         $query->eagerLoad('members');
     }
     $models = $query->array();
+    if ($eager) {
+        foreach ($models as $model) {
+            expect($model->backbone->relationCache->hasValue('members'))->toBeTrue();
+        }
+    }
     expect($models[0]->members->column('id')->toArray())->toBe([102, 101, 100])->and($models[1]->members->isEmpty())->toBeTrue()
         ->and($models[2]->members->column('id')->toArray())->toBe([200]);
     expect(UnitDepartment::select()->whereHas('members')->resultCount())->toBe(2);

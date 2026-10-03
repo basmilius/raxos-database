@@ -161,7 +161,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
             ->conditional($this->attribute->withDeleted, static fn(QueryInterface $query) => $query
                 ->withDeleted())
             ->withQuery(RelationHelper::onBeforeRelations($instances, $this->onBeforeRelations(...)))
-            ->array();
+            ->arrayList();
     }
 
     /**
