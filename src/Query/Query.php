@@ -8,20 +8,49 @@ use Closure;
 use Countable;
 use Generator;
 use JetBrains\PhpStorm\ArrayShape;
+
+use JsonException;
 use JsonSerializable;
 use PDO;
+use Raxos\Collection\ArrayList;
+use Raxos\Collection\CursorPage;
 use Raxos\Collection\Paginated;
-use Raxos\Contract\Collection\{ArrayableInterface, ArrayListInterface};
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface};
-use Raxos\Contract\Database\Orm\{OrmExceptionInterface, PrimerInterface, PrimerTiming};
-use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryExceptionInterface, QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface, StatementInterface};
+use Raxos\Contract\Collection\ArrayableInterface;
+use Raxos\Contract\Collection\ArrayListInterface;
+use Raxos\Contract\Database\ConnectionInterface;
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\GrammarInterface;
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\PrimerInterface;
+use Raxos\Contract\Database\Orm\PrimerTiming;
+use Raxos\Contract\Database\Query\InternalQueryInterface;
+use Raxos\Contract\Database\Query\KeysetQueryInterface;
+use Raxos\Contract\Database\Query\QueryExceptionInterface;
+use Raxos\Contract\Database\Query\QueryExpressionInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Contract\Database\Query\QueryLiteralInterface;
+use Raxos\Contract\Database\Query\QueryValueInterface;
+use Raxos\Contract\Database\Query\StatementInterface;
 use Raxos\Contract\DebuggableInterface;
-use Raxos\Database\Orm\Definition\{PropertyDefinition, RelationDefinition};
+use Raxos\Database\Orm\Definition\PropertyDefinition;
+use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\InvalidRelationException;
-use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Query\Error\{ConnectionErrorException, IncompleteException, MissingAliasException, MissingClauseException, MissingModelException, MissingResultException, StructureErrorException, TooFewPrimaryKeyValuesException, TooManyPrimaryKeyValuesException, UnsupportedException};
+use Raxos\Database\Query\Error\ConnectionErrorException;
+use Raxos\Database\Query\Error\IncompleteException;
+use Raxos\Database\Query\Error\InvalidCursorException;
+use Raxos\Database\Query\Error\MissingAliasException;
+use Raxos\Database\Query\Error\MissingClauseException;
+use Raxos\Database\Query\Error\MissingModelException;
+use Raxos\Database\Query\Error\MissingResultException;
+use Raxos\Database\Query\Error\StructureErrorException;
+use Raxos\Database\Query\Error\TooFewPrimaryKeyValuesException;
+use Raxos\Database\Query\Error\TooManyPrimaryKeyValuesException;
+use Raxos\Database\Query\Error\UnsupportedException;
 use Raxos\Database\Query\Expression\ColumnRef;
+use Raxos\Database\Query\Expression\KeysetPredicate;
 use Raxos\Database\Query\Literal\Literal;
 use stdClass;
 use Stringable;
@@ -31,12 +60,14 @@ use function array_key_exists;
 use function array_keys;
 use function array_map;
 use function array_merge;
+use function array_pop;
 use function array_shift;
 use function array_splice;
 use function array_unique;
 use function array_unshift;
 use function array_values;
 use function count;
+use function hash;
 use function implode;
 use function in_array;
 use function is_array;
@@ -46,48 +77,172 @@ use function is_int;
 use function is_numeric;
 use function is_string;
 use function iterator_to_array;
+use function json_encode;
+use function preg_match;
 use function preg_replace;
 use function str_contains;
+use function str_starts_with;
+use function strrpos;
+use function substr;
 use function substr_count;
 use function trim;
+
+use const JSON_THROW_ON_ERROR;
 
 /**
  * Class Query
  *
+ * Builds bound SQL clauses and selects driver-aware row or ORM hydration.
+ *
  * @template TModel
  * @implements QueryInterface<TModel>
+ * @implements KeysetQueryInterface<TModel>
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
-abstract class Query implements DebuggableInterface, InternalQueryInterface, JsonSerializable, QueryInterface, Stringable
+abstract class Query implements DebuggableInterface, InternalQueryInterface, JsonSerializable, KeysetQueryInterface, QueryInterface, Stringable
 {
-
+    /**
+     * Assigns stable positions to query fragments as the builder evolves.
+     *
+     * @var int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private static int $index = 0;
 
+    /**
+     * Compiles this builder using the selected database driver's syntax.
+     *
+     * @var GrammarInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     public readonly GrammarInterface $grammar;
 
+    /**
+     * Directs new fragments to the clause currently being built.
+     *
+     * @var string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private string $currentClause = '';
+
+    /**
+     * Keeps join predicates separate from the surrounding WHERE clause.
+     *
+     * @var bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private bool $isDoingJoin = false;
+
+    /**
+     * Prevents adding a second initial ON clause to the current join.
+     *
+     * @var bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private bool $isOnDefined = false;
-    /** @var class-string<Model>|null */
+
+    /**
+     * Selects ORM hydration when results should become models rather than plain row objects.
+     * @var class-string<Model>|null */
     private ?string $modelClass = null;
-    /** @var Piece[] */
+
+    /**
+     * Retains clause fragments in builder order until the grammar compiles them.
+     * @var Piece[] */
     private array $pieces = [];
+
+    /**
+     * Records clause boundaries while preserving builder ordering.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private array $definedClauses = [];
+
+    /**
+     * Tracks the current position without rescanning earlier input.
+     *
+     * @var ?int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private ?int $position = null;
+
+    /**
+     * Controls whether the ORM applies its default soft-delete predicate.
+     *
+     * @var bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private bool $withDeleted = false;
 
+    /**
+     * Collects relations that must be loaded after primary rows have been hydrated.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private array $eagerLoad = [];
+
+    /**
+     * Suppresses default eager relations for this query or statement.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private array $eagerLoadDisable = [];
+
+    /**
+     * Retains bound values independently from generated SQL identifiers.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private array $params = [];
+
+    /**
+     * Counts bound values without recounting the parameter collection.
+     *
+     * @var int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private int $paramsCount = 0;
+
+    /**
+     * Allocates unique placeholders when fragments add bound values.
+     *
+     * @var int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private readonly int $paramsIndex;
 
+    /**
+     * Runs deferred preparation before eager relationships are loaded.
+     *
+     * @var ?Closure
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private ?Closure $beforeRelations = null;
 
-    /** @var array<string, list<PrimerInterface|callable>> */
+    /**
+     * Collects assignments used to initialize models created from this query.
+     * @var array<string, list<PrimerInterface|callable>> */
     private array $primers = [];
 
     /**
@@ -180,7 +335,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function addPiece(string $clause, QueryValueInterface|array|string|int|null $data = null, ?string $separator = null): static
+    public function addPiece(
+        string $clause,
+        QueryValueInterface|array|string|int|null $data = null,
+        ?string $separator = null
+    ): static
     {
         if ($data instanceof QueryValueInterface) {
             $data = $this->compileColumnField($data);
@@ -245,7 +404,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function compileMultiple(iterable $values, string $separator = ', '): void
+    public function compileMultiple(
+        iterable $values,
+        string $separator = ', '
+    ): void
     {
         foreach ($values as $index => $value) {
             if ($index > 0) {
@@ -261,7 +423,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function conditional(bool $is, callable $fn): static
+    public function conditional(
+        bool $is,
+        callable $fn
+    ): static
     {
         if ($is) {
             $fn($this);
@@ -275,7 +440,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function conditionalParenthesis(bool $is, callable $fn): static
+    public function conditionalParenthesis(
+        bool $is,
+        callable $fn
+    ): static
     {
         if ($is) {
             return $this->parenthesis($fn);
@@ -392,9 +560,12 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.0
      */
-    public function parenthesis(callable $fn, bool $patch = true): static
+    public function parenthesis(
+        callable $fn,
+        bool $patch = true
+    ): static
     {
         $originalPosition = $this->position;
         $originalClause = $this->currentClause;
@@ -434,6 +605,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                         $group = array_splice($this->pieces, $index);
                         array_splice($this->pieces, $tail, 0, $group);
                         $this->currentClause = $originalClause;
+
                         break;
                     }
 
@@ -531,7 +703,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function replaceClause(string $clause, callable $fn): static
+    public function replaceClause(
+        string $clause,
+        callable $fn
+    ): static
     {
         $index = array_find_key($this->pieces, static fn(Piece $piece) => $piece->clause === $clause);
 
@@ -657,7 +832,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function array(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): array
+    public function array(
+        int $fetchMode = PDO::FETCH_ASSOC,
+        array $options = []
+    ): array
     {
         return $this
             ->statement($options)
@@ -669,7 +847,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function arrayList(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): ArrayListInterface|ModelArrayList
+    public function arrayList(
+        int $fetchMode = PDO::FETCH_ASSOC,
+        array $options = []
+    ): ArrayListInterface|ModelArrayList
     {
         return $this
             ->statement($options)
@@ -684,9 +865,14 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param bool $retainCache
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.0
      */
-    public function cursor(int $fetchMode = PDO::FETCH_ASSOC, array $options = [], int $batchSize = 100, bool $retainCache = false): Generator
+    public function cursor(
+        int $fetchMode = PDO::FETCH_ASSOC,
+        array $options = [],
+        int $batchSize = 100,
+        bool $retainCache = false
+    ): Generator
     {
         return $this
             ->statement($options)
@@ -698,11 +884,215 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.3.1
      */
-    public function paginate(int $offset, int $limit, ?callable $itemBuilder = null, ?callable $totalBuilder = null, int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Paginated
+    public function paginate(
+        int $offset,
+        int $limit,
+        ?callable $itemBuilder = null,
+        ?callable $totalBuilder = null,
+        int $fetchMode = PDO::FETCH_ASSOC,
+        array $options = []
+    ): Paginated
     {
         return $this
             ->statement($options)
             ->paginate($offset, $limit, $itemBuilder, $totalBuilder, $fetchMode);
+    }
+
+    /**
+     * Uses a non-null sort tuple ending in a unique key; replaces order and limits on a clone, without COUNT.
+     *
+     * @param int $size
+     * @param string|null $cursor
+     * @param list<string> $columns
+     * @param bool $descending
+     * @param array $options
+     * @return CursorPage<TModel|array>
+     * @throws DatabaseExceptionInterface|QueryExceptionInterface|JsonException
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    public function cursorPaginate(
+        int $size = 25,
+        ?string $cursor = null,
+        array $columns = ['id'],
+        bool $descending = false,
+        array $options = []
+    ): CursorPage
+    {
+        if ($size < 1 || $size > 10000 || $columns === [] || !array_is_list($columns)) {
+            throw new InvalidCursorException('A page requires 1–10000 items and distinct ordered columns.');
+        }
+
+        foreach ($columns as $column) {
+            if (!is_string($column) || !preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?$/D', $column)) {
+                throw new InvalidCursorException('Cursor columns must be identifiers.');
+            }
+        }
+
+        foreach (['group by', 'having', 'union', 'union all'] as $clause) {
+            if ($this->isClauseDefined($clause)) {
+                throw new InvalidCursorException('Grouped and union queries require an explicit outer keyset query.');
+            }
+        }
+
+        if (count(array_unique($columns)) !== count($columns)) {
+            throw new InvalidCursorException('Cursor columns must be distinct.');
+        }
+
+        $query = clone $this;
+        $query->removeClause('order by')->removeClause('limit')->removeClause('offset');
+        $query->groupWhereForKeyset();
+        $signature = hash('sha256', json_encode([
+            preg_replace('/:p[0-9]+_[0-9]+/', '?', $query->toSql()),
+            array_values($query->params),
+            $columns,
+            $descending,
+            $query->modelClass
+        ], JSON_THROW_ON_ERROR));
+
+        if ($cursor !== null) {
+            $query->where(new KeysetPredicate(
+                $columns,
+                KeysetCursor::decode($cursor, $signature, count($columns)),
+                $descending
+            ));
+        }
+
+        foreach ($columns as $column) {
+            $descending ? $query->orderByDesc($column) : $query->orderByAsc($column);
+        }
+
+        $rows = $query->limit($size + 1)->array(options: $options);
+        $hasMore = count($rows) > $size;
+
+        if ($hasMore) {
+            array_pop($rows);
+        }
+
+        $position = [];
+
+        foreach ($rows as $row) {
+            $values = [];
+
+            foreach ($columns as $column) {
+                $key = str_contains($column, '.') ? substr($column, strrpos($column, '.') + 1) : $column;
+                $values[] = KeysetCursor::value(is_array($row) ? ($row[$key] ?? null) : ($row->{$key} ?? null));
+            }
+
+            $position = $values;
+        }
+
+        return new CursorPage(
+            new ArrayList($rows),
+            $hasMore ? KeysetCursor::encode($signature, $position) : null,
+            $hasMore
+        );
+    }
+
+    /**
+     * Closes each bounded result before eager loading and releases identities created by each batch. Sort keys must remain stable.
+     *
+     * @param int $batchSize
+     * @param string|list<string> $column
+     * @param bool $descending
+     * @param bool $retainCache
+     * @return Generator<int, TModel|array>
+     * @throws DatabaseExceptionInterface|QueryExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    public function lazyById(
+        int $batchSize = 100,
+        string|array $column = 'id',
+        bool $descending = false,
+        bool $retainCache = false
+    ): Generator
+    {
+        $cursor = null;
+        $columns = is_array($column) ? $column : [$column];
+
+        do {
+            $fetch = fn(): CursorPage => $this->cursorPaginate($batchSize, $cursor, $columns, $descending);
+            $page = $retainCache ? $fetch() : $this->connection->cache->scope($fetch);
+
+            foreach ($page->items as $item) {
+                yield $item;
+            }
+
+            $cursor = $page->nextCursor;
+        } while ($cursor !== null);
+    }
+
+    /**
+     * A false callback result stops processing after the current batch.
+     *
+     * @param callable(ArrayList<int, TModel|array>):bool|void $fn
+     * @param int $batchSize
+     * @param string|list<string> $column
+     * @param bool $descending
+     * @param bool $retainCache
+     * @return void
+     * @throws DatabaseExceptionInterface|QueryExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    public function chunkById(
+        callable $fn,
+        int $batchSize = 100,
+        string|array $column = 'id',
+        bool $descending = false,
+        bool $retainCache = false
+    ): void
+    {
+        $batch = [];
+
+        foreach ($this->lazyById($batchSize, $column, $descending, $retainCache) as $row) {
+            $batch[] = $row;
+
+            if (count($batch) === $batchSize) {
+                if ($fn(new ArrayList($batch)) === false) {
+                    return;
+                }
+
+                $batch = [];
+            }
+        }
+
+        if ($batch !== []) {
+            $fn(new ArrayList($batch));
+        }
+    }
+
+    /**
+     * Keeps an existing OR filter grouped before appending the seek predicate.
+     *
+     * @return void
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    private function groupWhereForKeyset(): void
+    {
+        $start = null;
+        $end = count($this->pieces);
+        $depth = 0;
+
+        foreach ($this->pieces as $index => $piece) {
+            if ($depth === 0 && ($piece->clause === 'where' || str_starts_with($piece->clause, 'where ('))) {
+                $start = $index;
+            } elseif ($start !== null && $depth === 0 && in_array($piece->clause, ['order by', 'limit', 'offset', 'for update', 'returning'], true)) {
+                $end = $index;
+
+                break;
+            }
+
+            $depth += self::parenthesisBalance($piece->clause);
+        }
+
+        if ($start !== null) {
+            $piece = $this->pieces[$start];
+            $this->pieces[$start] = new Piece($piece->clause . ' (', $piece->data, $piece->separator);
+            array_splice($this->pieces, $end, 0, [new Piece(')')]);
+        }
     }
 
     /**
@@ -775,7 +1165,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function single(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array|null
+    public function single(
+        int $fetchMode = PDO::FETCH_ASSOC,
+        array $options = []
+    ): Model|stdClass|array|null
     {
         return $this
             ->statement($options)
@@ -787,7 +1180,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function singleOrFail(int $fetchMode = PDO::FETCH_ASSOC, array $options = []): Model|stdClass|array
+    public function singleOrFail(
+        int $fetchMode = PDO::FETCH_ASSOC,
+        array $options = []
+    ): Model|stdClass|array
     {
         $result = $this->single($fetchMode, $options);
 
@@ -870,7 +1266,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
-    public function prime(PrimerInterface|callable $primer, PrimerTiming $timing = PrimerTiming::AfterRelations): static
+    public function prime(
+        PrimerInterface|callable $primer,
+        PrimerTiming $timing = PrimerTiming::AfterRelations
+    ): static
     {
         $this->primers[$timing->name][] = $primer;
 
@@ -882,7 +1281,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
-    public function invokePrimers(ArrayListInterface $instances, PrimerTiming $timing, ConnectionInterface $connection): void
+    public function invokePrimers(
+        ArrayListInterface $instances,
+        PrimerTiming $timing,
+        ConnectionInterface $connection
+    ): void
     {
         foreach ($this->primers[$timing->name] ?? [] as $primer) {
             if ($primer instanceof PrimerInterface) {
@@ -938,7 +1341,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function from(QueryInterface|array|string $tables, ?string $alias = null): static
+    public function from(
+        QueryInterface|array|string $tables,
+        ?string $alias = null
+    ): static
     {
         if ($tables instanceof self) {
             $this->addPiece('from');
@@ -1013,7 +1419,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function groupBy(QueryValueInterface|array|string $fields, bool $withRollup = false): static
+    public function groupBy(
+        QueryValueInterface|array|string $fields,
+        bool $withRollup = false
+    ): static
     {
         if (!is_array($fields)) {
             $fields = [$fields];
@@ -1059,7 +1468,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function havingIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
+    public function havingIn(
+        QueryValueInterface|string $field,
+        ArrayableInterface|array $options
+    ): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->having(Literal::of('1 = 0'));
@@ -1093,7 +1505,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function havingNotIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
+    public function havingNotIn(
+        QueryValueInterface|string $field,
+        ArrayableInterface|array $options
+    ): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->having(Literal::of('1 = 1'));
@@ -1141,7 +1556,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function orHavingIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
+    public function orHavingIn(
+        QueryValueInterface|string $field,
+        ArrayableInterface|array $options
+    ): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->orHaving(Literal::of('1 = 0'));
@@ -1165,7 +1583,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public function orHavingNotIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
+    public function orHavingNotIn(
+        QueryValueInterface|string $field,
+        ArrayableInterface|array $options
+    ): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->orHaving(Literal::of('1 = 1'));
@@ -1199,7 +1620,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function limit(int $limit, int $offset = 0): static
+    public function limit(
+        int $limit,
+        int $offset = 0
+    ): static
     {
         if ($limit < 0) {
             throw new IncompleteException("limit() expects a non-negative integer, got {$limit}.");
@@ -1305,7 +1729,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereHas(string $relation, ?callable $fn = null): static
+    public function orWhereHas(
+        string $relation,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseWhereHas($relation, $fn, $this->orWhere(...));
     }
@@ -1315,7 +1742,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
+    public function orWhereIn(
+        QueryValueInterface|string $field,
+        ArrayableInterface|array $options
+    ): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->orWhere(Literal::of('1 = 0'));
@@ -1339,7 +1769,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function orWhereNotHas(string $relation, ?callable $fn = null): static
+    public function orWhereNotHas(
+        string $relation,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseWhereHas($relation, $fn, $this->orWhere(...), true);
     }
@@ -1349,7 +1782,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function orWhereNotIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
+    public function orWhereNotIn(
+        QueryValueInterface|string $field,
+        ArrayableInterface|array $options
+    ): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->orWhere(Literal::of('1 = 1'));
@@ -1499,7 +1935,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function update(string $table, ?array $pairs = null): static
+    public function update(
+        string $table,
+        ?array $pairs = null
+    ): static
     {
         $this->addPiece('update', $this->grammar->escape($table));
 
@@ -1544,6 +1983,25 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
+     * Treats the left operand as a column identifier.
+     *
+     * @param string $field
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+     * @return static
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    public function whereField(
+        string $field,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
+    ): static
+    {
+        return $this->where(new ColumnRef($field), $cmp, $rhs);
+    }
+
+    /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
@@ -1558,7 +2016,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereHas(string $relation, ?callable $fn = null): static
+    public function whereHas(
+        string $relation,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseWhereHas($relation, $fn, $this->where(...));
     }
@@ -1568,7 +2029,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
+    public function whereIn(
+        QueryValueInterface|string $field,
+        ArrayableInterface|array $options
+    ): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->where(Literal::of('1 = 0'));
@@ -1592,7 +2056,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function whereNotHas(string $relation, ?callable $fn = null): static
+    public function whereNotHas(
+        string $relation,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseWhereHas($relation, $fn, $this->where(...), true);
     }
@@ -1602,7 +2069,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
-    public function whereNotIn(QueryValueInterface|string $field, ArrayableInterface|array $options): static
+    public function whereNotIn(
+        QueryValueInterface|string $field,
+        ArrayableInterface|array $options
+    ): static
     {
         if (self::isEmptyOptions($options)) {
             return $this->where(Literal::of('1 = 1'));
@@ -1636,7 +2106,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function wherePrimaryKey(string $modelClass, array|int|string $primaryKey): static
+    public function wherePrimaryKey(
+        string $modelClass,
+        array|int|string $primaryKey
+    ): static
     {
         if (!is_array($primaryKey)) {
             $primaryKey = [$primaryKey];
@@ -1670,7 +2143,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function wherePrimaryKeyIn(string $modelClass, array $primaryKeys): static
+    public function wherePrimaryKeyIn(
+        string $modelClass,
+        array $primaryKeys
+    ): static
     {
         if (empty($primaryKeys)) {
             return $this->where(Literal::of('1 = 0'));
@@ -1739,7 +2215,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function insertInto(string $table, array $fields): static
+    public function insertInto(
+        string $table,
+        array $fields
+    ): static
     {
         return $this->baseInsert('insert into', $table, $fields);
     }
@@ -1749,7 +2228,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function insertIgnoreInto(string $table, array $fields): static
+    public function insertIgnoreInto(
+        string $table,
+        array $fields
+    ): static
     {
         return $this->baseInsert('insert ignore into', $table, $fields);
     }
@@ -1759,7 +2241,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function insertIntoValues(string $table, array $pairs): static
+    public function insertIntoValues(
+        string $table,
+        array $pairs
+    ): static
     {
         if (empty($pairs)) {
             throw new IncompleteException('There must be at least one column.');
@@ -1784,7 +2269,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function insertIgnoreIntoValues(string $table, array $pairs): static
+    public function insertIgnoreIntoValues(
+        string $table,
+        array $pairs
+    ): static
     {
         if (empty($pairs)) {
             throw new IncompleteException('There must be at least one column.');
@@ -1809,7 +2297,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function replaceInto(string $table, array $fields): static
+    public function replaceInto(
+        string $table,
+        array $fields
+    ): static
     {
         return $this->baseInsert('replace into', $table, $fields);
     }
@@ -1819,7 +2310,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function replaceIntoValues(string $table, array $pairs): static
+    public function replaceIntoValues(
+        string $table,
+        array $pairs
+    ): static
     {
         $fields = array_keys($pairs);
         $values = array_values($pairs);
@@ -1870,7 +2364,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function selectSuffix(string $suffix, QueryInterface|QueryExpressionInterface|QueryLiteralInterface|Stringable|array|string|int|float|bool ...$fields): static
+    public function selectSuffix(
+        string $suffix,
+        QueryInterface|QueryExpressionInterface|QueryLiteralInterface|Stringable|array|string|int|float|bool ...$fields
+    ): static
     {
         return $this->baseSelect("select {$suffix}", $this->normalizeSelect($fields));
     }
@@ -1880,7 +2377,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function fullJoin(string $table, ?callable $fn = null): static
+    public function fullJoin(
+        string $table,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseJoin('full join', $table, $fn);
     }
@@ -1890,7 +2390,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function innerJoin(string $table, ?callable $fn = null): static
+    public function innerJoin(
+        string $table,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseJoin('inner join', $table, $fn);
     }
@@ -1900,7 +2403,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function join(string $table, ?callable $fn = null): static
+    public function join(
+        string $table,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseJoin('join', $table, $fn);
     }
@@ -1910,7 +2416,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function leftJoin(string $table, ?callable $fn = null): static
+    public function leftJoin(
+        string $table,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseJoin('left join', $table, $fn);
     }
@@ -1920,7 +2429,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function leftOuterJoin(string $table, ?callable $fn = null): static
+    public function leftOuterJoin(
+        string $table,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseJoin('left outer join', $table, $fn);
     }
@@ -1930,7 +2442,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function rightJoin(string $table, ?callable $fn = null): static
+    public function rightJoin(
+        string $table,
+        ?callable $fn = null
+    ): static
     {
         return $this->baseJoin('right join', $table, $fn);
     }
@@ -1940,7 +2455,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
-    public function fullJoinSub(QueryInterface $query, string $alias, ?callable $on = null): static
+    public function fullJoinSub(
+        QueryInterface $query,
+        string $alias,
+        ?callable $on = null
+    ): static
     {
         return $this->baseJoinSub('full join', $query, $alias, $on);
     }
@@ -1950,7 +2469,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
-    public function innerJoinSub(QueryInterface $query, string $alias, ?callable $on = null): static
+    public function innerJoinSub(
+        QueryInterface $query,
+        string $alias,
+        ?callable $on = null
+    ): static
     {
         return $this->baseJoinSub('inner join', $query, $alias, $on);
     }
@@ -1960,7 +2483,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
-    public function joinSub(QueryInterface $query, string $alias, ?callable $on = null): static
+    public function joinSub(
+        QueryInterface $query,
+        string $alias,
+        ?callable $on = null
+    ): static
     {
         return $this->baseJoinSub('join', $query, $alias, $on);
     }
@@ -1970,7 +2497,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
-    public function leftJoinSub(QueryInterface $query, string $alias, ?callable $on = null): static
+    public function leftJoinSub(
+        QueryInterface $query,
+        string $alias,
+        ?callable $on = null
+    ): static
     {
         return $this->baseJoinSub('left join', $query, $alias, $on);
     }
@@ -1980,7 +2511,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
-    public function leftOuterJoinSub(QueryInterface $query, string $alias, ?callable $on = null): static
+    public function leftOuterJoinSub(
+        QueryInterface $query,
+        string $alias,
+        ?callable $on = null
+    ): static
     {
         return $this->baseJoinSub('left outer join', $query, $alias, $on);
     }
@@ -1990,7 +2525,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
-    public function rightJoinSub(QueryInterface $query, string $alias, ?callable $on = null): static
+    public function rightJoinSub(
+        QueryInterface $query,
+        string $alias,
+        ?callable $on = null
+    ): static
     {
         return $this->baseJoinSub('right join', $query, $alias, $on);
     }
@@ -2000,7 +2539,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function with(string $name, QueryInterface $query): static
+    public function with(
+        string $name,
+        QueryInterface $query
+    ): static
     {
         return $this->baseWith('with', $name, $query);
     }
@@ -2010,7 +2552,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public function withRecursive(string $name, QueryInterface $query): static
+    public function withRecursive(
+        string $name,
+        QueryInterface $query
+    ): static
     {
         return $this->baseWith('with recursive', $name, $query);
     }
@@ -2027,7 +2572,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseInsert(string $clause, string $table, array $fields): static
+    protected function baseInsert(
+        string $clause,
+        string $table,
+        array $fields
+    ): static
     {
         if (empty($fields)) {
             throw new IncompleteException('There must be at least one column.');
@@ -2053,7 +2602,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseJoin(string $clause, string $table, ?callable $fn): static
+    protected function baseJoin(
+        string $clause,
+        string $table,
+        ?callable $fn
+    ): static
     {
         $table = $this->grammar->escape($table);
         $wherePosition = null;
@@ -2104,7 +2657,12 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
-    protected function baseJoinSub(string $clause, QueryInterface $query, string $alias, ?callable $on): static
+    protected function baseJoinSub(
+        string $clause,
+        QueryInterface $query,
+        string $alias,
+        ?callable $on
+    ): static
     {
         $aliasEscaped = $this->grammar->escape($alias);
         $wherePosition = null;
@@ -2156,7 +2714,10 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseSelect(string $clause, array $fields): static
+    protected function baseSelect(
+        string $clause,
+        array $fields
+    ): static
     {
         if (empty($fields)) {
             return $this->addPiece($clause, $this->modelClass !== null
@@ -2185,7 +2746,12 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseWhereHas(string $relation, ?callable $fn, callable $clause, bool $negate = false): static
+    protected function baseWhereHas(
+        string $relation,
+        ?callable $fn,
+        callable $clause,
+        bool $negate = false
+    ): static
     {
         if ($this->modelClass === null) {
             throw new MissingModelException();
@@ -2219,6 +2785,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
+     * Adds a grouped predicate without changing the connector used by the surrounding query.
+     *
      * @param string $clause
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
@@ -2271,7 +2839,11 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    protected function baseWith(string $clause, string $name, QueryInterface $query): static
+    protected function baseWith(
+        string $clause,
+        string $name,
+        QueryInterface $query
+    ): static
     {
         $this->addPiece($this->currentClause === $clause ? ',' : $clause, "{$name} as");
         $this->parenthesis(fn() => $this->merge($query), false);
@@ -2352,7 +2924,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * Renders a column-referencing field to its SQL form. An expression (e.g.,
-     * a {@see Expression\ColumnRef}) is compiled and its bound parameters merged
+     * a {@see ColumnRef}) is compiled and its bound parameters merged
      * into the host; a literal is stringified as-is; a plain string is escaped
      * as a column identifier.
      *
@@ -2381,6 +2953,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
+     * Distinguishes an absent option list from an explicit collection of query options.
+     *
      * @param ArrayableInterface|array $options
      *
      * @return bool
@@ -2467,6 +3041,8 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
     }
 
     /**
+     * Removes excluded clauses when deriving count and continuation queries.
+     *
      * @return Piece[]
      * @author Bas Milius <bas@mili.us>
      * @since 3.2.0
@@ -2494,6 +3070,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
                 $where = $index;
             } elseif ($depth === 0 && in_array($piece->clause, ['group by', 'having', 'order by', 'limit', 'offset', 'union', 'union all', 'returning', 'for update'], true)) {
                 $end = $index;
+
                 break;
             }
 
@@ -2544,5 +3121,4 @@ REGEX,
 
         return substr_count($syntax, '(') - substr_count($syntax, ')');
     }
-
 }

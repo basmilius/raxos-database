@@ -5,7 +5,8 @@ namespace Raxos\Database\Orm;
 
 use Raxos\Collection\ArrayList;
 use Raxos\Contract\Collection\ArrayListInterface;
-use Raxos\Contract\Database\Orm\{ModelInterface, VisibilityInterface};
+use Raxos\Contract\Database\Orm\ModelInterface;
+use Raxos\Contract\Database\Orm\VisibilityInterface;
 use function array_map;
 
 /**
@@ -21,7 +22,6 @@ use function array_map;
  */
 class ModelArrayList extends ArrayList implements VisibilityInterface
 {
-
     /**
      * Returns a list of read-only views of the models, sharing their backbones.
      * Safe to expose to untrusted consumers such as template engines.
@@ -66,6 +66,8 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
     }
 
     /**
+     * Allows a mapped collection to change model type without retaining the original model restriction.
+     *
      * @param callable(ModelInterface):ModelInterface $fn
      * @return static
      * @author Bas Milius <bas@mili.us>
@@ -75,5 +77,4 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
     {
         return new static(array_map($fn, $this->data));
     }
-
 }

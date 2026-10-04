@@ -5,7 +5,8 @@ namespace Raxos\Database\Logger;
 
 use Raxos\Contract\Database\Query\QueryInterface;
 use Raxos\Database\Query\Query;
-use Raxos\Foundation\Util\{Stopwatch, StringUtil};
+use Raxos\Foundation\Util\Stopwatch;
+use Raxos\Foundation\Util\StringUtil;
 use ReflectionClass;
 use ReflectionProperty;
 use function htmlspecialchars;
@@ -22,7 +23,6 @@ use const ENT_SUBSTITUTE;
  */
 final readonly class QueryEvent extends Event
 {
-
     /**
      * QueryEvent constructor.
      *
@@ -43,7 +43,7 @@ final readonly class QueryEvent extends Event
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.16
      */
     public function print(bool $backtrace): string
     {
@@ -79,6 +79,8 @@ final readonly class QueryEvent extends Event
     }
 
     /**
+     * Caches readable property metadata used to describe query parameters in log output.
+     *
      * @return array{0: ReflectionProperty, 1: ReflectionProperty}
      * @author Bas Milius <bas@mili.us>
      * @since 2.3.0
@@ -97,5 +99,4 @@ final readonly class QueryEvent extends Event
 
         return $cache;
     }
-
 }

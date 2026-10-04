@@ -4,10 +4,14 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm;
 
 use BackedEnum;
-use Raxos\Contract\Collection\{ArrayableInterface, ArrayListInterface};
+use Raxos\Contract\Collection\ArrayableInterface;
+use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\DatabaseExceptionInterface;
 use Raxos\Contract\Database\Orm\OrmExceptionInterface;
-use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
+use Raxos\Contract\Database\Query\QueryExceptionInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Contract\Database\Query\QueryLiteralInterface;
+use Raxos\Contract\Database\Query\QueryValueInterface;
 use Raxos\Database\Orm\Error\NotFoundException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Expression\ColumnRef;
@@ -25,7 +29,6 @@ use function json_encode;
  */
 trait Queryable
 {
-
     /**
      * Returns the fully qualified name for the given column in an aliased table.
      *
@@ -35,9 +38,12 @@ trait Queryable
      * @return ColumnRef
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.1.0
      */
-    public static function alias(string $key, string $table): ColumnRef
+    public static function alias(
+        string $key,
+        string $table
+    ): ColumnRef
     {
         static $cache = [];
 
@@ -58,7 +64,7 @@ trait Queryable
      * @return ColumnRef
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.17
      * @see StructureInterface::getColumn()
      */
     public static function col(string $key): ColumnRef
@@ -118,7 +124,10 @@ trait Queryable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function all(int $offset = 0, int $limit = 20): ArrayListInterface
+    public static function all(
+        int $offset = 0,
+        int $limit = 20
+    ): ArrayListInterface
     {
         return self::select()
             ->limit($limit, $offset)
@@ -297,7 +306,10 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::update()
      */
-    public static function update(array|string|int $primaryKey, array $values): void
+    public static function update(
+        array|string|int $primaryKey,
+        array $values
+    ): void
     {
         self::query()
             ->update(self::table(), $values)
@@ -363,7 +375,10 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingIn()
      */
-    public static function havingIn(QueryValueInterface|string $column, ArrayableInterface|array $options): QueryInterface
+    public static function havingIn(
+        QueryValueInterface|string $column,
+        ArrayableInterface|array $options
+    ): QueryInterface
     {
         return self::select()
             ->havingIn($column, $options);
@@ -402,7 +417,10 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::havingNotIn()
      */
-    public static function havingNotIn(QueryValueInterface|string $column, ArrayableInterface|array $options): QueryInterface
+    public static function havingNotIn(
+        QueryValueInterface|string $column,
+        ArrayableInterface|array $options
+    ): QueryInterface
     {
         return self::select()
             ->havingNotIn($column, $options);
@@ -514,7 +532,10 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::selectSuffix()
      */
-    public static function selectSuffix(string $suffix, QueryValueInterface|Stringable|array|string|int $keys = []): QueryInterface
+    public static function selectSuffix(
+        string $suffix,
+        QueryValueInterface|Stringable|array|string|int $keys = []
+    ): QueryInterface
     {
         return self::baseSelect(static fn(array $keys) => self::query()->selectSuffix($suffix, $keys), $keys);
     }
@@ -542,6 +563,26 @@ trait Queryable
     {
         return self::select()
             ->where($lhs, $cmp, $rhs);
+    }
+
+    /**
+     * Treats the left operand as a model column.
+     *
+     * @param string $field
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
+     * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+     * @return QueryInterface<static>
+     * @throws DatabaseExceptionInterface|OrmExceptionInterface|QueryExceptionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    public static function whereField(
+        string $field,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp = null,
+        BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs = null
+    ): QueryInterface
+    {
+        return self::select()->where(self::col($field), $cmp, $rhs);
     }
 
     /**
@@ -577,7 +618,10 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereIn()
      */
-    public static function whereIn(QueryValueInterface|string $column, ArrayableInterface|array $options): QueryInterface
+    public static function whereIn(
+        QueryValueInterface|string $column,
+        ArrayableInterface|array $options
+    ): QueryInterface
     {
         return self::select()
             ->whereIn($column, $options);
@@ -616,7 +660,10 @@ trait Queryable
      * @since 1.0.17
      * @see QueryInterface::whereNotIn()
      */
-    public static function whereNotIn(QueryValueInterface|string $column, ArrayableInterface|array $options): QueryInterface
+    public static function whereNotIn(
+        QueryValueInterface|string $column,
+        ArrayableInterface|array $options
+    ): QueryInterface
     {
         return self::select()
             ->whereNotIn($column, $options);
@@ -677,7 +724,10 @@ trait Queryable
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    private static function baseSelect(callable $compose, QueryValueInterface|Stringable|array|string|int $keys): QueryInterface
+    private static function baseSelect(
+        callable $compose,
+        QueryValueInterface|Stringable|array|string|int $keys
+    ): QueryInterface
     {
         if (!is_array($keys)) {
             $keys = [$keys];
@@ -688,5 +738,4 @@ trait Queryable
                 ->from(self::table())
         );
     }
-
 }

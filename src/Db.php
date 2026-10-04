@@ -5,12 +5,18 @@ namespace Raxos\Database;
 
 use Attribute;
 use BackedEnum;
+
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
-use Raxos\Contract\Database\Query\{QueryInterface, StatementInterface};
+use Raxos\Contract\Database\ConnectionInterface;
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Contract\Database\Query\StatementInterface;
+use Raxos\Contract\Database\TransactionalConnectionInterface;
 use Raxos\Database\Error\InvalidConnectionException;
 use Raxos\Database\Orm\Structure\StructureGenerator;
+use Raxos\Database\Query\Error\UnsupportedException;
+use Throwable;
 
 /**
  * Class Db
@@ -44,10 +50,27 @@ class Db
         PDO::PARAM_STR
     ];
 
+    /**
+     * Identifies the connection selected for static database operations.
+     *
+     * @var string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     protected static string $connectionId = 'default';
 
-    /** @var ConnectionInterface[] */
+    /**
+     * Keeps named connection instances independent while exposing one selected default connection.
+     * @var ConnectionInterface[] */
     private static array $connections = [];
+
+    /**
+     * Allows connection initialization to run once before static operations use it.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private static array $connected = [];
 
     /**
@@ -59,7 +82,7 @@ class Db
      * @return ConnectionInterface|null
      * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.0
      */
     public static function get(?string $id = null): ?ConnectionInterface
     {
@@ -105,7 +128,10 @@ class Db
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
-    public static function register(ConnectionInterface $connection, ?string $id = null): void
+    public static function register(
+        ConnectionInterface $connection,
+        ?string $id = null
+    ): void
     {
         $id ??= self::$connectionId;
 
@@ -140,7 +166,10 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::attribute()
      */
-    public static function attribute(#[ExpectedValues(self::ATTRIBUTES)] int $attribute, ?string $id = null): mixed
+    public static function attribute(
+        #[ExpectedValues(self::ATTRIBUTES)] int $attribute,
+        ?string $id = null
+    ): mixed
     {
         return static::getOrFail($id)->attribute($attribute);
     }
@@ -154,10 +183,13 @@ class Db
      * @return string|int|float|bool|null
      * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.0
      * @see ConnectionInterface::column()
      */
-    public static function column(QueryInterface|string $query, ?string $id = null): string|int|float|bool|null
+    public static function column(
+        QueryInterface|string $query,
+        ?string $id = null
+    ): string|int|float|bool|null
     {
         return static::getOrFail($id)->column($query);
     }
@@ -174,7 +206,10 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::execute()
      */
-    public static function execute(QueryInterface|string $query, ?string $id = null): int
+    public static function execute(
+        QueryInterface|string $query,
+        ?string $id = null
+    ): int
     {
         return static::getOrFail($id)->execute($query);
     }
@@ -207,7 +242,10 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::lastInsertId()
      */
-    public static function lastInsertId(?string $name = null, ?string $id = null): string
+    public static function lastInsertId(
+        ?string $name = null,
+        ?string $id = null
+    ): string
     {
         return static::getOrFail($id)->lastInsertId($name);
     }
@@ -224,7 +262,10 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::lastInsertIdInteger()
      */
-    public static function lastInsertIdInteger(?string $name = null, ?string $id = null): int
+    public static function lastInsertIdInteger(
+        ?string $name = null,
+        ?string $id = null
+    ): int
     {
         return static::getOrFail($id)->lastInsertIdInteger($name);
     }
@@ -242,7 +283,11 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::prepare()
      */
-    public static function prepare(QueryInterface|string $query, array $options = [], ?string $id = null): StatementInterface
+    public static function prepare(
+        QueryInterface|string $query,
+        array $options = [],
+        ?string $id = null
+    ): StatementInterface
     {
         return static::getOrFail($id)->prepare($query, $options);
     }
@@ -277,7 +322,11 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::quote()
      */
-    public static function quote(BackedEnum|string|int|float|bool $value, #[ExpectedValues(self::TYPES)] int $type = PDO::PARAM_STR, ?string $id = null): string
+    public static function quote(
+        BackedEnum|string|int|float|bool $value,
+        #[ExpectedValues(self::TYPES)] int $type = PDO::PARAM_STR,
+        ?string $id = null
+    ): string
     {
         return static::getOrFail($id)->quote($value, $type);
     }
@@ -295,7 +344,11 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::tableColumnExists()
      */
-    public static function tableColumnExists(string $table, string $column, ?string $id = null): bool
+    public static function tableColumnExists(
+        string $table,
+        string $column,
+        ?string $id = null
+    ): bool
     {
         return static::getOrFail($id)->tableColumnExists($table, $column);
     }
@@ -312,7 +365,10 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::tableColumns()
      */
-    public static function tableColumns(string $table, ?string $id = null): array
+    public static function tableColumns(
+        string $table,
+        ?string $id = null
+    ): array
     {
         return static::getOrFail($id)->tableColumns($table);
     }
@@ -329,7 +385,10 @@ class Db
      * @since 1.0.0
      * @see ConnectionInterface::tableExists()
      */
-    public static function tableExists(string $table, ?string $id = null): bool
+    public static function tableExists(
+        string $table,
+        ?string $id = null
+    ): bool
     {
         return static::getOrFail($id)->tableExists($table);
     }
@@ -398,4 +457,52 @@ class Db
         return static::getOrFail($id)->transaction();
     }
 
+    /**
+     * Runs the callback on the selected connection when it supports managed transactions.
+     *
+     * @template T
+     * @param callable():T $fn
+     * @param string|null $id
+     * @return T
+     * @throws DatabaseExceptionInterface|Throwable
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    public static function transactional(
+        callable $fn,
+        ?string $id = null
+    ): mixed
+    {
+        $connection = static::getOrFail($id);
+
+        if (!$connection instanceof TransactionalConnectionInterface) {
+            throw new UnsupportedException('Callback transactions');
+        }
+
+        return $connection->transactional($fn);
+    }
+
+    /**
+     * Defers the callback on the selected connection, or runs it immediately outside a transaction.
+     *
+     * @param callable():void $fn
+     * @param string|null $id
+     * @return void
+     * @throws DatabaseExceptionInterface|Throwable
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    public static function afterCommit(
+        callable $fn,
+        ?string $id = null
+    ): void
+    {
+        $connection = static::getOrFail($id);
+
+        if (!$connection instanceof TransactionalConnectionInterface) {
+            throw new UnsupportedException('Commit hooks');
+        }
+
+        $connection->afterCommit($fn);
+    }
 }

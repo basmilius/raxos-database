@@ -26,14 +26,16 @@ use const JSON_THROW_ON_ERROR;
  */
 final readonly class JsonCaster implements CasterInterface
 {
-
     /**
      * {@inheritdoc}
      * @throws JsonException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function decode(float|int|string|null $value, Model $instance): mixed
+    public function decode(
+        float|int|string|null $value,
+        Model $instance
+    ): mixed
     {
         if (!is_string($value)) {
             return null;
@@ -57,7 +59,10 @@ final readonly class JsonCaster implements CasterInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function encode(mixed $value, Model $instance): string|float|int|null
+    public function encode(
+        mixed $value,
+        Model $instance
+    ): string|float|int|null
     {
         if ($value === null) {
             return null;
@@ -65,5 +70,4 @@ final readonly class JsonCaster implements CasterInterface
 
         return json_encode($value, JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_THROW_ON_ERROR);
     }
-
 }

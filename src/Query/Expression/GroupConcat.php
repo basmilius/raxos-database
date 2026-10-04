@@ -4,8 +4,11 @@ declare(strict_types=1);
 namespace Raxos\Database\Query\Expression;
 
 use BackedEnum;
-use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
-use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryValueInterface};
+use Raxos\Contract\Database\ConnectionInterface;
+use Raxos\Contract\Database\GrammarInterface;
+use Raxos\Contract\Database\Query\QueryExpressionInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Contract\Database\Query\QueryValueInterface;
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
 
@@ -18,7 +21,6 @@ use Stringable;
  */
 final readonly class GroupConcat implements QueryExpressionInterface
 {
-
     /**
      * GroupConcat constructor.
      *
@@ -39,19 +41,26 @@ final readonly class GroupConcat implements QueryExpressionInterface
         public QueryValueInterface|string|null $separator = null,
         public ?int $limit = null,
         public ?int $offset = null
-    ) {}
+    )
+    {
+    }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.0.0
      */
-    public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
+    public function compile(
+        QueryInterface $query,
+        ConnectionInterface $connection,
+        GrammarInterface $grammar
+    ): void
     {
         $query->raw('group_concat(');
         $this->distinct && $query->raw('distinct ');
         $query->compile($this->expr);
         $this->orderBy && $query->raw(' order by ')->compile($this->orderBy);
+
         if ($this->separator !== null) {
             // MySQL and MariaDB require a string literal after SEPARATOR.
             $query->raw(' separator ')->compile(is_string($this->separator) ? Literal::string($this->separator) : $this->separator);
@@ -60,5 +69,4 @@ final readonly class GroupConcat implements QueryExpressionInterface
         $this->offset && $query->raw(" offset {$this->offset}");
         $query->raw(')');
     }
-
 }

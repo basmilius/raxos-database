@@ -15,7 +15,6 @@ use Raxos\Error\Exception;
  */
 final class InvalidRelationException extends Exception implements OrmExceptionInterface
 {
-
     /**
      * InvalidRelationException constructor.
      *
@@ -23,7 +22,7 @@ final class InvalidRelationException extends Exception implements OrmExceptionIn
      * @param string $propertyName
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.0.0
      */
     public function __construct(
         public readonly string $modelClass,

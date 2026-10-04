@@ -4,11 +4,16 @@ declare(strict_types=1);
 namespace Raxos\Database\Connection;
 
 use PDO;
+use Pdo\Mysql;
 use PDOException;
-use Raxos\Contract\Database\{DatabaseExceptionInterface, LoggerInterface};
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\LoggerInterface;
 use Raxos\Contract\Database\Orm\CacheInterface;
 use Raxos\Contract\Database\Query\QueryInterface;
-use Raxos\Database\Error\{ExecutionException, InvalidOptionException, MissingOptionException, SchemaFetchFailedException};
+use Raxos\Database\Error\ExecutionException;
+use Raxos\Database\Error\InvalidOptionException;
+use Raxos\Database\Error\MissingOptionException;
+use Raxos\Database\Error\SchemaFetchFailedException;
 use Raxos\Database\Grammar\MariaDbGrammar;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
@@ -16,7 +21,8 @@ use Raxos\Database\Query\MariaDbQuery;
 use SensitiveParameter;
 use Throwable;
 use function array_column;
-use function Raxos\Database\Query\{column, literal};
+use function Raxos\Database\Query\column;
+use function Raxos\Database\Query\literal;
 
 /**
  * Class MariaDb
@@ -27,7 +33,6 @@ use function Raxos\Database\Query\{column, literal};
  */
 class MariaDb extends Connection
 {
-
     /**
      * MariaDb constructor.
      *
@@ -92,7 +97,7 @@ class MariaDb extends Connection
     public function connect(): void
     {
         try {
-            $this->pdo = new \Pdo\Mysql(
+            $this->pdo = new Mysql(
                 $this->dsn,
                 $this->username,
                 $this->password,
@@ -122,7 +127,7 @@ class MariaDb extends Connection
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.4.0
      */
     public function loadDatabaseSchema(): array
     {
@@ -151,7 +156,7 @@ class MariaDb extends Connection
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.3.0
      */
     protected function loadTableColumns(string $table): ?array
     {
@@ -253,5 +258,4 @@ class MariaDb extends Connection
 
         return new self($dsn, $username, $password, $options, $cache, $logger);
     }
-
 }

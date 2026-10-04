@@ -6,11 +6,45 @@ namespace Raxos\Database\Orm\Structure;
 use BackedEnum;
 use Generator;
 use Raxos\Contract\Database\DatabaseExceptionInterface;
-use Raxos\Contract\Database\Orm\{AttributeInterface, CasterInterface, OrmExceptionInterface, RelationAttributeInterface, StructureInterface};
-use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId, Embeddable, Embedded, ForeignKey, Hidden, Immutable, Macro, OnDuplicateUpdate, Polymorphic, PrimaryKey, SoftDelete, Table, Visible};
+use Raxos\Contract\Database\Orm\AttributeInterface;
+use Raxos\Contract\Database\Orm\CasterInterface;
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\RelationAttributeInterface;
+use Raxos\Contract\Database\Orm\StructureInterface;
+use Raxos\Database\Orm\Attribute\Alias;
+use Raxos\Database\Orm\Attribute\Caster;
+use Raxos\Database\Orm\Attribute\Column;
+use Raxos\Database\Orm\Attribute\Computed;
+use Raxos\Database\Orm\Attribute\ConnectionId;
+use Raxos\Database\Orm\Attribute\Embeddable;
+use Raxos\Database\Orm\Attribute\Embedded;
+use Raxos\Database\Orm\Attribute\ForeignKey;
+use Raxos\Database\Orm\Attribute\Hidden;
+use Raxos\Database\Orm\Attribute\Immutable;
+use Raxos\Database\Orm\Attribute\Macro;
+use Raxos\Database\Orm\Attribute\OnDuplicateUpdate;
+use Raxos\Database\Orm\Attribute\Polymorphic;
+use Raxos\Database\Orm\Attribute\PrimaryKey;
+use Raxos\Database\Orm\Attribute\SoftDelete;
+use Raxos\Database\Orm\Attribute\Table;
+use Raxos\Database\Orm\Attribute\Visible;
 use Raxos\Database\Orm\Caster\BooleanCaster;
-use Raxos\Database\Orm\Definition\{ClassStructureDefinition, ColumnDefinition, EmbeddableStructure, EmbeddedDefinition, MacroDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{ConnectionFailedException, InvalidCasterException, InvalidEmbeddableException, InvalidMacroException, InvalidModelException, InvalidRelationException, MissingTableException, ReflectionErrorException};
+use Raxos\Database\Orm\Definition\ClassStructureDefinition;
+use Raxos\Database\Orm\Definition\ColumnDefinition;
+use Raxos\Database\Orm\Definition\EmbeddableStructure;
+use Raxos\Database\Orm\Definition\EmbeddedDefinition;
+use Raxos\Database\Orm\Definition\MacroDefinition;
+use Raxos\Database\Orm\Definition\PolymorphicDefinition;
+use Raxos\Database\Orm\Definition\PropertyDefinition;
+use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Error\ConnectionFailedException;
+use Raxos\Database\Orm\Error\InvalidCasterException;
+use Raxos\Database\Orm\Error\InvalidEmbeddableException;
+use Raxos\Database\Orm\Error\InvalidMacroException;
+use Raxos\Database\Orm\Error\InvalidModelException;
+use Raxos\Database\Orm\Error\InvalidRelationException;
+use Raxos\Database\Orm\Error\MissingTableException;
+use Raxos\Database\Orm\Error\ReflectionErrorException;
 use Raxos\Database\Orm\Model;
 use Raxos\Foundation\Util\ReflectionUtil;
 use ReflectionAttribute;
@@ -34,8 +68,22 @@ use function is_subclass_of;
  */
 final class StructureGenerator
 {
-
+    /**
+     * Caches generated model structures to avoid repeated attribute reflection.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     private static array $structures = [];
+
+    /**
+     * Caches property metadata used to hydrate embedded value objects.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     private static array $embeddableStructures = [];
 
     /**
@@ -79,7 +127,10 @@ final class StructureGenerator
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public static function for(string $class, ?StructureInterface $parent = null): StructureInterface
+    public static function for(
+        string $class,
+        ?StructureInterface $parent = null
+    ): StructureInterface
     {
         if (isset(self::$structures[$class])) {
             return self::$structures[$class];
@@ -144,9 +195,12 @@ final class StructureGenerator
      * @return ClassStructureDefinition
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.17
      */
-    private static function class(ReflectionClass $class, ?StructureInterface $parent = null): ClassStructureDefinition
+    private static function class(
+        ReflectionClass $class,
+        ?StructureInterface $parent = null
+    ): ClassStructureDefinition
     {
         $connectionId = $parent?->connectionId ?? 'default';
         $onDuplicateKeyUpdate = null;
@@ -162,6 +216,7 @@ final class StructureGenerator
             switch (true) {
                 case $attr instanceof ConnectionId:
                     $connectionId = $attr->connectionId;
+
                     break;
 
                 case $attr instanceof OnDuplicateUpdate:
@@ -174,18 +229,22 @@ final class StructureGenerator
                     if (empty($onDuplicateKeyUpdate)) {
                         $onDuplicateKeyUpdate = null;
                     }
+
                     break;
 
                 case $attr instanceof Polymorphic:
                     $polymorphic = new PolymorphicDefinition($attr->column, $attr->map);
+
                     break;
 
                 case $attr instanceof SoftDelete:
                     $softDeleteColumn = $attr->column;
+
                     break;
 
                 case $attr instanceof Table:
                     $table = $attr->name;
+
                     break;
             }
         }
@@ -285,7 +344,10 @@ final class StructureGenerator
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    private static function propertyColumn(ReflectionProperty $property, array $attributes): ColumnDefinition
+    private static function propertyColumn(
+        ReflectionProperty $property,
+        array $attributes
+    ): ColumnDefinition
     {
         $alias = null;
         $caster = null;
@@ -310,6 +372,7 @@ final class StructureGenerator
                 case $attr instanceof Alias:
                     $alias = $attr->alias;
                     $hasAlias = true;
+
                     break;
 
                 case $attr instanceof Caster:
@@ -318,6 +381,7 @@ final class StructureGenerator
                     }
 
                     $caster = $attr->casterClass;
+
                     break;
 
                 case $attr instanceof Column:
@@ -325,18 +389,22 @@ final class StructureGenerator
                     $isPrimaryKey = $attr instanceof PrimaryKey;
                     $isImmutable = $isPrimaryKey;
                     $key = $attr->key ?? $property->name;
+
                     break;
 
                 case $attr instanceof Computed:
                     $isComputed = true;
+
                     break;
 
                 case $attr instanceof Immutable:
                     $isImmutable = true;
+
                     break;
 
                 case $attr instanceof Hidden:
                     $isHidden = true;
+
                     break;
 
                 case $attr instanceof Visible:
@@ -345,6 +413,7 @@ final class StructureGenerator
                     if ($attr->only !== null) {
                         $visibleOnly = StructureHelper::normalizeKeys($attr->only);
                     }
+
                     break;
             }
         }
@@ -387,7 +456,10 @@ final class StructureGenerator
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    private static function propertyMacro(ReflectionProperty $property, array $attributes): MacroDefinition
+    private static function propertyMacro(
+        ReflectionProperty $property,
+        array $attributes
+    ): MacroDefinition
     {
         $alias = null;
         $callback = null;
@@ -401,19 +473,23 @@ final class StructureGenerator
             switch (true) {
                 case $attr instanceof Alias:
                     $alias = $attr->alias;
+
                     break;
 
                 case $attr instanceof Macro:
                     $callback = $attr->callback;
                     $isCached = $attr->isCached;
+
                     break;
 
                 case $attr instanceof Hidden:
                     $isHidden = true;
+
                     break;
 
                 case $attr instanceof Visible:
                     $isVisible = true;
+
                     break;
             }
         }
@@ -443,7 +519,10 @@ final class StructureGenerator
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    private static function propertyRelation(ReflectionProperty $property, array $attributes): RelationDefinition
+    private static function propertyRelation(
+        ReflectionProperty $property,
+        array $attributes
+    ): RelationDefinition
     {
         $alias = null;
         $isHidden = false;
@@ -458,14 +537,17 @@ final class StructureGenerator
             switch (true) {
                 case $attr instanceof Alias:
                     $alias = $attr->alias;
+
                     break;
 
                 case $attr instanceof RelationAttributeInterface:
                     $relation = $attr;
+
                     break;
 
                 case $attr instanceof Hidden:
                     $isHidden = true;
+
                     break;
 
                 case $attr instanceof Visible:
@@ -474,6 +556,7 @@ final class StructureGenerator
                     if ($attr->only !== null) {
                         $visibleOnly = StructureHelper::normalizeKeys($attr->only);
                     }
+
                     break;
             }
         }
@@ -504,7 +587,10 @@ final class StructureGenerator
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
-    private static function propertyEmbedded(ReflectionProperty $property, array $attributes): EmbeddedDefinition
+    private static function propertyEmbedded(
+        ReflectionProperty $property,
+        array $attributes
+    ): EmbeddedDefinition
     {
         $alias = null;
         $isHidden = false;
@@ -519,18 +605,22 @@ final class StructureGenerator
             switch (true) {
                 case $attr instanceof Alias:
                     $alias = $attr->alias;
+
                     break;
 
                 case $attr instanceof Embedded:
                     $prefix = $attr->prefix;
+
                     break;
 
                 case $attr instanceof Hidden:
                     $isHidden = true;
+
                     break;
 
                 case $attr instanceof Visible:
                     $isVisible = true;
+
                     break;
             }
         }
@@ -540,6 +630,7 @@ final class StructureGenerator
         foreach ($types as $type) {
             if ($type !== 'null') {
                 $embeddableClass = $type;
+
                 break;
             }
         }
@@ -641,7 +732,11 @@ final class StructureGenerator
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
-    private static function resolveEmbeddable(string $class, string $modelClass, string $propertyName): EmbeddableStructure
+    private static function resolveEmbeddable(
+        string $class,
+        string $modelClass,
+        string $propertyName
+    ): EmbeddableStructure
     {
         if (isset(self::$embeddableStructures[$class])) {
             return self::$embeddableStructures[$class];
@@ -674,11 +769,13 @@ final class StructureGenerator
 
                 if (is_a($attrName, Column::class, true)) {
                     $hasColumn = true;
+
                     break;
                 }
 
                 if (is_a($attrName, Embedded::class, true)) {
                     $hasEmbedded = true;
+
                     break;
                 }
             }
@@ -710,7 +807,10 @@ final class StructureGenerator
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
-    private static function embeddableColumn(ReflectionProperty $property, array $attributes): ColumnDefinition
+    private static function embeddableColumn(
+        ReflectionProperty $property,
+        array $attributes
+    ): ColumnDefinition
     {
         $alias = null;
         $caster = null;
@@ -730,6 +830,7 @@ final class StructureGenerator
                 case $attr instanceof Alias:
                     $alias = $attr->alias;
                     $hasAlias = true;
+
                     break;
 
                 case $attr instanceof Caster:
@@ -738,18 +839,22 @@ final class StructureGenerator
                     }
 
                     $caster = $attr->casterClass;
+
                     break;
 
                 case $attr instanceof Column:
                     $key = $attr->key ?? $property->name;
+
                     break;
 
                 case $attr instanceof Hidden:
                     $isHidden = true;
+
                     break;
 
                 case $attr instanceof Visible:
                     $isVisible = true;
+
                     break;
             }
         }
@@ -780,5 +885,4 @@ final class StructureGenerator
             $isVisible
         );
     }
-
 }

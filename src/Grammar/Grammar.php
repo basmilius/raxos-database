@@ -43,7 +43,9 @@ abstract readonly class Grammar implements GrammarInterface
         public bool $supportsReturning = true,
         public bool $supportsRowValueConstructors = true,
         public bool $supportsRowLocking = false
-    ) {}
+    )
+    {
+    }
 
     /**
      * {@inheritdoc}
@@ -112,7 +114,7 @@ abstract readonly class Grammar implements GrammarInterface
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.1.0
      */
     public function escape(string $value): string
     {
@@ -138,7 +140,7 @@ abstract readonly class Grammar implements GrammarInterface
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.2.0
      */
     private function escapeImpl(string $value): string
     {
@@ -170,5 +172,4 @@ abstract readonly class Grammar implements GrammarInterface
 
         return $this->escapers[0] . $value . $this->escapers[1];
     }
-
 }

@@ -4,12 +4,15 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Contract\Collection\ArrayListInterface;
-use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface};
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\RelationInterface;
+use Raxos\Contract\Database\Orm\StructureInterface;
 use Raxos\Contract\Database\Query\QueryInterface;
 use Raxos\Database\Orm\Attribute\HasOneThrough;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\ReferenceModelMissingException;
-use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Expression\ColumnRef;
 use Raxos\Database\Query\Literal\Literal;
@@ -32,13 +35,58 @@ use function array_values;
  */
 final readonly class HasOneThroughRelation implements RelationInterface
 {
-
+    /**
+     * Identifies the owner property used to match related rows.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
     public ColumnRef $declaringKey;
+
+    /**
+     * Identifies the linking-table column that matches the owner key.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
     public ColumnRef $declaringLinkingKey;
+
+    /**
+     * Identifies the related property used to match the owner or linking row.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
     public ColumnRef $referenceKey;
+
+    /**
+     * Identifies the linking-table column that matches the related key.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
     public ColumnRef $referenceLinkingKey;
 
+    /**
+     * Resolves linking-model properties to their database columns.
+     *
+     * @var StructureInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
     public StructureInterface $linkingStructure;
+
+    /**
+     * Resolves related model properties to their database columns.
+     *
+     * @var StructureInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.1.0
+     */
     public StructureInterface $referenceStructure;
 
     /**
@@ -106,7 +154,7 @@ final readonly class HasOneThroughRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.1.0
      */
     public function query(Model $instance): QueryInterface
     {
@@ -137,7 +185,7 @@ final readonly class HasOneThroughRelation implements RelationInterface
      * {@inheritdoc}
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.1.0
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
@@ -192,5 +240,4 @@ final readonly class HasOneThroughRelation implements RelationInterface
             $instance->backbone->relationCache->setValue($this->property->name, $result);
         }
     }
-
 }

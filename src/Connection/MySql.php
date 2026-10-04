@@ -5,10 +5,14 @@ namespace Raxos\Database\Connection;
 
 use Pdo;
 use PDOException;
-use Raxos\Contract\Database\{DatabaseExceptionInterface, LoggerInterface};
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\LoggerInterface;
 use Raxos\Contract\Database\Orm\CacheInterface;
 use Raxos\Contract\Database\Query\QueryInterface;
-use Raxos\Database\Error\{ExecutionException, InvalidOptionException, MissingOptionException, SchemaFetchFailedException};
+use Raxos\Database\Error\ExecutionException;
+use Raxos\Database\Error\InvalidOptionException;
+use Raxos\Database\Error\MissingOptionException;
+use Raxos\Database\Error\SchemaFetchFailedException;
 use Raxos\Database\Grammar\MySqlGrammar;
 use Raxos\Database\Logger\Logger;
 use Raxos\Database\Orm\Cache;
@@ -16,7 +20,8 @@ use Raxos\Database\Query\MySqlQuery;
 use SensitiveParameter;
 use Throwable;
 use function array_column;
-use function Raxos\Database\Query\{column, literal};
+use function Raxos\Database\Query\column;
+use function Raxos\Database\Query\literal;
 
 /**
  * Class MySql
@@ -27,7 +32,6 @@ use function Raxos\Database\Query\{column, literal};
  */
 class MySql extends Connection
 {
-
     /**
      * MySql constructor.
      *
@@ -52,7 +56,7 @@ class MySql extends Connection
     {
         $options ??= [];
         $options += [
-            PDO::ATTR_EMULATE_PREPARES => false
+            Pdo::ATTR_EMULATE_PREPARES => false
         ];
 
         parent::__construct($dsn, $username, $password, $options, $cache, new MySqlGrammar(), $logger);
@@ -122,7 +126,7 @@ class MySql extends Connection
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.4.0
      */
     public function loadDatabaseSchema(): array
     {
@@ -151,7 +155,7 @@ class MySql extends Connection
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.3.0
      */
     protected function loadTableColumns(string $table): ?array
     {
@@ -253,5 +257,4 @@ class MySql extends Connection
 
         return new self($dsn, $username, $password, $options, $cache, $logger);
     }
-
 }

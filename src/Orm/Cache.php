@@ -25,11 +25,27 @@ use function ksort;
  */
 final class Cache implements CacheInterface, DebuggableInterface
 {
-
+    /**
+     * Retains shared instances until their owning cache or scope releases them.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     private array $instances = [];
+
+    /**
+     * Exposes the number of cached identities without rebuilding an instance list.
+     *
+     * @var int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     private int $size = 0;
 
     /**
+     * Records identities introduced by each scope so cleanup leaves earlier cached models intact.
+     *
      * @var array<array<class-string, array<array-key, true>>>
      * @author Bas Milius <bas@mili.us>
      * @since 3.2.0
@@ -46,14 +62,19 @@ final class Cache implements CacheInterface, DebuggableInterface
      */
     public function __construct(
         public readonly int $maxSize = 0
-    ) {}
+    )
+    {
+    }
 
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function find(string $modelClass, callable $predicate): ?Model
+    public function find(
+        string $modelClass,
+        callable $predicate
+    ): ?Model
     {
         $instances = $this->instances[$modelClass] ?? [];
 
@@ -87,7 +108,10 @@ final class Cache implements CacheInterface, DebuggableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function get(string $modelClass, array|string|int $primaryKey): ?Model
+    public function get(
+        string $modelClass,
+        array|string|int $primaryKey
+    ): ?Model
     {
         $key = $this->key($primaryKey);
 
@@ -99,7 +123,10 @@ final class Cache implements CacheInterface, DebuggableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function has(string $modelClass, array|string|int $primaryKey): bool
+    public function has(
+        string $modelClass,
+        array|string|int $primaryKey
+    ): bool
     {
         $key = $this->key($primaryKey);
 
@@ -111,7 +138,11 @@ final class Cache implements CacheInterface, DebuggableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function set(string $modelClass, array|string|int $primaryKey, Model $instance): void
+    public function set(
+        string $modelClass,
+        array|string|int $primaryKey,
+        Model $instance
+    ): void
     {
         $key = $this->key($primaryKey);
 
@@ -137,7 +168,10 @@ final class Cache implements CacheInterface, DebuggableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function unset(string $modelClass, array|string|int $primaryKey): void
+    public function unset(
+        string $modelClass,
+        array|string|int $primaryKey
+    ): void
     {
         $key = $this->key($primaryKey);
 
@@ -149,6 +183,8 @@ final class Cache implements CacheInterface, DebuggableInterface
     }
 
     /**
+     * Removes an identity without invalidating model objects already held by callers.
+     *
      * @return void
      * @author Bas Milius <bas@mili.us>
      * @since 2.3.0
@@ -176,6 +212,7 @@ final class Cache implements CacheInterface, DebuggableInterface
             // any reason, bail out instead of looping forever.
             if (!$evicted) {
                 $this->size = 0;
+
                 return;
             }
         }
@@ -253,5 +290,4 @@ final class Cache implements CacheInterface, DebuggableInterface
             }
         }
     }
-
 }

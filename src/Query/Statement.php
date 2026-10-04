@@ -7,16 +7,28 @@ use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Raxos\Collection\{ArrayList, Paginated};
+use Raxos\Collection\ArrayList;
+use Raxos\Collection\Paginated;
 use Raxos\Contract\Collection\ArrayListInterface;
-use Raxos\Contract\Database\Orm\{OrmExceptionInterface, PrimerTiming};
-use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryExceptionInterface, QueryInterface, StatementInterface};
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
-use Raxos\Database\Error\{ExecutionException, NotConnectedException};
+use Raxos\Contract\Database\ConnectionInterface;
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\PrimerTiming;
+use Raxos\Contract\Database\Query\InternalQueryInterface;
+use Raxos\Contract\Database\Query\QueryExceptionInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Contract\Database\Query\StatementInterface;
+use Raxos\Database\Error\ExecutionException;
+use Raxos\Database\Error\NotConnectedException;
 use Raxos\Database\Logger\QueryEvent;
+use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Orm\Structure\StructureGenerator;
-use Raxos\Database\Orm\{Model, ModelArrayList};
-use Raxos\Database\Query\Error\{ConnectionErrorException, InvalidModelException, MissingModelException, SyntaxException, UnexpectedException};
+use Raxos\Database\Query\Error\ConnectionErrorException;
+use Raxos\Database\Query\Error\InvalidModelException;
+use Raxos\Database\Query\Error\MissingModelException;
+use Raxos\Database\Query\Error\SyntaxException;
+use Raxos\Database\Query\Error\UnexpectedException;
 use Raxos\Error\InvalidArgumentException;
 use Raxos\Foundation\Util\Stopwatch;
 use stdClass;
@@ -35,20 +47,53 @@ use function sprintf;
 /**
  * Class Statement
  *
+ * Owns a prepared result cursor and hydrates requested models and relationships.
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Query
  * @since 1.0.0
  */
 class Statement implements StatementInterface
 {
-
+    /**
+     * Owns the active result cursor until rows have been consumed or the cursor is closed.
+     *
+     * @var PDOStatement
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     public readonly PDOStatement $pdoStatement;
+
+    /**
+     * Retains the compiled SQL used to execute and diagnose this statement.
+     *
+     * @var string
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     public readonly string $sql;
 
+    /**
+     * Collects relations that must be loaded after primary rows have been hydrated.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private array $eagerLoad = [];
+
+    /**
+     * Suppresses default eager relations for this query or statement.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.0
+     */
     private array $eagerLoadDisable = [];
 
     /**
+     * Determines whether fetched rows are hydrated and their requested relations loaded.
+     *
      * @var class-string<Model>|null
      */
     private ?string $modelClass = null;
@@ -140,9 +185,13 @@ class Statement implements StatementInterface
      * @param bool $retainCache
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.17
      */
-    public final function cursor(int $fetchMode = PDO::FETCH_ASSOC, int $batchSize = 100, bool $retainCache = false): Generator
+    public final function cursor(
+        int $fetchMode = PDO::FETCH_ASSOC,
+        int $batchSize = 100,
+        bool $retainCache = false
+    ): Generator
     {
         if ($batchSize < 1) {
             throw new InvalidArgumentException('Cursor batch size must be positive.');
@@ -173,6 +222,7 @@ class Statement implements StatementInterface
                 $hydrate = function () use ($rows): array {
                     $models = array_map($this->createModel(...), $rows);
                     $this->loadRelationships($models);
+
                     return $models;
                 };
                 $models = $retainCache ? $hydrate() : $this->connection->cache->scope($hydrate);
@@ -191,7 +241,13 @@ class Statement implements StatementInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.3.1
      */
-    public final function paginate(int $offset, int $limit, ?callable $itemBuilder = null, ?callable $totalBuilder = null, int $fetchMode = PDO::FETCH_ASSOC): Paginated
+    public final function paginate(
+        int $offset,
+        int $limit,
+        ?callable $itemBuilder = null,
+        ?callable $totalBuilder = null,
+        int $fetchMode = PDO::FETCH_ASSOC
+    ): Paginated
     {
         $itemBuilder ??= static fn(QueryInterface $query, int $offset, int $limit) => $query->limit($limit, $offset)->arrayList();
         $totalBuilder ??= static fn(QueryInterface $query, int $offset, int $limit) => $query->totalCount();
@@ -234,7 +290,11 @@ class Statement implements StatementInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public final function bind(string $name, bool|string|int|float|null $value, ?int $type = null): static
+    public final function bind(
+        string $name,
+        bool|string|int|float|null $value,
+        ?int $type = null
+    ): static
     {
         $type ??= match (true) {
             is_bool($value) => PDO::PARAM_BOOL,
@@ -323,6 +383,7 @@ class Statement implements StatementInterface
     public final function fetchAll(int $fetchMode = PDO::FETCH_ASSOC): array
     {
         $results = $this->pdoStatement->fetchAll($fetchMode);
+        $this->pdoStatement->closeCursor();
 
         if ($this->modelClass !== null) {
             $models = array_map($this->createModel(...), $results);
@@ -410,6 +471,7 @@ class Statement implements StatementInterface
 
         if ($result === false) {
             [, $code, $message] = $this->pdoStatement->errorInfo();
+
             throw new ExecutionException($code, $message);
         }
     }
@@ -450,5 +512,4 @@ class Statement implements StatementInterface
             $this->query->invokePrimers($list, PrimerTiming::AfterRelations, $this->connection);
         }
     }
-
 }

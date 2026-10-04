@@ -19,7 +19,7 @@ A PDO query builder and an ORM configured with PHP attributes for SQLite, MySQL 
 Requires PHP 8.5 or later. Enable the `pdo` PHP extension. Composer checks the remaining package and extension dependencies declared in [composer.json](composer.json).
 
 ```sh
-composer require "raxos/database:^3.2"
+composer require "raxos/database:^3.3"
 ```
 
 ## Usage
@@ -85,3 +85,5 @@ See [Testing Raxos](https://github.com/basmilius/raxos/blob/main/TESTING.md) for
 ## License
 
 [MIT](LICENSE). Copyright (c) 2017 - present Bas Milius.
+
+See [transactions and bounded queries](https://raxos.dev/database/bounded-queries) for the optional APIs and their lifetime or transport guarantees.

@@ -5,7 +5,10 @@ namespace Raxos\Database\Query;
 
 use BackedEnum;
 use Raxos\Contract\Collection\ArrayableInterface;
-use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
+use Raxos\Contract\Database\Query\QueryExpressionInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Contract\Database\Query\QueryLiteralInterface;
+use Raxos\Contract\Database\Query\QueryValueInterface;
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
 use function array_filter;
@@ -501,7 +504,7 @@ final class Expr
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.0.0
      */
     public static function dateAdd(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
@@ -553,7 +556,7 @@ final class Expr
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.0.0
      */
     public static function dateSub(
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr,
@@ -1525,7 +1528,10 @@ final class Expr
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public static function concatWs(string $separator, iterable $values): QueryExpressionInterface
+    public static function concatWs(
+        string $separator,
+        iterable $values
+    ): QueryExpressionInterface
     {
         return new Expression\Func('concat_ws', [$separator, ...$values]);
     }
@@ -1617,7 +1623,10 @@ final class Expr
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public static function func(string $name, array $params): QueryExpressionInterface
+    public static function func(
+        string $name,
+        array $params
+    ): QueryExpressionInterface
     {
         return new Expression\Func($name, $params);
     }
@@ -1660,7 +1669,10 @@ final class Expr
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public static function variable(string $name, QueryInterface|Expression\SubQuery $subQuery): QueryExpressionInterface
+    public static function variable(
+        string $name,
+        QueryInterface|Expression\SubQuery $subQuery
+    ): QueryExpressionInterface
     {
         if ($subQuery instanceof QueryInterface) {
             $subQuery = self::subQuery($subQuery);
@@ -1682,5 +1694,4 @@ final class Expr
     {
         return $value !== null;
     }
-
 }

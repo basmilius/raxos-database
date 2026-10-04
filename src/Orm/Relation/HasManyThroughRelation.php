@@ -4,11 +4,14 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Contract\Collection\ArrayListInterface;
-use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface};
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\RelationInterface;
+use Raxos\Contract\Database\Orm\StructureInterface;
 use Raxos\Contract\Database\Query\QueryInterface;
 use Raxos\Database\Orm\Attribute\HasManyThrough;
 use Raxos\Database\Orm\Definition\RelationDefinition;
-use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Expression\ColumnRef;
 use Raxos\Database\Query\Literal\Literal;
@@ -27,13 +30,58 @@ use Raxos\Database\Query\Literal\Literal;
  */
 final readonly class HasManyThroughRelation implements RelationInterface
 {
-
+    /**
+     * Identifies the owner property used to match related rows.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public ColumnRef $declaringKey;
+
+    /**
+     * Identifies the linking-table column that matches the owner key.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public ColumnRef $declaringLinkingKey;
+
+    /**
+     * Identifies the related property used to match the owner or linking row.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public ColumnRef $referenceKey;
+
+    /**
+     * Identifies the linking-table column that matches the related key.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public ColumnRef $referenceLinkingKey;
 
+    /**
+     * Resolves linking-model properties to their database columns.
+     *
+     * @var StructureInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public StructureInterface $linkingStructure;
+
+    /**
+     * Resolves related model properties to their database columns.
+     *
+     * @var StructureInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public StructureInterface $referenceStructure;
 
     /**
@@ -99,7 +147,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.17
      */
     public function query(Model $instance): QueryInterface
     {
@@ -133,7 +181,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.17
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
@@ -172,9 +220,12 @@ final readonly class HasManyThroughRelation implements RelationInterface
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.1.0
      */
-    private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
+    private function onBeforeRelations(
+        ArrayListInterface $results,
+        ArrayListInterface $instances
+    ): void
     {
         $map = [];
 
@@ -195,5 +246,4 @@ final readonly class HasManyThroughRelation implements RelationInterface
             );
         }
     }
-
 }

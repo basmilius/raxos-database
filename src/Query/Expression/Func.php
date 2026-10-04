@@ -4,9 +4,14 @@ declare(strict_types=1);
 namespace Raxos\Database\Query\Expression;
 
 use BackedEnum;
-use Raxos\Contract\Database\{ConnectionInterface, GrammarInterface};
-use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryValueInterface};
+use Raxos\Contract\Database\ConnectionInterface;
+use Raxos\Contract\Database\GrammarInterface;
+use Raxos\Contract\Database\Query\QueryExpressionInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Contract\Database\Query\QueryValueInterface;
+use Raxos\Database\Grammar\SQLiteGrammar;
 use Stringable;
+use function strtolower;
 
 /**
  * Class Func
@@ -17,7 +22,6 @@ use Stringable;
  */
 final readonly class Func implements QueryExpressionInterface
 {
-
     /**
      * Func constructor.
      *
@@ -30,18 +34,36 @@ final readonly class Func implements QueryExpressionInterface
     public function __construct(
         public string $name,
         public iterable $params = []
-    ) {}
+    )
+    {
+    }
 
     /**
-     * {@inheritdoc}
+     * Uses SQLite's scalar min/max spelling for MySQL-style least/greatest expressions.
+     *
+     * @param QueryInterface $query
+     * @param ConnectionInterface $connection
+     * @param GrammarInterface $grammar
+     * @return void
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function compile(QueryInterface $query, ConnectionInterface $connection, GrammarInterface $grammar): void
+    public function compile(
+        QueryInterface $query,
+        ConnectionInterface $connection,
+        GrammarInterface $grammar
+    ): void
     {
-        $query->raw("{$this->name}(");
+        $name = $grammar instanceof SQLiteGrammar
+            ? match (strtolower($this->name)) {
+                'least' => 'min',
+                'greatest' => 'max',
+                default => $this->name
+            }
+        : $this->name;
+
+        $query->raw("{$name}(");
         $query->compileMultiple($this->params);
         $query->raw(')');
     }
-
 }

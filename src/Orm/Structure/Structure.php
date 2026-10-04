@@ -5,16 +5,41 @@ namespace Raxos\Database\Orm\Structure;
 
 use Generator;
 use Raxos\Contract\Collection\ArrayListInterface;
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
-use Raxos\Contract\Database\Orm\{BackboneInitializedInterface, CustomRelationAttributeInterface, InitializeInterface, RelationInterface, StructureInterface};
+use Raxos\Contract\Database\ConnectionInterface;
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\Orm\BackboneInitializedInterface;
+use Raxos\Contract\Database\Orm\CustomRelationAttributeInterface;
+use Raxos\Contract\Database\Orm\InitializeInterface;
+use Raxos\Contract\Database\Orm\RelationInterface;
+use Raxos\Contract\Database\Orm\StructureInterface;
 use Raxos\Contract\SerializableInterface;
 use Raxos\Database\Db;
 use Raxos\Database\Logger\EagerLoadEvent;
-use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, HasMany, HasManyThrough, HasOne, HasOneThrough};
-use Raxos\Database\Orm\{Backbone, Model};
-use Raxos\Database\Orm\Definition\{ColumnDefinition, PolymorphicDefinition, PropertyDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{InvalidColumnException, MissingPolymorphicDiscriminatorException, MissingPropertyException, MissingRelationImplementationException, ReflectionErrorException};
-use Raxos\Database\Orm\Relation\{BelongsToManyRelation, BelongsToRelation, BelongsToThroughRelation, HasManyRelation, HasManyThroughRelation, HasOneRelation, HasOneThroughRelation};
+use Raxos\Database\Orm\Attribute\BelongsTo;
+use Raxos\Database\Orm\Attribute\BelongsToMany;
+use Raxos\Database\Orm\Attribute\BelongsToThrough;
+use Raxos\Database\Orm\Attribute\HasMany;
+use Raxos\Database\Orm\Attribute\HasManyThrough;
+use Raxos\Database\Orm\Attribute\HasOne;
+use Raxos\Database\Orm\Attribute\HasOneThrough;
+use Raxos\Database\Orm\Backbone;
+use Raxos\Database\Orm\Definition\ColumnDefinition;
+use Raxos\Database\Orm\Definition\PolymorphicDefinition;
+use Raxos\Database\Orm\Definition\PropertyDefinition;
+use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Error\InvalidColumnException;
+use Raxos\Database\Orm\Error\MissingPolymorphicDiscriminatorException;
+use Raxos\Database\Orm\Error\MissingPropertyException;
+use Raxos\Database\Orm\Error\MissingRelationImplementationException;
+use Raxos\Database\Orm\Error\ReflectionErrorException;
+use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\Relation\BelongsToManyRelation;
+use Raxos\Database\Orm\Relation\BelongsToRelation;
+use Raxos\Database\Orm\Relation\BelongsToThroughRelation;
+use Raxos\Database\Orm\Relation\HasManyRelation;
+use Raxos\Database\Orm\Relation\HasManyThroughRelation;
+use Raxos\Database\Orm\Relation\HasOneRelation;
+use Raxos\Database\Orm\Relation\HasOneThroughRelation;
 use Raxos\Database\Query\Expression\ColumnRef;
 use ReflectionClass;
 use ReflectionException;
@@ -39,24 +64,56 @@ final class Structure implements StructureInterface, SerializableInterface
 
     private const bool ENABLE_LAZY_GHOST = false;
 
+    /**
+     * Retains the connection used by this object for its entire lifetime.
+     *
+     * @var ConnectionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public private(set) ConnectionInterface $connection;
 
-    /** @var ColumnDefinition[]|null */
+    /**
+     * Identifies the property used to address one model row and maintain its cached identity.
+     * @var ColumnDefinition[]|null */
     public readonly array|null $primaryKey;
 
+    /**
+     * Records whether hydration can initialize this model directly.
+     *
+     * @var bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public bool $isInitializable = false;
+
+    /**
+     * Records whether shared model state can be initialized by the generated constructor.
+     *
+     * @var bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public bool $isBackboneInitializable = false;
 
-    /** @var RelationDefinition[] */
+    /**
+     * Retains relation attributes until relation objects can safely resolve their related structures.
+     * @var RelationDefinition[] */
     public array $relationDefinitions = [];
 
-    /** @var string[] */
+    /**
+     * Preserves the property order used for generated model access.
+     * @var string[] */
     public array $propertyNames = [];
 
-    /** @var array<string, PropertyDefinition> */
+    /**
+     * Maps property names to stable positions in the generated access metadata.
+     * @var array<string, PropertyDefinition> */
     private array $propertyIndex = [];
 
-    /** @var array<string, RelationInterface> */
+    /**
+     * Caches instantiated relations after their related structures have become available.
+     * @var array<string, RelationInterface> */
     private array $relations = [];
 
     /**
@@ -191,7 +248,10 @@ final class Structure implements StructureInterface, SerializableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function eagerLoadRelation(RelationInterface $relation, ArrayListInterface $instances): void
+    public function eagerLoadRelation(
+        RelationInterface $relation,
+        ArrayListInterface $instances
+    ): void
     {
         if ($this->connection->logger->enabled) {
             $deferred = $this->connection->logger->deferred();
@@ -207,7 +267,11 @@ final class Structure implements StructureInterface, SerializableInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
-    public function eagerLoadRelations(ArrayListInterface $instances, array $enabled = [], array $disabled = []): void
+    public function eagerLoadRelations(
+        ArrayListInterface $instances,
+        array $enabled = [],
+        array $disabled = []
+    ): void
     {
         // note(Bas): if the structure has a parent, which means that the structure
         //  is part of a polymorphic structure, eager load from the parent class.
@@ -276,9 +340,12 @@ final class Structure implements StructureInterface, SerializableInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.0.0
      */
-    public function getColumn(string $key, ?string $table = null): ColumnRef
+    public function getColumn(
+        string $key,
+        ?string $table = null
+    ): ColumnRef
     {
         static $cache = [];
 
@@ -446,5 +513,4 @@ final class Structure implements StructureInterface, SerializableInterface
         $this->isInitializable = is_subclass_of($this->class, InitializeInterface::class);
         $this->isBackboneInitializable = is_subclass_of($this->class, BackboneInitializedInterface::class);
     }
-
 }

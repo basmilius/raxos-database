@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Logger;
 
-use Raxos\Foundation\Util\{Stopwatch, StopwatchUnit, StringUtil};
+use Raxos\Foundation\Util\Stopwatch;
+use Raxos\Foundation\Util\StopwatchUnit;
+use Raxos\Foundation\Util\StringUtil;
 use function array_map;
 use function array_shift;
 use function array_slice;
@@ -33,6 +35,13 @@ abstract readonly class Event
 
     private const bool SHOW_FILE_LINE = false;
 
+    /**
+     * Retains the call site captured for this event so logs can identify its origin.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.16
+     */
     public array $trace;
 
     /**
@@ -82,7 +91,11 @@ abstract readonly class Event
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
-    protected final function printBase(?string $extra = null, bool $backtrace = false, ?string $time = null): string
+    protected final function printBase(
+        ?string $extra = null,
+        bool $backtrace = false,
+        ?string $time = null
+    ): string
     {
         $class = StringUtil::shortClassName(static::class);
         $time ??= $this->stopwatch->format(StopwatchUnit::SECONDS);
@@ -101,7 +114,7 @@ abstract readonly class Event
      *
      * @return string
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.16
      */
     protected final function printTrace(): string
     {
@@ -191,5 +204,4 @@ abstract readonly class Event
 
         return (string)$value;
     }
-
 }

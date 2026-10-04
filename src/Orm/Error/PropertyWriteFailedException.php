@@ -16,7 +16,6 @@ use Throwable;
  */
 final class PropertyWriteFailedException extends Exception implements OrmExceptionInterface
 {
-
     /**
      * PropertyWriteFailedException constructor.
      *
@@ -25,7 +24,7 @@ final class PropertyWriteFailedException extends Exception implements OrmExcepti
      * @param Throwable|null $previous
      *
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.0.0
      */
     public function __construct(
         public readonly string $modelClass,

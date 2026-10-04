@@ -4,12 +4,16 @@ declare(strict_types=1);
 namespace Raxos\Database\Orm\Relation;
 
 use Raxos\Contract\Collection\ArrayListInterface;
-use Raxos\Contract\Database\Orm\{OrmExceptionInterface, RelationInterface, StructureInterface, WritableRelationInterface};
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\RelationInterface;
+use Raxos\Contract\Database\Orm\StructureInterface;
+use Raxos\Contract\Database\Orm\WritableRelationInterface;
 use Raxos\Contract\Database\Query\QueryInterface;
 use Raxos\Database\Orm\Attribute\BelongsTo;
 use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Error\ReferenceModelMissingException;
-use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\Model;
+use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Expression\ColumnRef;
 use Raxos\Database\Query\Literal\Literal;
@@ -28,11 +32,40 @@ use function assert;
  */
 final readonly class BelongsToRelation implements RelationInterface, WritableRelationInterface
 {
-
+    /**
+     * Identifies the owner property used to match related rows.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public ColumnRef $declaringKey;
+
+    /**
+     * Identifies the related property used to match the owner or linking row.
+     *
+     * @var ColumnRef
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public ColumnRef $referenceKey;
 
+    /**
+     * Allows identity-cache lookup when the relationship targets the related primary key.
+     *
+     * @var bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public bool $referenceKeyIsPrimaryKey;
+
+    /**
+     * Resolves related model properties to their database columns.
+     *
+     * @var StructureInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public StructureInterface $referenceStructure;
 
     /**
@@ -103,7 +136,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.17
      */
     public function query(Model $instance): QueryInterface
     {
@@ -128,7 +161,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.17
      */
     public function eagerLoad(ArrayListInterface $instances): void
     {
@@ -160,7 +193,11 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function write(Model $instance, RelationDefinition $property, Model|ModelArrayList|null $newValue): void
+    public function write(
+        Model $instance,
+        RelationDefinition $property,
+        Model|ModelArrayList|null $newValue
+    ): void
     {
         assert($newValue === null || $newValue instanceof $this->referenceStructure->class);
 
@@ -175,9 +212,12 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
      *
      * @return void
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.1.0
      */
-    private function onBeforeRelations(ArrayListInterface $results, ArrayListInterface $instances): void
+    private function onBeforeRelations(
+        ArrayListInterface $results,
+        ArrayListInterface $instances
+    ): void
     {
         $map = [];
 
@@ -198,5 +238,4 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
             );
         }
     }
-
 }

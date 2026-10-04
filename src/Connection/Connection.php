@@ -7,12 +7,19 @@ use BackedEnum;
 use JetBrains\PhpStorm\ExpectedValues;
 use PDO;
 use PDOException;
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\GrammarInterface;
+use Raxos\Contract\Database\LoggerInterface;
 use Raxos\Contract\Database\Orm\CacheInterface;
-use Raxos\Contract\Database\Query\{QueryInterface, StatementInterface};
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface, GrammarInterface, LoggerInterface};
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Contract\Database\Query\StatementInterface;
+use Raxos\Contract\Database\TransactionalConnectionInterface;
 use Raxos\Database\Db;
-use Raxos\Database\Error\{ExecutionException, InvalidTableException, NotConnectedException};
-use Raxos\Database\Query\Error\{NotInTransactionException, RollbackOnlyTransactionException};
+use Raxos\Database\Error\ExecutionException;
+use Raxos\Database\Error\InvalidTableException;
+use Raxos\Database\Error\NotConnectedException;
+use Raxos\Database\Query\Error\NotInTransactionException;
+use Raxos\Database\Query\Error\RollbackOnlyTransactionException;
 use Raxos\Database\Query\Statement;
 use SensitiveParameter;
 use Throwable;
@@ -25,18 +32,66 @@ use function strtolower;
 /**
  * Class Connection
  *
+ * Owns one driver connection, nested transaction boundaries and connection-local commit hooks.
+ *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Connection
  * @since 1.4.0
  */
-abstract class Connection implements ConnectionInterface
+abstract class Connection implements TransactionalConnectionInterface
 {
-
+    /**
+     * Provides the native driver handle while this connection is open.
+     *
+     * @var ?PDO
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
     public protected(set) ?PDO $pdo = null;
+
+    /**
+     * Selects driver-specific schema discovery for ORM structure generation.
+     *
+     * @var ?array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
     public private(set) ?array $structure = null;
+
+    /**
+     * Allows one reconnect after connection loss outside an active transaction.
+     *
+     * @var bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
     public bool $autoReconnect = false;
 
+    /**
+     * Defers callbacks until the outer transaction commits; rollback discards them.
+     *
+     * @var list<callable():void>
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    private array $afterCommitCallbacks = [];
+
+    /**
+     * Tracks owned transaction levels so nested operations use matching savepoints.
+     *
+     * @var int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
     private int $transactionDepth = 0;
+
+    /**
+     * Prevents committing a transaction whose nested work failed without recoverable savepoints.
+     *
+     * @var bool
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.4.0
+     */
     private bool $transactionRollbackOnly = false;
 
     /**
@@ -79,7 +134,9 @@ abstract class Connection implements ConnectionInterface
         public readonly CacheInterface $cache,
         public readonly GrammarInterface $grammar,
         public readonly LoggerInterface $logger
-    ) {}
+    )
+    {
+    }
 
     /**
      * {@inheritdoc}
@@ -213,7 +270,10 @@ abstract class Connection implements ConnectionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
-    public function prepare(string|QueryInterface $query, array $options = []): StatementInterface
+    public function prepare(
+        string|QueryInterface $query,
+        array $options = []
+    ): StatementInterface
     {
         return new Statement($this, $query, $options);
     }
@@ -245,6 +305,9 @@ abstract class Connection implements ConnectionInterface
     public function disconnect(): void
     {
         $this->pdo = null;
+        $this->transactionDepth = 0;
+        $this->transactionRollbackOnly = false;
+        $this->afterCommitCallbacks = [];
     }
 
     /**
@@ -265,14 +328,44 @@ abstract class Connection implements ConnectionInterface
                 $depth = $this->transactionDepth;
                 $this->transactionDepth = 0;
                 $this->transactionRollbackOnly = false;
+                $this->afterCommitCallbacks = [];
                 $this->pdo->rollBack();
 
                 throw new RollbackOnlyTransactionException(transactionDepth: $depth);
             }
 
-            $this->transactionDepth = 0;
+            try {
+                $committed = $this->pdo->commit();
+            } catch (Throwable $error) {
+                $this->afterCommitCallbacks = [];
 
-            return $this->pdo->commit();
+                throw $error;
+            }
+
+            if (!$committed) {
+                $this->afterCommitCallbacks = [];
+
+                return false;
+            }
+
+            $this->transactionDepth = 0;
+            $callbacks = $this->afterCommitCallbacks;
+            $this->afterCommitCallbacks = [];
+            $failure = null;
+
+            foreach ($callbacks as $callback) {
+                try {
+                    $callback();
+                } catch (Throwable $error) {
+                    $failure ??= $error;
+                }
+            }
+
+            if ($failure !== null) {
+                throw $failure;
+            }
+
+            return true;
         }
 
         $name = $this->savepointName($this->transactionDepth);
@@ -295,6 +388,8 @@ abstract class Connection implements ConnectionInterface
             throw new NotInTransactionException();
         }
 
+        $this->afterCommitCallbacks = [];
+
         if ($this->transactionDepth === 1) {
             $this->transactionDepth = 0;
             $this->transactionRollbackOnly = false;
@@ -306,10 +401,7 @@ abstract class Connection implements ConnectionInterface
         $this->pdo->exec("rollback to savepoint {$name}");
         --$this->transactionDepth;
 
-        // note(Bas): a nested rollback leaves outer levels in an unsafe state
-        //  if they later try to commit, because the work between savepoint
-        //  start and rollback may have committed side effects in the outer
-        //  scope. Mark the outer transaction as rollback-only.
+        // A nested rollback prevents the enclosing operation from committing partial work.
         $this->transactionRollbackOnly = true;
 
         return true;
@@ -326,20 +418,87 @@ abstract class Connection implements ConnectionInterface
 
         if ($this->transactionDepth === 0) {
             $started = $this->pdo->beginTransaction();
-            $this->transactionDepth = 1;
+            $this->transactionDepth = $started ? 1 : 0;
             $this->transactionRollbackOnly = false;
+            $this->afterCommitCallbacks = [];
 
             return $started;
         }
 
-        ++$this->transactionDepth;
-        $name = $this->savepointName($this->transactionDepth);
+        $name = $this->savepointName($this->transactionDepth + 1);
         $this->pdo->exec("savepoint {$name}");
+        ++$this->transactionDepth;
 
         return true;
     }
 
     /**
+     * Rolls back callback failures; a callback must leave transaction management to this method.
+     *
+     * @template T
+     * @param callable():T $fn
+     * @return T
+     * @throws DatabaseExceptionInterface|Throwable
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    public function transactional(callable $fn): mixed
+    {
+        $depth = $this->transactionDepth;
+
+        if (!$this->transaction()) {
+            throw new ExecutionException(new PDOException('Could not start a transaction.'));
+        }
+
+        try {
+            $value = $fn();
+
+            if ($this->transactionDepth !== $depth + 1 || !$this->inTransaction) {
+                throw new ExecutionException(new PDOException('The callback changed its transaction boundary.'));
+            }
+
+            if (!$this->commit()) {
+                throw new ExecutionException(new PDOException('Could not commit the transaction.'));
+            }
+
+            return $value;
+        } catch (Throwable $error) {
+            while ($this->transactionDepth > $depth && $this->inTransaction) {
+                try {
+                    $this->rollBack();
+                } catch (Throwable) {
+                    // Keep the callback failure as the primary exception if cleanup also fails.
+                    break;
+                }
+            }
+
+            throw $error;
+        }
+    }
+
+    /**
+     * All hooks run in registration order after the outer commit; the first hook exception is rethrown.
+     *
+     * @param callable():void $fn
+     * @return void
+     * @throws Throwable
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.3.0
+     */
+    public function afterCommit(callable $fn): void
+    {
+        if ($this->transactionDepth === 0) {
+            $fn();
+
+            return;
+        }
+
+        $this->afterCommitCallbacks[] = $fn;
+    }
+
+    /**
+     * Derives a stable savepoint identifier from the owned nested transaction level.
+     *
      * @param int $depth
      *
      * @return string
@@ -356,7 +515,10 @@ abstract class Connection implements ConnectionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
-    public function tableColumnExists(string $table, string $column): bool
+    public function tableColumnExists(
+        string $table,
+        string $column
+    ): bool
     {
         return $this->tableExists($table) && in_array($column, $this->structure[$table], true);
     }
@@ -394,6 +556,8 @@ abstract class Connection implements ConnectionInterface
     }
 
     /**
+     * Loads column names for ORM structure generation using the active database connection.
+     *
      * @param string $table
      *
      * @return string[]|null
@@ -424,6 +588,8 @@ abstract class Connection implements ConnectionInterface
     }
 
     /**
+     * Identifies driver errors for which reconnecting outside a transaction may restore the connection.
+     *
      * @return int[]
      * @author Bas Milius <bas@mili.us>
      * @since 2.3.0
@@ -434,6 +600,8 @@ abstract class Connection implements ConnectionInterface
     }
 
     /**
+     * Retries once after a recoverable disconnect; active transactions are never replayed.
+     *
      * @template T
      *
      * @param callable():T $fn
@@ -464,6 +632,8 @@ abstract class Connection implements ConnectionInterface
     }
 
     /**
+     * Checks connection-loss codes without treating ordinary query failures as retryable.
+     *
      * @param DatabaseExceptionInterface $err
      *
      * @return bool
@@ -490,5 +660,4 @@ abstract class Connection implements ConnectionInterface
             || str_contains($message, 'lost connection')
             || str_contains($message, 'broken pipe');
     }
-
 }

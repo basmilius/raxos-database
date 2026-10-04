@@ -6,7 +6,8 @@ namespace Raxos\Database\Orm;
 use ArrayAccess;
 use Raxos\Contract\Database\Orm\BackpackInterface;
 use Raxos\Contract\DebuggableInterface;
-use Raxos\Foundation\Access\{ArrayAccessible, ObjectAccessible};
+use Raxos\Foundation\Access\ArrayAccessible;
+use Raxos\Foundation\Access\ObjectAccessible;
 use function array_key_exists;
 
 /**
@@ -14,7 +15,7 @@ use function array_key_exists;
  *
  * @author Bas Milius <bas@mili.us>
  * @package Raxos\Database\Orm\Backpack
- * @since 3.2.0
+ * @since 1.0.17
  */
 final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterface
 {
@@ -32,7 +33,9 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
      */
     public function __construct(
         private array $data = []
-    ) {}
+    )
+    {
+    }
 
     /**
      * {@inheritdoc}
@@ -59,7 +62,10 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function setValue(string $key, mixed $value): void
+    public function setValue(
+        string $key,
+        mixed $value
+    ): void
     {
         $this->data[$key] = $value;
     }
@@ -103,5 +109,4 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
     {
         return $this->data;
     }
-
 }

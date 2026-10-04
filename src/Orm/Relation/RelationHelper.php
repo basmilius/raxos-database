@@ -6,7 +6,8 @@ namespace Raxos\Database\Orm\Relation;
 use Raxos\Collection\ArrayList;
 use Raxos\Contract\Collection\ArrayListInterface;
 use Raxos\Contract\Database\Orm\StructureInterface;
-use Raxos\Contract\Database\Query\{InternalQueryInterface, QueryInterface};
+use Raxos\Contract\Database\Query\InternalQueryInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Expression\ColumnRef;
 
@@ -19,7 +20,6 @@ use Raxos\Database\Query\Expression\ColumnRef;
  */
 final class RelationHelper
 {
-
     /**
      * Composes a column reference based on the given column and table.
      *
@@ -31,7 +31,11 @@ final class RelationHelper
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function composeKey(?string $column, ?string $table, ColumnRef $default): ColumnRef
+    public static function composeKey(
+        ?string $column,
+        ?string $table,
+        ColumnRef $default
+    ): ColumnRef
     {
         static $cache = [];
 
@@ -49,9 +53,12 @@ final class RelationHelper
      *
      * @return mixed
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.1.0
      */
-    public static function declaringKeyValue(Model $instance, ColumnRef $declaringKey): mixed
+    public static function declaringKeyValue(
+        Model $instance,
+        ColumnRef $declaringKey
+    ): mixed
     {
         $declaringValue = $instance->backbone->getValue($declaringKey->column);
 
@@ -73,7 +80,11 @@ final class RelationHelper
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function findCached(mixed $declaringValue, StructureInterface $referenceStructure, ColumnRef $referenceKey): ?Model
+    public static function findCached(
+        mixed $declaringValue,
+        StructureInterface $referenceStructure,
+        ColumnRef $referenceKey
+    ): ?Model
     {
         return $referenceStructure->connection->cache
             ->find($referenceStructure->class, static fn(Model $model) => $model->{$referenceKey->column} === $declaringValue);
@@ -90,7 +101,10 @@ final class RelationHelper
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
-    public static function onBeforeRelations(ArrayListInterface $instances, callable $fn): callable
+    public static function onBeforeRelations(
+        ArrayListInterface $instances,
+        callable $fn
+    ): callable
     {
         return static function (InternalQueryInterface&QueryInterface $query) use ($fn, $instances): QueryInterface {
             $query->setBeforeRelationsHook(static fn(ArrayListInterface $results) => $fn($results, $instances));
@@ -112,9 +126,13 @@ final class RelationHelper
      *     1: ArrayListInterface<int, string|int|null>
      * }
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 2.0.0
      */
-    public static function partitionModels(StructureInterface $referenceStructure, ArrayListInterface $foreignKeys, ?ColumnRef $referenceKey = null): array
+    public static function partitionModels(
+        StructureInterface $referenceStructure,
+        ArrayListInterface $foreignKeys,
+        ?ColumnRef $referenceKey = null
+    ): array
     {
         $cache = $referenceStructure->connection->cache;
         $cached = new ArrayList();
@@ -131,6 +149,7 @@ final class RelationHelper
 
             if ($instance !== null) {
                 $cached->append($instance);
+
                 continue;
             }
 
@@ -142,5 +161,4 @@ final class RelationHelper
             $uncached
         ];
     }
-
 }

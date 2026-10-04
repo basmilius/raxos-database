@@ -3,8 +3,11 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm;
 
-use Raxos\Contract\Database\Orm\{BackboneInterface, ModelInterface, OrmExceptionInterface};
-use Raxos\Database\Orm\Definition\{EmbeddedDefinition, RelationDefinition};
+use Raxos\Contract\Database\Orm\BackboneInterface;
+use Raxos\Contract\Database\Orm\ModelInterface;
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Database\Orm\Definition\EmbeddedDefinition;
+use Raxos\Database\Orm\Definition\RelationDefinition;
 use Raxos\Database\Orm\Structure\StructureHelper;
 use function array_diff_key;
 use function array_key_exists;
@@ -27,11 +30,40 @@ use function sprintf;
  */
 trait ModelReadable
 {
-
+    /**
+     * Shares loaded values, changes and relations between views of the same model row.
+     *
+     * @var BackboneInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.1.0
+     */
     public readonly BackboneInterface $backbone;
 
+    /**
+     * Excludes selected properties when serializing this model view.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.1.0
+     */
     private array $hidden = [];
+
+    /**
+     * Restricts serialization to selected properties when an explicit projection is present.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.1.0
+     */
     private array $only = [];
+
+    /**
+     * Allows selected properties to override the structure's default hidden projection.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 3.1.0
+     */
     private array $visible = [];
 
     /**
@@ -299,7 +331,10 @@ trait ModelReadable
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
-    private static function embeddedToArray(EmbeddedDefinition $definition, object $value): array
+    private static function embeddedToArray(
+        EmbeddedDefinition $definition,
+        object $value
+    ): array
     {
         $result = [];
 
@@ -316,5 +351,4 @@ trait ModelReadable
 
         return $result;
     }
-
 }

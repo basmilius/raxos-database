@@ -6,11 +6,34 @@ namespace Raxos\Database\Orm;
 use BackedEnum;
 use Generator;
 use JetBrains\PhpStorm\ExpectedValues;
-use Raxos\Contract\Database\{ConnectionInterface, DatabaseExceptionInterface};
-use Raxos\Contract\Database\Orm\{AccessInterface, BackboneInterface, BackpackInterface, CacheInterface, ModelInterface, MutationListenerInterface, OrmExceptionInterface, StructureInterface, WritableRelationInterface};
-use Raxos\Contract\Database\Query\{QueryExceptionInterface, QueryInterface, QueryValueInterface};
-use Raxos\Database\Orm\Definition\{ColumnDefinition, EmbeddedDefinition, MacroDefinition, RelationDefinition};
-use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, ImmutableRelationException, InvalidRelationException, MissingPolymorphicMappingException, MissingPrimaryKeyException, NotFoundException, PropertyReadFailedException, PropertyWriteFailedException};
+use Raxos\Contract\Database\ConnectionInterface;
+use Raxos\Contract\Database\DatabaseExceptionInterface;
+use Raxos\Contract\Database\Orm\AccessInterface;
+use Raxos\Contract\Database\Orm\BackboneInterface;
+use Raxos\Contract\Database\Orm\BackpackInterface;
+use Raxos\Contract\Database\Orm\CacheInterface;
+use Raxos\Contract\Database\Orm\ModelInterface;
+use Raxos\Contract\Database\Orm\MutationListenerInterface;
+use Raxos\Contract\Database\Orm\OrmExceptionInterface;
+use Raxos\Contract\Database\Orm\StructureInterface;
+use Raxos\Contract\Database\Orm\WritableRelationInterface;
+use Raxos\Contract\Database\Query\QueryExceptionInterface;
+use Raxos\Contract\Database\Query\QueryInterface;
+use Raxos\Contract\Database\Query\QueryValueInterface;
+use Raxos\Database\Orm\Definition\ColumnDefinition;
+use Raxos\Database\Orm\Definition\EmbeddedDefinition;
+use Raxos\Database\Orm\Definition\MacroDefinition;
+use Raxos\Database\Orm\Definition\RelationDefinition;
+use Raxos\Database\Orm\Error\ImmutableException;
+use Raxos\Database\Orm\Error\ImmutableMacroException;
+use Raxos\Database\Orm\Error\ImmutablePrimaryKeyException;
+use Raxos\Database\Orm\Error\ImmutableRelationException;
+use Raxos\Database\Orm\Error\InvalidRelationException;
+use Raxos\Database\Orm\Error\MissingPolymorphicMappingException;
+use Raxos\Database\Orm\Error\MissingPrimaryKeyException;
+use Raxos\Database\Orm\Error\NotFoundException;
+use Raxos\Database\Orm\Error\PropertyReadFailedException;
+use Raxos\Database\Orm\Error\PropertyWriteFailedException;
 use Raxos\Foundation\Util\Singleton;
 use function array_find_key;
 use function array_key_exists;
@@ -31,25 +54,113 @@ use function Raxos\Database\Query\literal;
  */
 final class Backbone implements AccessInterface, BackboneInterface
 {
-
+    /**
+     * Shares model identities between rows loaded through this ORM connection.
+     *
+     * @var CacheInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public readonly CacheInterface $cache;
+
+    /**
+     * Retains the connection used by this object for its entire lifetime.
+     *
+     * @var ConnectionInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public readonly ConnectionInterface $connection;
-    /** @var class-string<Model> */
+
+    /**
+     * Links the shared row state to its generated ORM structure.
+     * @var class-string<Model> */
     public readonly string $class;
+
+    /**
+     * Identifies the database row represented by this shared model state.
+     *
+     * @var int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public readonly int $id;
 
+    /**
+     * Stores loaded row values separately from pending model changes.
+     *
+     * @var BackpackInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public readonly BackpackInterface $data;
+
+    /**
+     * Reuses converted property values until their underlying data changes.
+     *
+     * @var BackpackInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public readonly BackpackInterface $castCache;
+
+    /**
+     * Caches computed macro values for this model state.
+     *
+     * @var BackpackInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public readonly BackpackInterface $macroCache;
+
+    /**
+     * Keeps loaded relations attached to the shared model state.
+     *
+     * @var BackpackInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public readonly BackpackInterface $relationCache;
 
+    /**
+     * Links lifecycle callbacks to the model currently accessing this backbone.
+     *
+     * @var ?ModelInterface
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     public ?ModelInterface $currentInstance = null;
 
-    /** @var array<string, true> */
+    /**
+     * Records changes relative to loaded data so saves can limit their UPDATE assignments.
+     * @var array<string, true> */
     private array $modified = [];
+
+    /**
+     * Defers relation saves until the owning model has a persistent identity.
+     *
+     * @var array
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     private array $saveTasks = [];
+
+    /**
+     * Reuses the writable model view over this shared backbone.
+     *
+     * @var ?Model
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     private ?Model $writableInstance = null;
 
+    /**
+     * Provides an internal identity independent from the database primary key.
+     *
+     * @var int
+     * @author Bas Milius <bas@mili.us>
+     * @since 1.0.17
+     */
     private static int $backboneId = 0;
 
     /**
@@ -140,7 +251,11 @@ final class Backbone implements AccessInterface, BackboneInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function getCastedValue(string $caster, #[ExpectedValues(['decode', 'encode'])] string $mode, mixed $value): mixed
+    public function getCastedValue(
+        string $caster,
+        #[ExpectedValues(['decode', 'encode'])] string $mode,
+        mixed $value
+    ): mixed
     {
         return Singleton::get($caster)->{$mode}($value, $this->instance());
     }
@@ -224,7 +339,10 @@ final class Backbone implements AccessInterface, BackboneInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function setColumnValue(ColumnDefinition $property, mixed $value): void
+    public function setColumnValue(
+        ColumnDefinition $property,
+        mixed $value
+    ): void
     {
         if ($property->isPrimaryKey && !$this->isNew) {
             throw new ImmutablePrimaryKeyException($this->class, $property->name);
@@ -252,7 +370,10 @@ final class Backbone implements AccessInterface, BackboneInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function setRelationValue(RelationDefinition $property, mixed $value): void
+    public function setRelationValue(
+        RelationDefinition $property,
+        mixed $value
+    ): void
     {
         $relation = $this->structure->getRelation($property);
 
@@ -281,6 +402,7 @@ final class Backbone implements AccessInterface, BackboneInterface
             foreach ($property->allColumns() as $column) {
                 if ($this->data->hasValue($column->key) && $this->data->getValue($column->key) !== null) {
                     $allNull = false;
+
                     break;
                 }
             }
@@ -313,7 +435,10 @@ final class Backbone implements AccessInterface, BackboneInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
-    public function setEmbeddedValue(EmbeddedDefinition $property, mixed $value): void
+    public function setEmbeddedValue(
+        EmbeddedDefinition $property,
+        mixed $value
+    ): void
     {
         $this->castCache->unsetValue($property->name);
 
@@ -387,7 +512,10 @@ final class Backbone implements AccessInterface, BackboneInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function queryRelation(Model $instance, string $key): QueryInterface
+    public function queryRelation(
+        Model $instance,
+        string $key
+    ): QueryInterface
     {
         $property = $this->structure->getProperty($key);
 
@@ -478,7 +606,7 @@ final class Backbone implements AccessInterface, BackboneInterface
     /**
      * {@inheritdoc}
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.19
      */
     public function save(): void
     {
@@ -620,7 +748,10 @@ final class Backbone implements AccessInterface, BackboneInterface
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
-    public function setValue(string $key, mixed $value): void
+    public function setValue(
+        string $key,
+        mixed $value
+    ): void
     {
         $property = $this->structure->getProperty($key);
         $oldValue = !$this->isNew && $this->currentInstance instanceof MutationListenerInterface
@@ -693,7 +824,7 @@ final class Backbone implements AccessInterface, BackboneInterface
      * @return Generator<string, mixed>
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
-     * @since 3.2.0
+     * @since 1.0.19
      */
     private function getSaveableValues(): Generator
     {
@@ -761,5 +892,4 @@ final class Backbone implements AccessInterface, BackboneInterface
 
         yield $polymorphic->column => $discriminator;
     }
-
 }

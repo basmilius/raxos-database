@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ebe3ddb5855449cd4727bdd90f9b58ce",
+    "content-hash": "0bdfda9fba0177b8f9b15b5dc1f5017f",
     "packages": [
         {
             "name": "jetbrains/phpstorm-attributes",
@@ -48,24 +48,77 @@
             "time": "2026-07-22T11:27:58+00:00"
         },
         {
+            "name": "psr/clock",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/clock.git",
+                "reference": "e41a24703d4560fd0acb709162f73b8adfc3aa0d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/clock/zipball/e41a24703d4560fd0acb709162f73b8adfc3aa0d",
+                "reference": "e41a24703d4560fd0acb709162f73b8adfc3aa0d",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0 || ^8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Clock\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for reading the clock.",
+            "homepage": "https://github.com/php-fig/clock",
+            "keywords": [
+                "clock",
+                "now",
+                "psr",
+                "psr-20",
+                "time"
+            ],
+            "support": {
+                "issues": "https://github.com/php-fig/clock/issues",
+                "source": "https://github.com/php-fig/clock/tree/1.0.0"
+            },
+            "time": "2022-11-25T14:36:26+00:00"
+        },
+        {
             "name": "raxos/collection",
             "version": "dev-main",
             "dist": {
                 "type": "path",
                 "url": "../collection",
-                "reference": "0cbe75a2a4ac749993da9e35f83144c1d5702508"
+                "reference": "55c7ab716cb1eadbbcf64e75818f36a963a17453"
             },
             "require": {
                 "jetbrains/phpstorm-attributes": "^1.2",
                 "php": ">=8.5",
-                "raxos/contract": "*",
-                "raxos/error": "*",
-                "raxos/foundation": "*"
+                "raxos/contract": "^3.2",
+                "raxos/error": "^3.2",
+                "raxos/foundation": "^3.2"
             },
             "require-dev": {
                 "pestphp/pest": "^5.0"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "3.3.x-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "Raxos\\Collection\\": "src/"
@@ -101,7 +154,7 @@
             "dist": {
                 "type": "path",
                 "url": "../contract",
-                "reference": "d5c2929acdfb0b302d5296950777845fe4b8a456"
+                "reference": "c267c1157026a95862ba163b7f71fe8fc1028f25"
             },
             "require": {
                 "ext-pdo": "*",
@@ -111,6 +164,11 @@
                 "pestphp/pest": "^5.0"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "3.3.x-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "Raxos\\Contract\\": "src/"
@@ -146,16 +204,21 @@
             "dist": {
                 "type": "path",
                 "url": "../error",
-                "reference": "771708deb338a66cbae34a3b28c4ba1d9e513e11"
+                "reference": "2edd582feb71f31badc2dead4b8ebe518e4eae01"
             },
             "require": {
                 "php": ">=8.5",
-                "raxos/contract": "*"
+                "raxos/contract": "^3.2"
             },
             "require-dev": {
                 "pestphp/pest": "^5.0"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "3.3.x-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "Raxos\\Error\\": "src/"
@@ -191,7 +254,7 @@
             "dist": {
                 "type": "path",
                 "url": "../foundation",
-                "reference": "b1b3071cd7fe6ab32e16a9b18baef4803442f4bf"
+                "reference": "48a14bfcba5c73e0bae6c6e16351d3f856cfa71a"
             },
             "require": {
                 "ext-dom": "*",
@@ -202,13 +265,19 @@
                 "ext-simplexml": "*",
                 "jetbrains/phpstorm-attributes": "^1.2",
                 "php": ">=8.5",
-                "raxos/contract": "*",
-                "raxos/error": "*"
+                "psr/clock": "^1.0",
+                "raxos/contract": "^3.2",
+                "raxos/error": "^3.2"
             },
             "require-dev": {
                 "pestphp/pest": "^5.0"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "3.3.x-dev"
+                }
+            },
             "autoload": {
                 "files": [
                     "src/functions.php"
