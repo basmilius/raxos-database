@@ -35,6 +35,7 @@ final readonly class EagerLoadEvent extends Event
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */

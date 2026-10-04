@@ -47,6 +47,7 @@ abstract readonly class Grammar implements GrammarInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -57,6 +58,7 @@ abstract readonly class Grammar implements GrammarInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -67,6 +69,7 @@ abstract readonly class Grammar implements GrammarInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -77,6 +80,7 @@ abstract readonly class Grammar implements GrammarInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -87,6 +91,7 @@ abstract readonly class Grammar implements GrammarInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      */
@@ -97,6 +102,7 @@ abstract readonly class Grammar implements GrammarInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      */
@@ -170,4 +176,5 @@ abstract readonly class Grammar implements GrammarInterface
 
         return $this->escapers[0] . $value . $this->escapers[1];
     }
+
 }

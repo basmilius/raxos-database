@@ -55,6 +55,7 @@ use function sprintf;
  */
 class Statement implements StatementInterface
 {
+
     /**
      * Owns the active result cursor until rows have been consumed or the cursor is closed.
      *
@@ -152,6 +153,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -164,6 +166,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -180,6 +183,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @param int $fetchMode
      * @param int $batchSize
      * @param bool $retainCache
@@ -238,6 +242,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.3.1
      */
@@ -263,6 +268,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -275,6 +281,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -287,6 +294,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -310,6 +318,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -333,6 +342,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -343,6 +353,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -353,6 +364,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -377,6 +389,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -398,6 +411,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -410,6 +424,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -420,6 +435,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -432,6 +448,7 @@ class Statement implements StatementInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -512,4 +529,5 @@ class Statement implements StatementInterface
             $this->query->invokePrimers($list, PrimerTiming::AfterRelations, $this->connection);
         }
     }
+
 }

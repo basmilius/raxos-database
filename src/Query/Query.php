@@ -104,6 +104,7 @@ use const JSON_THROW_ON_ERROR;
  */
 abstract class Query implements DebuggableInterface, InternalQueryInterface, JsonSerializable, KeysetQueryInterface, QueryInterface, Stringable
 {
+
     /**
      * Assigns stable positions to query fragments as the builder evolves.
      *
@@ -269,6 +270,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -303,6 +305,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -338,6 +341,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -386,6 +390,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -407,6 +412,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -426,6 +432,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -443,6 +450,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -460,6 +468,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -480,6 +489,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -500,6 +510,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -513,6 +524,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -565,6 +577,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -625,6 +638,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -635,6 +649,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -649,6 +664,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -665,6 +681,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -675,6 +692,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -685,6 +703,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -706,6 +725,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -727,6 +747,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.6.1
      */
@@ -739,6 +760,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -751,6 +773,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -764,6 +787,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -790,6 +814,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -800,6 +825,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -815,6 +841,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.3.0
      */
@@ -835,6 +862,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -850,6 +878,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -865,6 +894,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @param int $fetchMode
      * @param array $options
      * @param int $batchSize
@@ -887,6 +917,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.3.1
      */
@@ -1106,6 +1137,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1118,6 +1150,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -1155,6 +1188,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
@@ -1171,6 +1205,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1186,6 +1221,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1205,6 +1241,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1235,6 +1272,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
@@ -1245,6 +1283,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
@@ -1257,6 +1296,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
@@ -1272,6 +1312,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
@@ -1287,6 +1328,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
@@ -1327,6 +1369,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1337,6 +1380,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1347,6 +1391,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1385,6 +1430,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -1395,6 +1441,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -1405,6 +1452,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -1415,6 +1463,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -1425,6 +1474,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1450,6 +1500,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1464,6 +1515,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1474,6 +1526,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1491,6 +1544,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -1501,6 +1555,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1511,6 +1566,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -1528,6 +1584,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1538,6 +1595,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
@@ -1552,6 +1610,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
@@ -1562,6 +1621,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
@@ -1579,6 +1639,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
@@ -1589,6 +1650,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
@@ -1606,6 +1668,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
@@ -1616,6 +1679,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
@@ -1626,6 +1690,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1653,6 +1718,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1667,6 +1733,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1684,6 +1751,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1711,6 +1779,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1725,6 +1794,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1735,6 +1805,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1748,6 +1819,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1765,6 +1837,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -1775,6 +1848,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1788,6 +1862,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -1805,6 +1880,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1815,6 +1891,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1825,6 +1902,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1840,6 +1918,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1862,6 +1941,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1874,6 +1954,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1886,6 +1967,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1917,6 +1999,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1929,6 +2012,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1941,6 +2025,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1964,6 +2049,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -1979,6 +2065,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2013,6 +2100,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2023,6 +2111,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2036,6 +2125,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2053,6 +2143,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -2063,6 +2154,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2076,6 +2168,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.2
      */
@@ -2093,6 +2186,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2103,6 +2197,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2113,6 +2208,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -2150,6 +2246,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -2207,6 +2304,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2222,6 +2320,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2235,6 +2334,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2248,6 +2348,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2276,6 +2377,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2304,6 +2406,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2317,6 +2420,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2336,6 +2440,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2346,6 +2451,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2371,6 +2477,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2384,6 +2491,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2397,6 +2505,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2410,6 +2519,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2423,6 +2533,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2436,6 +2547,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2449,6 +2561,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2462,6 +2575,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
@@ -2476,6 +2590,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
@@ -2490,6 +2605,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
@@ -2504,6 +2620,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
@@ -2518,6 +2635,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
@@ -2532,6 +2650,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */
@@ -2546,6 +2665,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2559,6 +2679,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -2987,6 +3108,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -2997,6 +3119,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -3016,6 +3139,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.0
      */
@@ -3134,4 +3258,5 @@ REGEX,
 
         return substr_count($syntax, '(') - substr_count($syntax, ')');
     }
+
 }

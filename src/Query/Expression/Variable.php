@@ -39,6 +39,7 @@ final readonly class Variable implements QueryExpressionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */

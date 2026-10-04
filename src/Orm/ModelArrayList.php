@@ -22,6 +22,7 @@ use function array_map;
  */
 class ModelArrayList extends ArrayList implements VisibilityInterface
 {
+
     /**
      * Returns a list of read-only views of the models, sharing their backbones.
      * Safe to expose to untrusted consumers such as template engines.
@@ -37,6 +38,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -47,6 +49,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -57,6 +60,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -78,4 +82,5 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
     {
         return new static(array_map($fn, $this->data));
     }
+
 }

@@ -15,6 +15,7 @@ use Raxos\Error\Exception;
  */
 final class InvalidMacroException extends Exception implements OrmExceptionInterface
 {
+
     /**
      * InvalidMacroException constructor.
      *

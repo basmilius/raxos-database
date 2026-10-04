@@ -8,6 +8,7 @@ use Raxos\Contract\Database\Query\QueryValueInterface;
 use Raxos\Database\Connection\{MariaDb, MySql, SQLite};
 use Raxos\Database\Db;
 use Raxos\Database\Query\Query;
+use ReflectionProperty;
 
 function unitConnection(string $driver = 'sqlite'): ConnectionInterface
 {
@@ -38,9 +39,8 @@ function compiledExpression(QueryValueInterface $expression): array
     $query = unitQuery();
     $query->compile($expression);
 
-    return [preg_replace('/\s+/', ' ', trim($query->toSql())), array_values(new \ReflectionProperty(\Raxos\Database\Query\Query::class, 'params')->getValue($query))];
+    return [preg_replace('/\s+/', ' ', trim($query->toSql())), array_values(new ReflectionProperty(Query::class, 'params')->getValue($query))];
 }
-
 
 function unitOrm(): ConnectionInterface
 {

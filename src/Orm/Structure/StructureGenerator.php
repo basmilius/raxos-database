@@ -68,6 +68,7 @@ use function is_subclass_of;
  */
 final class StructureGenerator
 {
+
     /**
      * Caches generated model structures to avoid repeated attribute reflection.
      *
@@ -885,4 +886,5 @@ final class StructureGenerator
             $isVisible
         );
     }
+
 }

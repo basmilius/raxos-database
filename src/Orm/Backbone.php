@@ -54,6 +54,7 @@ use function Raxos\Database\Query\literal;
  */
 final class Backbone implements AccessInterface, BackboneInterface
 {
+
     /**
      * Shares model identities between rows loaded through this ORM connection.
      *
@@ -196,6 +197,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -210,6 +212,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -220,6 +223,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -230,6 +234,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -240,6 +245,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -252,6 +258,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -266,6 +273,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -299,6 +307,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -320,6 +329,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -340,6 +350,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -371,6 +382,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -391,6 +403,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -436,6 +449,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -479,6 +493,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -495,6 +510,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -513,6 +529,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -534,6 +551,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
@@ -564,6 +582,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.3.0
      */
@@ -609,6 +628,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.19
      */
@@ -718,6 +738,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -739,6 +760,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -749,6 +771,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -780,6 +803,7 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -819,7 +843,7 @@ final class Backbone implements AccessInterface, BackboneInterface
      */
     private function hasComputedProperties(): bool
     {
-        return array_any($this->structure->properties, fn($property) => $property instanceof ColumnDefinition && $property->isComputed);
+        return array_any($this->structure->properties, static fn($property) => $property instanceof ColumnDefinition && $property->isComputed);
     }
 
     /**
@@ -896,4 +920,5 @@ final class Backbone implements AccessInterface, BackboneInterface
 
         yield $polymorphic->column => $discriminator;
     }
+
 }

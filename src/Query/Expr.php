@@ -5,10 +5,8 @@ namespace Raxos\Database\Query;
 
 use BackedEnum;
 use Raxos\Contract\Collection\ArrayableInterface;
-use Raxos\Contract\Database\Query\QueryExpressionInterface;
-use Raxos\Contract\Database\Query\QueryInterface;
-use Raxos\Contract\Database\Query\QueryLiteralInterface;
-use Raxos\Contract\Database\Query\QueryValueInterface;
+use Raxos\Contract\Database\Query\{QueryExpressionInterface, QueryInterface, QueryLiteralInterface, QueryValueInterface};
+use Raxos\Database\Query\Expression\{AggregateFunc, Between, CaseStatement, Exists, Extract, Func, GroupConcat, MatchAgainst, Not, Operation, Raw, SubQuery, Variable, When};
 use Raxos\Database\Query\Literal\Literal;
 use Stringable;
 use function array_filter;
@@ -41,7 +39,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
     {
-        return new Expression\Operation('=', $leftExpr, $rightExpr);
+        return new Operation('=', $leftExpr, $rightExpr);
     }
 
     /**
@@ -59,7 +57,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
     {
-        return new Expression\Operation('>', $leftExpr, $rightExpr);
+        return new Operation('>', $leftExpr, $rightExpr);
     }
 
     /**
@@ -77,7 +75,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
     {
-        return new Expression\Operation('>=', $leftExpr, $rightExpr);
+        return new Operation('>=', $leftExpr, $rightExpr);
     }
 
     /**
@@ -95,7 +93,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
     {
-        return new Expression\Operation('<', $leftExpr, $rightExpr);
+        return new Operation('<', $leftExpr, $rightExpr);
     }
 
     /**
@@ -113,7 +111,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
     {
-        return new Expression\Operation('<=', $leftExpr, $rightExpr);
+        return new Operation('<=', $leftExpr, $rightExpr);
     }
 
     /**
@@ -125,7 +123,7 @@ final class Expr
      */
     public static function isNotNull(): QueryExpressionInterface
     {
-        return new Expression\Raw('is not null');
+        return new Raw('is not null');
     }
 
     /**
@@ -137,7 +135,7 @@ final class Expr
      */
     public static function isNull(): QueryExpressionInterface
     {
-        return new Expression\Raw('is null');
+        return new Raw('is null');
     }
 
     /**
@@ -153,7 +151,7 @@ final class Expr
         QueryExpressionInterface $expr
     ): QueryExpressionInterface
     {
-        return new Expression\Not($expr);
+        return new Not($expr);
     }
 
     /**
@@ -171,7 +169,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $upper
     ): QueryExpressionInterface
     {
-        return new Expression\Between($lower, $upper);
+        return new Between($lower, $upper);
     }
 
     /**
@@ -187,7 +185,7 @@ final class Expr
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool ...$values
     ): QueryExpressionInterface
     {
-        return new Expression\Func('coalesce', $values);
+        return new Func('coalesce', $values);
     }
 
     /**
@@ -203,7 +201,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool ...$values
     ): QueryExpressionInterface
     {
-        return new Expression\Func('greatest', $values);
+        return new Func('greatest', $values);
     }
 
     /**
@@ -219,7 +217,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool ...$values
     ): QueryExpressionInterface
     {
-        return new Expression\Func('in', $values);
+        return new Func('in', $values);
     }
 
     /**
@@ -235,7 +233,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool ...$values
     ): QueryExpressionInterface
     {
-        return new Expression\Func('least', $values);
+        return new Func('least', $values);
     }
 
     #endregion
@@ -257,7 +255,7 @@ final class Expr
         bool $distinct = false
     ): QueryExpressionInterface
     {
-        return new Expression\AggregateFunc('avg', [$expr], distinct: $distinct);
+        return new AggregateFunc('avg', [$expr], distinct: $distinct);
     }
 
     /**
@@ -276,10 +274,10 @@ final class Expr
     ): QueryExpressionInterface
     {
         if ($expr === null) {
-            return new Expression\Raw('count(*)');
+            return new Raw('count(*)');
         }
 
-        return new Expression\AggregateFunc('count', [$expr], distinct: $distinct);
+        return new AggregateFunc('count', [$expr], distinct: $distinct);
     }
 
     /**
@@ -305,7 +303,7 @@ final class Expr
         ?int $offset = null
     ): QueryExpressionInterface
     {
-        return new Expression\GroupConcat(
+        return new GroupConcat(
             $expr,
             distinct: $distinct,
             orderBy: $orderBy,
@@ -330,7 +328,7 @@ final class Expr
         bool $distinct = false
     ): QueryExpressionInterface
     {
-        return new Expression\AggregateFunc('max', [$expr], distinct: $distinct);
+        return new AggregateFunc('max', [$expr], distinct: $distinct);
     }
 
     /**
@@ -348,7 +346,7 @@ final class Expr
         bool $distinct = false
     ): QueryExpressionInterface
     {
-        return new Expression\AggregateFunc('min', [$expr], distinct: $distinct);
+        return new AggregateFunc('min', [$expr], distinct: $distinct);
     }
 
     /**
@@ -366,7 +364,7 @@ final class Expr
         bool $distinct = false
     ): QueryExpressionInterface
     {
-        return new Expression\AggregateFunc('sum', [$expr], distinct: $distinct);
+        return new AggregateFunc('sum', [$expr], distinct: $distinct);
     }
 
     #endregion
@@ -390,7 +388,7 @@ final class Expr
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $else
     ): QueryExpressionInterface
     {
-        return new Expression\Func('if', [
+        return new Func('if', [
             $expr,
             $then,
             $else
@@ -412,7 +410,7 @@ final class Expr
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr2
     ): QueryExpressionInterface
     {
-        return new Expression\Func('ifnull', [
+        return new Func('ifnull', [
             $expr1,
             $expr2
         ]);
@@ -433,7 +431,7 @@ final class Expr
         BackedEnum|QueryInterface|QueryValueInterface|Stringable|string|int|float|bool $expr2
     ): QueryExpressionInterface
     {
-        return new Expression\Func('nullif', [
+        return new Func('nullif', [
             $expr1,
             $expr2
         ]);
@@ -452,7 +450,7 @@ final class Expr
      */
     public static function currentDate(): QueryExpressionInterface
     {
-        return new Expression\Raw('current_date()');
+        return new Raw('current_date()');
     }
 
     /**
@@ -464,7 +462,7 @@ final class Expr
      */
     public static function currentTime(): QueryExpressionInterface
     {
-        return new Expression\Raw('current_time()');
+        return new Raw('current_time()');
     }
 
     /**
@@ -476,7 +474,7 @@ final class Expr
      */
     public static function currentTimestamp(): QueryExpressionInterface
     {
-        return new Expression\Raw('current_timestamp()');
+        return new Raw('current_timestamp()');
     }
 
     /**
@@ -492,7 +490,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
     ): QueryExpressionInterface
     {
-        return new Expression\Func('date', [$expr]);
+        return new Func('date', [$expr]);
     }
 
     /**
@@ -512,7 +510,7 @@ final class Expr
         DateTimeUnit $unit
     ): QueryExpressionInterface
     {
-        return new Expression\Func('date_add', [
+        return new Func('date_add', [
             $expr,
             Literal::of("interval {$value} {$unit->value}")
         ]);
@@ -544,7 +542,7 @@ final class Expr
             $params[] = Literal::string($locale);
         }
 
-        return new Expression\Func('date_format', $params);
+        return new Func('date_format', $params);
     }
 
     /**
@@ -564,7 +562,7 @@ final class Expr
         DateTimeUnit $unit
     ): QueryExpressionInterface
     {
-        return new Expression\Func('date_sub', [
+        return new Func('date_sub', [
             $expr,
             Literal::of("interval {$value} {$unit->value}")
         ]);
@@ -585,7 +583,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr2
     ): QueryExpressionInterface
     {
-        return new Expression\Func('datediff', [$expr1, $expr2]);
+        return new Func('datediff', [$expr1, $expr2]);
     }
 
     /**
@@ -602,7 +600,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('day', [$date]);
+        return new Func('day', [$date]);
     }
 
     /**
@@ -618,7 +616,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('dayname', [$date]);
+        return new Func('dayname', [$date]);
     }
 
     /**
@@ -635,7 +633,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('dayofmonth', [$date]);
+        return new Func('dayofmonth', [$date]);
     }
 
     /**
@@ -651,7 +649,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('dayofweek', [$date]);
+        return new Func('dayofweek', [$date]);
     }
 
     /**
@@ -667,7 +665,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('dayofyear', [$date]);
+        return new Func('dayofyear', [$date]);
     }
 
     /**
@@ -685,7 +683,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Extract($unit, $date);
+        return new Extract($unit, $date);
     }
 
     /**
@@ -703,7 +701,7 @@ final class Expr
         ?string $format = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('from_unixtime', array_values(array_filter([$unixtime, $format], self::valueNotNull(...))));
+        return new Func('from_unixtime', array_values(array_filter([$unixtime, $format], self::valueNotNull(...))));
     }
 
     /**
@@ -719,7 +717,7 @@ final class Expr
         QueryValueInterface|Stringable|string $time
     ): QueryExpressionInterface
     {
-        return new Expression\Func('hour', [$time]);
+        return new Func('hour', [$time]);
     }
 
     /**
@@ -735,7 +733,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('last_day', [$date]);
+        return new Func('last_day', [$date]);
     }
 
     /**
@@ -751,7 +749,7 @@ final class Expr
         QueryValueInterface|Stringable|string $time
     ): QueryExpressionInterface
     {
-        return new Expression\Func('microsecond', [$time]);
+        return new Func('microsecond', [$time]);
     }
 
     /**
@@ -767,7 +765,7 @@ final class Expr
         QueryValueInterface|Stringable|string $time
     ): QueryExpressionInterface
     {
-        return new Expression\Func('minute', [$time]);
+        return new Func('minute', [$time]);
     }
 
     /**
@@ -783,7 +781,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('month', [$date]);
+        return new Func('month', [$date]);
     }
 
     /**
@@ -799,7 +797,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('monthname', [$date]);
+        return new Func('monthname', [$date]);
     }
 
     /**
@@ -811,7 +809,7 @@ final class Expr
      */
     public static function now(): QueryExpressionInterface
     {
-        return new Expression\Raw('now()');
+        return new Raw('now()');
     }
 
     /**
@@ -827,7 +825,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('quarter', [$date]);
+        return new Func('quarter', [$date]);
     }
 
     /**
@@ -843,7 +841,7 @@ final class Expr
         QueryValueInterface|Stringable|string $time
     ): QueryExpressionInterface
     {
-        return new Expression\Func('second', [$time]);
+        return new Func('second', [$time]);
     }
 
     /**
@@ -859,7 +857,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $expr
     ): QueryExpressionInterface
     {
-        return new Expression\Func('time', [$expr]);
+        return new Func('time', [$expr]);
     }
 
     /**
@@ -875,7 +873,7 @@ final class Expr
         QueryValueInterface|Stringable|string|null $date = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('unix_timestamp', array_values(array_filter([$date], self::valueNotNull(...))));
+        return new Func('unix_timestamp', array_values(array_filter([$date], self::valueNotNull(...))));
     }
 
     /**
@@ -905,7 +903,7 @@ final class Expr
         int $mode = 3
     ): QueryExpressionInterface
     {
-        return new Expression\Func('week', [$date, $mode]);
+        return new Func('week', [$date, $mode]);
     }
 
     /**
@@ -921,7 +919,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('weekday', [$date]);
+        return new Func('weekday', [$date]);
     }
 
     /**
@@ -937,7 +935,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('weekofyear', [$date]);
+        return new Func('weekofyear', [$date]);
     }
 
     /**
@@ -953,7 +951,7 @@ final class Expr
         QueryValueInterface|Stringable|string $date
     ): QueryExpressionInterface
     {
-        return new Expression\Func('year', [$date]);
+        return new Func('year', [$date]);
     }
 
     /**
@@ -983,7 +981,7 @@ final class Expr
         int $mode = 3
     ): QueryExpressionInterface
     {
-        return new Expression\Func('yearweek', [$date, $mode]);
+        return new Func('yearweek', [$date, $mode]);
     }
 
     #endregion
@@ -1003,7 +1001,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('abs', [$x]);
+        return new Func('abs', [$x]);
     }
 
     /**
@@ -1019,7 +1017,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('acos', [$x]);
+        return new Func('acos', [$x]);
     }
 
     /**
@@ -1037,7 +1035,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
     {
-        return new Expression\Operation('+', $leftExpr, $rightExpr);
+        return new Operation('+', $leftExpr, $rightExpr);
     }
 
     /**
@@ -1053,7 +1051,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('asin', [$x]);
+        return new Func('asin', [$x]);
     }
 
     /**
@@ -1069,7 +1067,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('atan', [$x]);
+        return new Func('atan', [$x]);
     }
 
     /**
@@ -1087,7 +1085,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $y
     ): QueryExpressionInterface
     {
-        return new Expression\Func('atan2', [$x, $y]);
+        return new Func('atan2', [$x, $y]);
     }
 
     /**
@@ -1103,7 +1101,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('ceil', [$x]);
+        return new Func('ceil', [$x]);
     }
 
     /**
@@ -1119,7 +1117,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('ceiling', [$x]);
+        return new Func('ceiling', [$x]);
     }
 
     /**
@@ -1135,7 +1133,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('cos', [$x]);
+        return new Func('cos', [$x]);
     }
 
     /**
@@ -1151,7 +1149,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('cot', [$x]);
+        return new Func('cot', [$x]);
     }
 
     /**
@@ -1167,7 +1165,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('degrees', [$x]);
+        return new Func('degrees', [$x]);
     }
 
     /**
@@ -1185,7 +1183,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
     {
-        return new Expression\Operation('/', $leftExpr, $rightExpr);
+        return new Operation('/', $leftExpr, $rightExpr);
     }
 
     /**
@@ -1201,7 +1199,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('exp', [$x]);
+        return new Func('exp', [$x]);
     }
 
     /**
@@ -1217,7 +1215,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('floor', [$x]);
+        return new Func('floor', [$x]);
     }
 
     /**
@@ -1233,7 +1231,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('ln', [$x]);
+        return new Func('ln', [$x]);
     }
 
     /**
@@ -1251,7 +1249,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool|null $b = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('log', array_values(array_filter([$b, $x], self::valueNotNull(...))));
+        return new Func('log', array_values(array_filter([$b, $x], self::valueNotNull(...))));
     }
 
     /**
@@ -1267,7 +1265,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('log10', [$x]);
+        return new Func('log10', [$x]);
     }
 
     /**
@@ -1283,7 +1281,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('log2', [$x]);
+        return new Func('log2', [$x]);
     }
 
     /**
@@ -1301,7 +1299,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
     {
-        return new Expression\Operation('%', $leftExpr, $rightExpr);
+        return new Operation('%', $leftExpr, $rightExpr);
     }
 
     /**
@@ -1319,7 +1317,7 @@ final class Expr
         BackedEnum|QueryValueInterface|Stringable|string|int|float|bool $rightExpr
     ): QueryExpressionInterface
     {
-        return new Expression\Operation('*', $leftExpr, $rightExpr);
+        return new Operation('*', $leftExpr, $rightExpr);
     }
 
     /**
@@ -1335,7 +1333,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $n
     ): QueryExpressionInterface
     {
-        return new Expression\Func('oct', [$n]);
+        return new Func('oct', [$n]);
     }
 
     /**
@@ -1347,7 +1345,7 @@ final class Expr
      */
     public static function pi(): QueryExpressionInterface
     {
-        return new Expression\Raw('pi()');
+        return new Raw('pi()');
     }
 
     /**
@@ -1365,7 +1363,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $y
     ): QueryExpressionInterface
     {
-        return new Expression\Func('pow', [$x, $y]);
+        return new Func('pow', [$x, $y]);
     }
 
     /**
@@ -1381,7 +1379,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('radians', [$x]);
+        return new Func('radians', [$x]);
     }
 
     /**
@@ -1397,7 +1395,7 @@ final class Expr
         ?int $n = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('rand', array_values(array_filter([$n], self::valueNotNull(...))));
+        return new Func('rand', array_values(array_filter([$n], self::valueNotNull(...))));
     }
 
     /**
@@ -1415,7 +1413,7 @@ final class Expr
         ?int $d = null
     ): QueryExpressionInterface
     {
-        return new Expression\Func('round', array_values(array_filter([$x, $d], self::valueNotNull(...))));
+        return new Func('round', array_values(array_filter([$x, $d], self::valueNotNull(...))));
     }
 
     /**
@@ -1431,7 +1429,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('sign', [$x]);
+        return new Func('sign', [$x]);
     }
 
     /**
@@ -1447,7 +1445,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('sin', [$x]);
+        return new Func('sin', [$x]);
     }
 
     /**
@@ -1463,7 +1461,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('sqrt', [$x]);
+        return new Func('sqrt', [$x]);
     }
 
     /**
@@ -1479,7 +1477,7 @@ final class Expr
         QueryValueInterface|Stringable|string|int|float|bool $x
     ): QueryExpressionInterface
     {
-        return new Expression\Func('tan', [$x]);
+        return new Func('tan', [$x]);
     }
 
     /**
@@ -1497,7 +1495,7 @@ final class Expr
         int $d
     ): QueryExpressionInterface
     {
-        return new Expression\Func('truncate', [$x, $d]);
+        return new Func('truncate', [$x, $d]);
     }
 
     #endregion
@@ -1515,7 +1513,7 @@ final class Expr
      */
     public static function concat(iterable $values): QueryExpressionInterface
     {
-        return new Expression\Func('concat', [...$values]);
+        return new Func('concat', [...$values]);
     }
 
     /**
@@ -1533,7 +1531,7 @@ final class Expr
         iterable $values
     ): QueryExpressionInterface
     {
-        return new Expression\Func('concat_ws', [$separator, ...$values]);
+        return new Func('concat_ws', [$separator, ...$values]);
     }
 
     /**
@@ -1555,7 +1553,7 @@ final class Expr
         bool $queryExpansion = false
     ): QueryExpressionInterface
     {
-        return new Expression\MatchAgainst($fields, $expr, $booleanMode, $queryExpansion);
+        return new MatchAgainst($fields, $expr, $booleanMode, $queryExpansion);
     }
 
     #endregion
@@ -1565,13 +1563,13 @@ final class Expr
     /**
      * Returns a new CASE expression builder.
      *
-     * @return Expression\CaseStatement
+     * @return CaseStatement
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */
-    public static function case(): Expression\CaseStatement
+    public static function case(): CaseStatement
     {
-        return new Expression\CaseStatement();
+        return new CaseStatement();
     }
 
     /**
@@ -1590,7 +1588,7 @@ final class Expr
         QueryExpressionInterface|QueryValueInterface $then
     ): QueryExpressionInterface
     {
-        return new Expression\When($when, $then);
+        return new When($when, $then);
     }
 
     #endregion
@@ -1610,7 +1608,7 @@ final class Expr
             $expr = self::subQuery($expr);
         }
 
-        return new Expression\Exists($expr);
+        return new Exists($expr);
     }
 
     /**
@@ -1628,7 +1626,7 @@ final class Expr
         array $params
     ): QueryExpressionInterface
     {
-        return new Expression\Func($name, $params);
+        return new Func($name, $params);
     }
 
     /**
@@ -1642,7 +1640,7 @@ final class Expr
      */
     public static function sha1(QueryValueInterface|Stringable|string|int|float $value): QueryExpressionInterface
     {
-        return new Expression\Func('sha1', [$value]);
+        return new Func('sha1', [$value]);
     }
 
     /**
@@ -1656,14 +1654,14 @@ final class Expr
      */
     public static function subQuery(QueryInterface $query): QueryExpressionInterface
     {
-        return new Expression\SubQuery($query);
+        return new SubQuery($query);
     }
 
     /**
      * `@$name:= ($subQuery)`
      *
      * @param string $name
-     * @param QueryInterface|Expression\SubQuery $subQuery
+     * @param QueryInterface|SubQuery $subQuery
      *
      * @return QueryExpressionInterface
      * @author Bas Milius <bas@mili.us>
@@ -1671,14 +1669,14 @@ final class Expr
      */
     public static function variable(
         string $name,
-        QueryInterface|Expression\SubQuery $subQuery
+        QueryInterface|SubQuery $subQuery
     ): QueryExpressionInterface
     {
         if ($subQuery instanceof QueryInterface) {
             $subQuery = self::subQuery($subQuery);
         }
 
-        return new Expression\Variable($name, $subQuery);
+        return new Variable($name, $subQuery);
     }
 
     /**
@@ -1694,4 +1692,5 @@ final class Expr
     {
         return $value !== null;
     }
+
 }

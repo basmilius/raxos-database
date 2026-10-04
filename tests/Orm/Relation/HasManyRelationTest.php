@@ -13,7 +13,6 @@ beforeEach(function (): void {
     $this->connection = unitRelations();
 });
 
-
 it('returns sorted matching rows and empty collections equally for lazy and eager reads', function (bool $eager): void {
     $query = UnitDepartment::select()->orderBy('id');
     if ($eager) {

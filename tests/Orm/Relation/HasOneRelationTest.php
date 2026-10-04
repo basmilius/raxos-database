@@ -11,7 +11,6 @@ beforeEach(function (): void {
     $this->connection = unitRelations();
 });
 
-
 it('selects the first ordered match for lazy, eager and partially cached relations', function (bool $eager, bool $warm): void {
     if ($warm) {
         UnitTeam::singleOrFail(10);

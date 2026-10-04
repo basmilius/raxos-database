@@ -22,6 +22,7 @@ use function strtolower;
  */
 final readonly class Func implements QueryExpressionInterface
 {
+
     /**
      * Func constructor.
      *
@@ -65,4 +66,5 @@ final readonly class Func implements QueryExpressionInterface
         $query->compileMultiple($this->params);
         $query->raw(')');
     }
+
 }

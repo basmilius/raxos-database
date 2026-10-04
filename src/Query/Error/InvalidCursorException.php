@@ -17,6 +17,7 @@ use Raxos\Error\Exception;
  */
 final class InvalidCursorException extends Exception implements QueryExceptionInterface
 {
+
     /**
      * Rejects cursor input without exposing query bindings or database details.
      *
@@ -29,4 +30,5 @@ final class InvalidCursorException extends Exception implements QueryExceptionIn
     {
         parent::__construct('db_query_invalid_cursor', $message);
     }
+
 }

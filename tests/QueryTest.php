@@ -3,11 +3,13 @@ declare(strict_types=1);
 
 use Raxos\Database\Connection\SQLite;
 use Raxos\Database\Db;
+use Raxos\Database\Query\{Expr, Piece, Query};
+use Raxos\Database\Query\Error\{IncompleteException, MissingAliasException, MissingResultException, UnsupportedException};
 use Raxos\Database\Query\Literal\Literal;
 use RaxosTests\Database\SoftModel;
 use function Raxos\Database\Query\column;
 
-covers(Raxos\Database\Query\Query::class);
+covers(Query::class);
 
 beforeEach(function (): void {
     $this->connection = new SQLite('sqlite::memory:');
@@ -117,7 +119,6 @@ it('ignores parentheses in SQL literals and comments when placing model predicat
     "1 = 1 -- )\n",
 ]);
 
-
 it('executes membership, null and negation predicates including empty lists', function (string $method, array $values, array $ids): void {
     $query = Db::query()->select('id')->from('items')->orderBy('id');
     $query->$method(column('group_id'), $values);
@@ -164,17 +165,17 @@ it('rejects incomplete inserts, negative pagination and absent scalar results', 
     foreach ([fn() => Db::query()->insertIntoValues('items', []), fn() => Db::query()->insertInto('items', []),
                  fn() => Db::query()->insertIgnoreIntoValues('items', []), fn() => Db::query()->limit(-1),
                  fn() => Db::query()->limit(1, -1), fn() => Db::query()->offset(-1)] as $operation) {
-        expect($operation)->toThrow(Raxos\Database\Query\Error\IncompleteException::class);
+        expect($operation)->toThrow(IncompleteException::class);
     }
-    expect(fn() => Db::query()->select()->from('items')->where(column('id'), 99)->singleOrFail())->toThrow(Raxos\Database\Query\Error\MissingResultException::class);
+    expect(fn() => Db::query()->select()->from('items')->where(column('id'), 99)->singleOrFail())->toThrow(MissingResultException::class);
 });
 
 it('selects aliased expressions, scalar literals and merged fields without changing parameter values', function (): void {
-    $query = Db::query()->select(['identifier' => column('id'), 'total' => Raxos\Database\Query\Expr::add(column('group_id'), 2), 'zero' => 0, 'enabled' => false])
+    $query = Db::query()->select(['identifier' => column('id'), 'total' => Expr::add(column('group_id'), 2), 'zero' => 0, 'enabled' => false])
         ->select('group_id')->from('items')->where(column('id'), 1);
     expect($query->single())->toBe(['identifier' => 1, 'total' => 3, 'zero' => 0, 'enabled' => 0, 'group_id' => 1]);
-    expect(fn() => Db::query()->select([['bad']]))->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
-    expect(fn() => Db::query()->select(Db::query()->select(1)))->toThrow(Raxos\Database\Query\Error\MissingAliasException::class);
+    expect(fn() => Db::query()->select([['bad']]))->toThrow(UnsupportedException::class);
+    expect(fn() => Db::query()->select(Db::query()->select(1)))->toThrow(MissingAliasException::class);
     expect(Db::query()->select(['sub' => Db::query()->select(7)])->single())->toBe(['sub' => 7]);
 });
 
@@ -223,10 +224,10 @@ it('supports grouped HAVING predicates, conditional composition and custom pagin
 
 it('reports query debug state and removes or replaces sorting clauses consistently', function (): void {
     $query = Db::query()->select('id')->from('items')->orderBy('id')->limit(1);
-    $query->removeClause('order by')->replaceClause('limit', static fn($piece) => new Raxos\Database\Query\Piece($piece->clause, 2));
+    $query->removeClause('order by')->replaceClause('limit', static fn($piece) => new Piece($piece->clause, 2));
     expect($query->array())->toHaveCount(2)->and($query->isClauseDefined('order by'))->toBeFalse()
         ->and($query->jsonSerialize())->toBe($query->toSql())->and((string)$query)->toBe($query->toSql())
         ->and($query->__debugInfo()['type'])->toBe('PREPARED QUERY');
-    expect(fn() => $query->forShare())->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
-    expect(fn() => $query->forUpdate())->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
+    expect(fn() => $query->forShare())->toThrow(UnsupportedException::class);
+    expect(fn() => $query->forUpdate())->toThrow(UnsupportedException::class);
 });

@@ -13,7 +13,6 @@ beforeEach(function (): void {
     $this->connection = unitRelations();
 });
 
-
 it('loads a single related model through the linking model and handles missing links', function (bool $eager): void {
     $query = UnitDepartment::select()->whereIn(UnitDepartment::col('id'), [2, 3])->orderBy('id');
     if ($eager) {

@@ -43,6 +43,7 @@ final readonly class MacroDefinition extends PropertyDefinition
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */

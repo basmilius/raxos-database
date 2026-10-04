@@ -509,4 +509,5 @@ class Db
 
         $connection->afterCommit($fn);
     }
+
 }

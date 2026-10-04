@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Raxos\Database\Logger\QueryEvent;
+use Raxos\Database\Query\Literal\Literal;
 use Raxos\Foundation\Util\Stopwatch;
 use function RaxosTests\Database\unitQuery;
 
@@ -12,7 +13,7 @@ it('escapes raw SQL and bound values in the HTML report including the backtrace'
     $watch->run(static fn() => null);
     $raw = new QueryEvent('SELECT "<script>bad</script>"', $watch);
     expect($raw->print(true))->toContain('&lt;script&gt;bad&lt;/script&gt;')->not->toContain('<script>')->toContain('_raxos_database_report_trace');
-    $query = unitQuery()->select(1)->where(Raxos\Database\Query\Literal\Literal::of(1), '<img src=x onerror=alert(1)>');
+    $query = unitQuery()->select(1)->where(Literal::of(1), '<img src=x onerror=alert(1)>');
     $event = new QueryEvent($query, $watch);
     expect($event->print(true))->toContain('&lt;img')->not->toContain('<img')->toContain('<abbr title=');
 });

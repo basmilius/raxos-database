@@ -11,7 +11,6 @@ beforeEach(function (): void {
     $this->connection = unitAccounts();
 });
 
-
 it('serializes aliases, defaults, nullable enums, embedded values and cached macros', function (): void {
     $model = UnitAccount::singleOrFail(1);
     $data = $model->toArray();

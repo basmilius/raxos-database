@@ -3,13 +3,12 @@ declare(strict_types=1);
 
 use Raxos\Database\Connection\SQLite;
 use Raxos\Database\Db;
-use Raxos\Database\Logger\QueryEvent;
+use Raxos\Database\Logger\{Event, QueryEvent};
 use Raxos\Database\Orm\Cache;
 use Raxos\Database\Orm\Caster\JsonCaster;
+use Raxos\Database\Query\Error\RollbackOnlyTransactionException;
 use Raxos\Error\InvalidArgumentException;
-use RaxosTests\Database\ChildModel;
-use RaxosTests\Database\ParentModel;
-use RaxosTests\Database\SoftModel;
+use RaxosTests\Database\{ChildModel, ParentModel, SoftModel};
 
 beforeEach(function (): void {
     $this->connection = new SQLite('sqlite::memory:');
@@ -80,13 +79,13 @@ it('eager loads cursor relations once per batch and releases streamed identities
     ParentModel::select()->limit(1)->array();
     $this->connection->cache->flushAll();
     $this->connection->logger->enable();
-    $before = count(array_filter(new ReflectionProperty($this->connection->logger, 'events')->getValue($this->connection->logger), static fn(Raxos\Database\Logger\Event $event) => $event instanceof QueryEvent));
+    $before = count(array_filter(new ReflectionProperty($this->connection->logger, 'events')->getValue($this->connection->logger), static fn(Event $event) => $event instanceof QueryEvent));
     $seen = [];
     foreach (ParentModel::select()->orderBy(ParentModel::col('id'))->eagerLoad('children')->cursor(batchSize: 100) as $parent) {
         $seen[] = $parent->id;
         expect($parent->children->first()->parent_id)->toBe($parent->id);
     }
-    $after = count(array_filter(new ReflectionProperty($this->connection->logger, 'events')->getValue($this->connection->logger), static fn(Raxos\Database\Logger\Event $event) => $event instanceof QueryEvent));
+    $after = count(array_filter(new ReflectionProperty($this->connection->logger, 'events')->getValue($this->connection->logger), static fn(Event $event) => $event instanceof QueryEvent));
     expect($seen)->toBe(range(1, 250));
     expect($after - $before)->toBe(4);
     expect($this->connection->cache->has(ParentModel::class, 1))->toBeFalse();
@@ -176,7 +175,7 @@ it('marks the outer transaction rollback-only after an inner rollback', function
     $connection->transaction();
     $connection->execute("INSERT INTO parents VALUES (201,201,'inner')");
     $connection->rollBack();
-    expect(fn(): bool => $connection->commit())->toThrow(Raxos\Database\Query\Error\RollbackOnlyTransactionException::class);
+    expect(fn(): bool => $connection->commit())->toThrow(RollbackOnlyTransactionException::class);
     expect($connection->column('SELECT name FROM parents WHERE id = 200'))->toBeFalse()
         ->and($connection->column('SELECT name FROM parents WHERE id = 201'))->toBeFalse();
 });

@@ -12,6 +12,7 @@ namespace Raxos\Database\Query;
  */
 enum DateTimeUnit: string
 {
+
     case MICROSECOND = 'microsecond';
     case SECOND = 'second';
     case MINUTE = 'minute';
@@ -21,4 +22,5 @@ enum DateTimeUnit: string
     case MONTH = 'month';
     case QUARTER = 'quarter';
     case YEAR = 'year';
+
 }

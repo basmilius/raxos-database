@@ -31,6 +31,7 @@ final readonly class Literal implements QueryLiteralInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      */

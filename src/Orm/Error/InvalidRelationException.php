@@ -15,6 +15,7 @@ use Raxos\Error\Exception;
  */
 final class InvalidRelationException extends Exception implements OrmExceptionInterface
 {
+
     /**
      * InvalidRelationException constructor.
      *

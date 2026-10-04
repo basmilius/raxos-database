@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 use Raxos\Database\Connection\MySql;
 use Raxos\Database\Error\{InvalidOptionException, InvalidTableException, MissingOptionException};
+use Raxos\Database\Query\MySqlQuery;
 use function RaxosTests\Database\unitConnection;
 
 covers(MySql::class);
 
 it('creates the correct driver builder without opening a connection', function (): void {
     $connection = MySql::createFromOptions(host: 'localhost', port: 3306, database: 'unit');
-    expect($connection->connected)->toBeFalse()->and($connection->query())->toBeInstanceOf(Raxos\Database\Query\MySqlQuery::class);
+    expect($connection->connected)->toBeFalse()->and($connection->query())->toBeInstanceOf(MySqlQuery::class);
 });
 
 it('loads real table schemas and distinguishes unknown tables and columns', function (): void {
@@ -29,7 +30,6 @@ it('loads real table schemas and distinguishes unknown tables and columns', func
         $connection->execute('DROP TABLE IF EXISTS raxos_unit_schema');
     }
 });
-
 
 it('rejects incomplete and conflicting connection options', function (): void {
     expect(fn() => MySql::createFromOptions())->toThrow(MissingOptionException::class);

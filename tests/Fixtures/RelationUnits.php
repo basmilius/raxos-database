@@ -4,12 +4,13 @@ declare(strict_types=1);
 namespace RaxosTests\Database;
 
 use Raxos\Contract\Database\ConnectionInterface;
-use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, Column, HasMany, HasManyThrough, HasOne, HasOneThrough, PrimaryKey, Table};
 use Raxos\Database\Orm\{Model, ModelArrayList};
+use Raxos\Database\Orm\Attribute\{BelongsTo, BelongsToMany, BelongsToThrough, Column, HasMany, HasManyThrough, HasOne, HasOneThrough, PrimaryKey, Table};
 
 #[Table('unit_departments')]
 final class UnitDepartment extends Model
 {
+
     #[PrimaryKey]
     public int $id;
     #[Column]
@@ -22,11 +23,13 @@ final class UnitDepartment extends Model
     public ModelArrayList $members;
     #[HasOneThrough(UnitTeam::class, referenceLinkingKey: 'lead_id', declaringLinkingKey: 'department_id')]
     public ?UnitMember $leader;
+
 }
 
 #[Table('unit_teams')]
 final class UnitTeam extends Model
 {
+
     #[PrimaryKey]
     public int $id;
     #[Column]
@@ -35,11 +38,13 @@ final class UnitTeam extends Model
     public ?int $lead_id;
     #[BelongsTo(declaringKey: 'department_id')]
     public ?UnitDepartment $department;
+
 }
 
 #[Table('unit_members')]
 final class UnitMember extends Model
 {
+
     #[PrimaryKey]
     public int $id;
     #[Column]
@@ -48,15 +53,18 @@ final class UnitMember extends Model
     public ?UnitDepartment $department;
     #[BelongsToMany(UnitTag::class, linkingTable: 'unit_member_tags', declaringLinkingKey: 'member_id', referenceLinkingKey: 'tag_id', orderBy: 'unit_tags.id ASC')]
     public ModelArrayList $tags;
+
 }
 
 #[Table('unit_tags')]
 final class UnitTag extends Model
 {
+
     #[PrimaryKey]
     public int $id;
     #[Column]
     public string $name;
+
 }
 
 function unitRelations(): ConnectionInterface

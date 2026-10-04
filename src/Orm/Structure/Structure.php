@@ -164,6 +164,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -255,6 +256,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -274,6 +276,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -329,6 +332,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -339,6 +343,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -349,6 +354,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -371,6 +377,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -393,6 +400,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -405,6 +413,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -423,6 +432,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -478,6 +488,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -497,6 +508,7 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @throws DatabaseExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
@@ -523,4 +535,5 @@ final class Structure implements StructureInterface, SerializableInterface
         $this->isInitializable = is_subclass_of($this->class, InitializeInterface::class);
         $this->isBackboneInitializable = is_subclass_of($this->class, BackboneInitializedInterface::class);
     }
+
 }

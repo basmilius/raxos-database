@@ -32,6 +32,7 @@ final readonly class Raw implements QueryExpressionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */

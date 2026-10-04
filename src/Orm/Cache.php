@@ -25,6 +25,7 @@ use function ksort;
  */
 final class Cache implements CacheInterface, DebuggableInterface
 {
+
     /**
      * Retains shared instances until their owning cache or scope releases them.
      *
@@ -66,6 +67,7 @@ final class Cache implements CacheInterface, DebuggableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -81,6 +83,7 @@ final class Cache implements CacheInterface, DebuggableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -92,6 +95,7 @@ final class Cache implements CacheInterface, DebuggableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -103,6 +107,7 @@ final class Cache implements CacheInterface, DebuggableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -118,6 +123,7 @@ final class Cache implements CacheInterface, DebuggableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -133,6 +139,7 @@ final class Cache implements CacheInterface, DebuggableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -163,6 +170,7 @@ final class Cache implements CacheInterface, DebuggableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -257,6 +265,7 @@ final class Cache implements CacheInterface, DebuggableInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -289,4 +298,5 @@ final class Cache implements CacheInterface, DebuggableInterface
             }
         }
     }
+
 }

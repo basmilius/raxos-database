@@ -32,6 +32,7 @@ final class ParentModel extends Model
 
     #[HasOne(referenceKey: 'parent_id', declaringKey: 'id')]
     public ?ChildModel $child;
+
 }
 
 #[Table('children')]
@@ -49,6 +50,7 @@ final class ChildModel extends Model
 
     #[BelongsTo(referenceKey: 'external_key', declaringKey: 'parent_key')]
     public ?ParentModel $parent;
+
 }
 
 #[Table('soft_items'), SoftDelete('deleted_at')]
@@ -63,6 +65,7 @@ final class SoftModel extends Model
 
     #[Column]
     public ?string $deleted_at;
+
 }
 
 final class SpecializedModelArrayList extends ModelArrayList {}
@@ -87,4 +90,5 @@ final class CountedModel extends Model
     {
         return [...$columns, self::col('*'), 'quantity' => literal('greatest(`raxos_test_counts`.`quantity`, 2)')];
     }
+
 }

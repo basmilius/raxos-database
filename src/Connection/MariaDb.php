@@ -33,6 +33,7 @@ use function Raxos\Database\Query\literal;
  */
 class MariaDb extends Connection
 {
+
     /**
      * MariaDb constructor.
      *
@@ -65,6 +66,7 @@ class MariaDb extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.3.0
      */
@@ -81,6 +83,7 @@ class MariaDb extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.3.0
      */
@@ -91,6 +94,7 @@ class MariaDb extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -110,6 +114,7 @@ class MariaDb extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @deprecated 2.3.0
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
@@ -126,6 +131,7 @@ class MariaDb extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -155,6 +161,7 @@ class MariaDb extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.3.0
      */
@@ -182,6 +189,7 @@ class MariaDb extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -258,4 +266,5 @@ class MariaDb extends Connection
 
         return new self($dsn, $username, $password, $options, $cache, $logger);
     }
+
 }

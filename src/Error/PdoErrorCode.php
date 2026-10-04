@@ -12,6 +12,7 @@ namespace Raxos\Database\Error;
  */
 enum PdoErrorCode: int
 {
+
     case UNKNOWN = -1;
     case ACCESS_DENIED = 1045;
     case ACCESS_DENIED_PASSWORD = 1698;
@@ -38,4 +39,5 @@ enum PdoErrorCode: int
             self::UNKNOWN_DATABASE => 'db_unknown_database'
         };
     }
+
 }

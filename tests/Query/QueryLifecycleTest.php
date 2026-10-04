@@ -22,6 +22,7 @@ it('runs callable and interface primers around eager relations once per hydrated
         $trace[] = ['before', $models->count()];
     };
     $after = new class($trace) implements PrimerInterface {
+
         public function __construct(public array &$trace) {}
 
         public function prime(ArrayListInterface $models, ConnectionInterface $connection): void
@@ -31,6 +32,7 @@ it('runs callable and interface primers around eager relations once per hydrated
             }
             $this->trace[] = ['after', $models->count()];
         }
+
     };
     $query = UnitDepartment::select()->orderBy('id')->eagerLoad('teams')->prime($before, PrimerTiming::BeforeRelations)->prime($after);
     expect($query->arrayList())->toHaveCount(3)->and($trace)->toBe([['before', 3], ['after', 3]]);

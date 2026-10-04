@@ -40,6 +40,7 @@ use function strtolower;
  */
 abstract class Connection implements TransactionalConnectionInterface
 {
+
     /**
      * Provides the native driver handle while this connection is open.
      *
@@ -96,6 +97,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -105,6 +107,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -138,6 +141,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -150,6 +154,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -194,6 +199,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -222,6 +228,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -234,6 +241,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -246,6 +254,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.8.0
      */
@@ -265,6 +274,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -278,6 +288,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -297,6 +308,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -310,6 +322,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -375,6 +388,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -407,6 +421,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -512,6 +527,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -525,6 +541,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -539,6 +556,7 @@ abstract class Connection implements TransactionalConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -660,4 +678,5 @@ abstract class Connection implements TransactionalConnectionInterface
             || str_contains($message, 'lost connection')
             || str_contains($message, 'broken pipe');
     }
+
 }

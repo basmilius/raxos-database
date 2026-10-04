@@ -60,6 +60,7 @@ final class CaseStatement implements QueryExpressionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.1.0
      */

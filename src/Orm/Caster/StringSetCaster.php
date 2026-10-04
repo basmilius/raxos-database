@@ -23,6 +23,7 @@ final readonly class StringSetCaster implements CasterInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -37,6 +38,7 @@ final readonly class StringSetCaster implements CasterInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */

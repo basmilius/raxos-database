@@ -11,7 +11,6 @@ beforeEach(function (): void {
     $this->connection = unitRelations();
 });
 
-
 it('uses cached primary-key identities and returns null for missing references', function (bool $eager, bool $warm): void {
     if ($warm) {
         UnitDepartment::singleOrFail(1);

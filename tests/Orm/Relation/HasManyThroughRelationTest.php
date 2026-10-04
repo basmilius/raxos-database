@@ -13,7 +13,6 @@ beforeEach(function (): void {
     $this->connection = unitRelations();
 });
 
-
 it('loads ordered members through teams and reuses the correct per-parent grouping', function (bool $eager): void {
     UnitMember::singleOrFail(100);
     $query = UnitDepartment::select()->orderBy('id');

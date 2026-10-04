@@ -94,6 +94,7 @@ abstract class Model implements ArrayAccess, DebuggableInterface, MutableModelIn
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -104,6 +105,7 @@ abstract class Model implements ArrayAccess, DebuggableInterface, MutableModelIn
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -121,6 +123,7 @@ abstract class Model implements ArrayAccess, DebuggableInterface, MutableModelIn
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -138,6 +141,7 @@ abstract class Model implements ArrayAccess, DebuggableInterface, MutableModelIn
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -174,6 +178,7 @@ abstract class Model implements ArrayAccess, DebuggableInterface, MutableModelIn
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -184,6 +189,7 @@ abstract class Model implements ArrayAccess, DebuggableInterface, MutableModelIn
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */

@@ -8,24 +8,30 @@ use Raxos\Database\Orm\Attribute\{Alias, Caster, Column, Computed, ConnectionId,
 use Raxos\Database\Orm\Caster\JsonCaster;
 use Raxos\Database\Orm\Model;
 use Raxos\Database\Query\Expr;
+use stdClass;
 
 enum UnitAccountState: string
 {
+
     case Active = 'active';
     case Disabled = 'disabled';
+
 }
 
 #[Embeddable]
 final class UnitAddress
 {
+
     #[Column]
     public ?string $city = null;
     #[Column, Alias('postal')]
     public ?string $zip = null;
+
 }
 
 final class UnitAccountMacros
 {
+
     public static int $calls = 0;
 
     public static function label(UnitAccount $account): string
@@ -34,11 +40,13 @@ final class UnitAccountMacros
 
         return strtoupper($account->name);
     }
+
 }
 
 #[Table('unit_accounts')]
 class UnitAccount extends Model
 {
+
     #[PrimaryKey]
     public int $id;
     #[Column('display_name'), Alias('label')]
@@ -64,13 +72,16 @@ class UnitAccount extends Model
     {
         return [...$columns, self::col('*'), 'doubled' => Expr::mul(self::col('id'), 2)];
     }
+
 }
 
 #[Table('unit_accounts'), ConnectionId('unit-secondary')]
 class UnitNamedBase extends Model
 {
+
     #[PrimaryKey]
     public int $id;
+
 }
 
 final class UnitNamedChild extends UnitNamedBase {}
@@ -78,52 +89,66 @@ final class UnitNamedChild extends UnitNamedBase {}
 #[Table('unit_accounts')]
 final class UnitSecretView extends Model
 {
+
     #[PrimaryKey]
     public int $id;
     #[Column('secret')]
     public string $name;
+
 }
 
 final class UnitMissingTable extends Model
 {
+
     #[PrimaryKey]
     public int $id;
+
 }
 
 #[Table('unit_accounts')]
 final class UnitInvalidCaster extends Model
 {
-    #[Column, Caster(\stdClass::class)]
+
+    #[Column, Caster(stdClass::class)]
     public string $data;
+
 }
 
 #[Table('unit_accounts')]
 final class UnitInvalidEmbedded extends Model
 {
+
     #[Embedded]
-    public \stdClass $address;
+    public stdClass $address;
+
 }
 
 #[Table('unit_accounts')]
 final class UnitNoPrimaryKey extends Model
 {
+
     #[Column('display_name')]
     public string $name;
+
 }
 
 #[Table('unit_animals'), Polymorphic(column: 'kind', map: ['cat' => UnitCat::class])]
 class UnitAnimal extends Model
 {
+
     #[PrimaryKey]
     public int $id;
     #[Column]
     public string $kind;
+
 }
 
 final class UnitCat extends UnitAnimal
 {
+
     #[Column]
     public string $name;
+
 }
 
 function unitAccounts(): ConnectionInterface

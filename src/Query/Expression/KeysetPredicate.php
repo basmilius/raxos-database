@@ -20,6 +20,7 @@ use Raxos\Contract\Database\Query\QueryInterface;
  */
 final readonly class KeysetPredicate implements QueryExpressionInterface
 {
+
     /**
      * Pairs ordered columns with the last row's values for the continuation boundary.
      *
@@ -77,4 +78,5 @@ final readonly class KeysetPredicate implements QueryExpressionInterface
 
         $query->raw(')');
     }
+
 }

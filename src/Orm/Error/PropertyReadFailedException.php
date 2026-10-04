@@ -16,6 +16,7 @@ use Throwable;
  */
 final class PropertyReadFailedException extends Exception implements OrmExceptionInterface
 {
+
     /**
      * PropertyReadFailedException constructor.
      *

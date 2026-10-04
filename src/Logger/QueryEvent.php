@@ -23,6 +23,7 @@ use const ENT_SUBSTITUTE;
  */
 final readonly class QueryEvent extends Event
 {
+
     /**
      * QueryEvent constructor.
      *
@@ -42,6 +43,7 @@ final readonly class QueryEvent extends Event
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -99,4 +101,5 @@ final readonly class QueryEvent extends Event
 
         return $cache;
     }
+
 }

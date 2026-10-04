@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Raxos\Database\Orm\Backbone;
+use Raxos\Database\Orm\Error\{ImmutableException, ImmutableMacroException, ImmutablePrimaryKeyException, NotFoundException, PropertyWriteFailedException};
 use RaxosTests\Database\{UnitAccount, UnitAddress};
 use function RaxosTests\Database\unitAccounts;
 
@@ -10,7 +11,6 @@ covers(Backbone::class);
 beforeEach(function (): void {
     $this->connection = unitAccounts();
 });
-
 
 it('tracks dirty values, resets derived caches on save and reloads database changes', function (): void {
     $model = UnitAccount::singleOrFail(1);
@@ -32,16 +32,16 @@ it('protects existing primary keys, immutable fields and macros with their origi
     $model = UnitAccount::singleOrFail(1);
     try {
         $model->setValue($property, $value);
-    } catch (Raxos\Database\Orm\Error\PropertyWriteFailedException $error) {
+    } catch (PropertyWriteFailedException $error) {
         expect($error->getPrevious())->toBeInstanceOf($cause)->and($model->backbone->currentInstance)->toBeNull();
 
         return;
     }
     test()->fail('Expected an immutable write error.');
 })->with([
-    ['id', 9, Raxos\Database\Orm\Error\ImmutablePrimaryKeyException::class],
-    ['fixed', 'changed', Raxos\Database\Orm\Error\ImmutableException::class],
-    ['display', 'changed', Raxos\Database\Orm\Error\ImmutableMacroException::class],
+    ['id', 9, ImmutablePrimaryKeyException::class],
+    ['fixed', 'changed', ImmutableException::class],
+    ['display', 'changed', ImmutableMacroException::class],
 ]);
 
 it('round trips embedded changes and clears nullable embedded columns on save', function (): void {
@@ -71,5 +71,5 @@ it('runs queued save tasks in order once and reports missing reloaded records', 
     $model->save();
     expect($trace)->toBe([1, 2]);
     $this->connection->execute('DELETE FROM unit_accounts WHERE id=1');
-    expect(fn() => $model->backbone->reload())->toThrow(Raxos\Database\Orm\Error\NotFoundException::class);
+    expect(fn() => $model->backbone->reload())->toThrow(NotFoundException::class);
 });

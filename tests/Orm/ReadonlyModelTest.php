@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Raxos\Database\Orm\Error\ReadonlyModelException;
 use Raxos\Database\Orm\ReadonlyModel;
 use RaxosTests\Database\{ParentModel, UnitAccount};
 use function RaxosTests\Database\unitAccounts;
@@ -11,13 +12,12 @@ beforeEach(function (): void {
     $this->connection = unitAccounts();
 });
 
-
 it('rejects writes, unsets and method calls while retaining read and visibility access', function (): void {
     $model = UnitAccount::singleOrFail(1)->readonly();
     expect($model->readonly())->toBe($model)->and($model->only('label')->toArray())->toBe(['label' => 'Bas']);
-    expect(fn() => $model->setValue('name', 'Changed'))->toThrow(Raxos\Database\Orm\Error\ReadonlyModelException::class);
-    expect(fn() => $model->unsetValue('name'))->toThrow(Raxos\Database\Orm\Error\ReadonlyModelException::class);
-    expect(fn() => $model->save())->toThrow(Raxos\Database\Orm\Error\ReadonlyModelException::class);
+    expect(fn() => $model->setValue('name', 'Changed'))->toThrow(ReadonlyModelException::class);
+    expect(fn() => $model->unsetValue('name'))->toThrow(ReadonlyModelException::class);
+    expect(fn() => $model->save())->toThrow(ReadonlyModelException::class);
 });
 
 it('returns readonly versions of related models and collections', function (): void {

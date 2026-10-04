@@ -37,6 +37,7 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -47,6 +48,7 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -57,6 +59,7 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -70,6 +73,7 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -80,6 +84,7 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.19
      */
@@ -90,6 +95,7 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.19
      */
@@ -100,6 +106,7 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -107,4 +114,5 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
     {
         return $this->data;
     }
+
 }

@@ -20,6 +20,7 @@ use Raxos\Database\Query\Expression\ColumnRef;
  */
 final class RelationHelper
 {
+
     /**
      * Composes a column reference based on the given column and table.
      *
@@ -161,4 +162,5 @@ final class RelationHelper
             $uncached
         ];
     }
+
 }

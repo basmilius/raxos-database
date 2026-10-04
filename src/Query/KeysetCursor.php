@@ -35,6 +35,7 @@ use const JSON_THROW_ON_ERROR;
  */
 final class KeysetCursor
 {
+
     /**
      * Validates the cursor version, size and query fingerprint before returning its boundary values.
      *
@@ -134,4 +135,5 @@ final class KeysetCursor
 
         return $value;
     }
+
 }

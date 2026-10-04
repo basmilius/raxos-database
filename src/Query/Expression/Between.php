@@ -33,6 +33,7 @@ final readonly class Between implements QueryExpressionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */

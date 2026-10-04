@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Raxos\Database\Orm\Error\MissingFunctionException;
 use Raxos\Database\Orm\Model;
 use RaxosTests\Database\{ParentModel, UnitAccount, UnitAccountState};
 use function RaxosTests\Database\unitAccounts;
@@ -10,7 +11,6 @@ covers(Model::class);
 beforeEach(function (): void {
     $this->connection = unitAccounts();
 });
-
 
 it('writes new and dirty models and shares changes with visibility and readonly views', function (): void {
     $model = UnitAccount::singleOrFail(1);
@@ -35,6 +35,6 @@ it('writes new and dirty models and shares changes with visibility and readonly 
 it('queries declared relations and rejects calls to ordinary properties', function (): void {
     $parent = ParentModel::singleOrFail(1);
     expect($parent->children()->resultCount())->toBe(2);
-    expect(fn() => $parent->name())->toThrow(Raxos\Database\Orm\Error\MissingFunctionException::class);
+    expect(fn() => $parent->name())->toThrow(MissingFunctionException::class);
     expect($parent->backbone->currentInstance)->toBeNull();
 });

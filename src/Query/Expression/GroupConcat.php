@@ -21,6 +21,7 @@ use Stringable;
  */
 final readonly class GroupConcat implements QueryExpressionInterface
 {
+
     /**
      * GroupConcat constructor.
      *
@@ -45,6 +46,7 @@ final readonly class GroupConcat implements QueryExpressionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
      */
@@ -67,4 +69,5 @@ final readonly class GroupConcat implements QueryExpressionInterface
         $this->offset && $query->raw(" offset {$this->offset}");
         $query->raw(')');
     }
+
 }

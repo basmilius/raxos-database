@@ -33,6 +33,7 @@ final readonly class PolymorphicDefinition implements JsonSerializable
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */

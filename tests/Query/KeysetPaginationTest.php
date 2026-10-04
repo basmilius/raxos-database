@@ -8,9 +8,8 @@ use Raxos\Database\Orm\Structure\StructureGenerator;
 use Raxos\Database\Query\Error\InvalidCursorException;
 use Raxos\Database\Query\Expression\ColumnRef;
 use Raxos\Database\Query\Query;
-use RaxosTests\Database\ChildModel;
-use RaxosTests\Database\ParentModel;
-use function RaxosTests\Database\unitConnection;
+use RaxosTests\Database\{ChildModel, ParentModel};
+use function RaxosTests\Database\{unitConnection, unitOrm};
 
 covers(Query::class);
 
@@ -87,7 +86,7 @@ it('rejects unusable sort columns and bounded cursor payloads', function (array 
 })->with([[[]], [[[]]], [[null]], [['id', 'id']], [['id; DROP TABLE users']], [['missing' => 'id']]]);
 
 it('releases ORM identities after early termination and respects compound eager-loading batches', function (): void {
-    $connection = RaxosTests\Database\unitOrm();
+    $connection = unitOrm();
 
     for ($id = 2; $id <= 9; ++$id) {
         $connection->query()->insertIntoValues('parents', ['id' => $id, 'external_key' => $id, 'name' => 'parent'])->run();

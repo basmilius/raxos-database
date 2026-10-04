@@ -59,6 +59,7 @@ final class ReadonlyModel implements ArrayAccess, DebuggableInterface, ModelInte
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -118,6 +119,7 @@ final class ReadonlyModel implements ArrayAccess, DebuggableInterface, ModelInte
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -133,6 +135,7 @@ final class ReadonlyModel implements ArrayAccess, DebuggableInterface, ModelInte
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */

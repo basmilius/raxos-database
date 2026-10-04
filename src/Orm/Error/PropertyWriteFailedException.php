@@ -16,6 +16,7 @@ use Throwable;
  */
 final class PropertyWriteFailedException extends Exception implements OrmExceptionInterface
 {
+
     /**
      * PropertyWriteFailedException constructor.
      *

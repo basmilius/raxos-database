@@ -16,6 +16,7 @@ use Raxos\Error\Exception;
  */
 final class InvalidCasterException extends Exception implements OrmExceptionInterface
 {
+
     /**
      * InvalidCasterException constructor.
      *

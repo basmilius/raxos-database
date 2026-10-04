@@ -30,6 +30,7 @@ use Raxos\Database\Query\Literal\Literal;
  */
 final readonly class HasManyThroughRelation implements RelationInterface
 {
+
     /**
      * Identifies the owner property used to match related rows.
      *
@@ -134,6 +135,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -146,6 +148,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -163,6 +166,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -180,6 +184,7 @@ final readonly class HasManyThroughRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -246,4 +251,5 @@ final readonly class HasManyThroughRelation implements RelationInterface
             );
         }
     }
+
 }

@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
 
+use Raxos\Database\Orm\ModelArrayList;
 use Raxos\Database\Query\Error\{InvalidModelException, MissingModelException};
 use Raxos\Database\Query\Statement;
+use Raxos\Error\InvalidArgumentException;
 use RaxosTests\Database\ParentModel;
 use function RaxosTests\Database\{unitConnection, unitOrm};
 
@@ -29,7 +31,7 @@ it('streams actual rows and leaves the connection usable after early termination
     }
     unset($cursor);
     expect($connection->column('SELECT 3'))->toBe(3);
-    expect(fn() => iterator_to_array($statement->cursor(batchSize: 0)))->toThrow(Raxos\Error\InvalidArgumentException::class);
+    expect(fn() => iterator_to_array($statement->cursor(batchSize: 0)))->toThrow(InvalidArgumentException::class);
 });
 
 it('supports execution counts, arrays, collections and SQL null or no-row scalars', function (): void {
@@ -48,7 +50,7 @@ it('hydrates models and preserves the identity cache across repeated reads', fun
     $statement = new Statement($connection, 'SELECT * FROM parents WHERE id = 1')->withModel(ParentModel::class);
     $first = $statement->single();
     expect($first)->toBeInstanceOf(ParentModel::class)->and($first->name)->toBe('first')
-        ->and($statement->single()->backbone)->toBe($first->backbone)->and($statement->arrayList())->toBeInstanceOf(Raxos\Database\Orm\ModelArrayList::class);
+        ->and($statement->single()->backbone)->toBe($first->backbone)->and($statement->arrayList())->toBeInstanceOf(ModelArrayList::class);
     expect(fn() => $statement->createModel(new stdClass()))->toThrow(InvalidModelException::class);
     $statement->withoutModel();
     expect($statement->single())->toBe(['id' => 1, 'external_key' => 100, 'name' => 'first']);

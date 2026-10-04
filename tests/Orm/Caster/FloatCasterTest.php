@@ -12,7 +12,6 @@ beforeEach(function (): void {
     $this->model = ParentModel::singleOrFail(1);
 });
 
-
 it('round trips decimals, zero and nullable storage', function (mixed $value, ?float $expected): void {
     $caster = new FloatCaster();
     expect($caster->decode($value, $this->model))->toBe($expected);

@@ -52,6 +52,7 @@ abstract readonly class PropertyDefinition implements JsonSerializable
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */

@@ -50,6 +50,7 @@ final readonly class DeferredEvent extends Event
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */

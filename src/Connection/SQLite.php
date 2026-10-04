@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Connection;
 
+use Pdo\Sqlite as PdoSqlite;
 use PDOException;
 use Raxos\Contract\Database\{DatabaseExceptionInterface, LoggerInterface};
 use Raxos\Contract\Database\Orm\CacheInterface;
@@ -54,13 +55,14 @@ class SQLite extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
     public function connect(): void
     {
         try {
-            $this->pdo = new \Pdo\Sqlite(
+            $this->pdo = new PdoSqlite(
                 $this->dsn,
                 $this->username,
                 $this->password,
@@ -73,6 +75,7 @@ class SQLite extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -83,6 +86,7 @@ class SQLite extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */
@@ -113,6 +117,7 @@ class SQLite extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.1
      */
@@ -129,6 +134,7 @@ class SQLite extends Connection
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.4.0
      */

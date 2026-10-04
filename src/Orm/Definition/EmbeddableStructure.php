@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Raxos\Database\Orm\Definition;
 
+use Raxos\Database\Orm\Attribute\Embeddable;
+
 /**
  * Class EmbeddableStructure
  *
- * Holds the cached reflection data for an {@see \Raxos\Database\Orm\Attribute\Embeddable}
+ * Holds the cached reflection data for an {@see Embeddable}
  * class. Column keys are stored without prefix; the prefix is applied when creating
  * the {@see EmbeddedDefinition} on the model.
  *

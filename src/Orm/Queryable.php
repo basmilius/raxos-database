@@ -29,6 +29,7 @@ use function json_encode;
  */
 trait Queryable
 {
+
     /**
      * Returns the fully qualified name for the given column in an aliased table.
      *
@@ -739,4 +740,5 @@ trait Queryable
                 ->from(self::table())
         );
     }
+
 }

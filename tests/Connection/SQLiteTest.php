@@ -2,14 +2,16 @@
 declare(strict_types=1);
 
 use Raxos\Database\Connection\SQLite;
-use Raxos\Database\Error\{InvalidTableException};
+use Raxos\Database\Error\InvalidTableException;
+use Raxos\Database\Query\Error\UnsupportedException;
+use Raxos\Database\Query\SQLiteQuery;
 use function RaxosTests\Database\unitConnection;
 
 covers(SQLite::class);
 
 it('creates the correct driver builder without opening a connection', function (): void {
     $connection = SQLite::createFromInMemory();
-    expect($connection->connected)->toBeFalse()->and($connection->query())->toBeInstanceOf(Raxos\Database\Query\SQLiteQuery::class);
+    expect($connection->connected)->toBeFalse()->and($connection->query())->toBeInstanceOf(SQLiteQuery::class);
 });
 
 it('loads real table schemas and distinguishes unknown tables and columns', function (): void {
@@ -30,14 +32,13 @@ it('loads real table schemas and distinguishes unknown tables and columns', func
     }
 });
 
-
 it('supports file connections and explicitly rejects foundRows', function (): void {
     $file = tempnam(sys_get_temp_dir(), 'raxos-sqlite-');
     try {
         $connection = SQLite::createFromFile($file);
         $connection->connect();
         expect($connection->ping())->toBeTrue();
-        expect(fn() => $connection->foundRows())->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
+        expect(fn() => $connection->foundRows())->toThrow(UnsupportedException::class);
         $connection->disconnect();
         expect($connection->ping())->toBeFalse();
     } finally {

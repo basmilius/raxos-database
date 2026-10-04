@@ -26,8 +26,10 @@ use const JSON_THROW_ON_ERROR;
  */
 final readonly class JsonCaster implements CasterInterface
 {
+
     /**
      * {@inheritdoc}
+     *
      * @throws JsonException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
@@ -55,6 +57,7 @@ final readonly class JsonCaster implements CasterInterface
 
     /**
      * {@inheritdoc}
+     *
      * @throws JsonException
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
@@ -70,4 +73,5 @@ final readonly class JsonCaster implements CasterInterface
 
         return json_encode($value, JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_THROW_ON_ERROR);
     }
+
 }

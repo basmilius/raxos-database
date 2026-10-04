@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
 
+use Raxos\Database\Orm\Error\NotFoundException;
 use Raxos\Database\Orm\Queryable;
-use RaxosTests\Database\{UnitAccount};
+use RaxosTests\Database\{UnitAccount, UnitSecretView};
 use function RaxosTests\Database\unitAccounts;
 
 covers(Queryable::class);
@@ -13,11 +14,10 @@ beforeEach(function (): void {
 
 it('keeps column mappings separate for model views over the same table', function (): void {
     expect(UnitAccount::col('name')->column)->toBe('display_name')
-        ->and(RaxosTests\Database\UnitSecretView::col('name')->column)->toBe('secret')
+        ->and(UnitSecretView::col('name')->column)->toBe('secret')
         ->and(UnitAccount::alias('name', 'shared')->column)->toBe('display_name')
-        ->and(RaxosTests\Database\UnitSecretView::alias('name', 'shared')->column)->toBe('secret');
+        ->and(UnitSecretView::alias('name', 'shared')->column)->toBe('secret');
 });
-
 
 it('finds requested primary keys in caller order with warm and cold caches', function (): void {
     UnitAccount::singleOrFail(1);
@@ -25,7 +25,7 @@ it('finds requested primary keys in caller order with warm and cold caches', fun
     expect(array_map(static fn(UnitAccount $model): int => $model->id, $models->toArray()))->toBe([2, 1, 2])
         ->and(UnitAccount::find([])->isEmpty())->toBeTrue()->and(UnitAccount::exists(1))->toBeTrue()->and(UnitAccount::exists(99))->toBeFalse()
         ->and(UnitAccount::single(99))->toBeNull();
-    expect(fn() => UnitAccount::singleOrFail(99))->toThrow(Raxos\Database\Orm\Error\NotFoundException::class);
+    expect(fn() => UnitAccount::singleOrFail(99))->toThrow(NotFoundException::class);
 });
 
 it('exposes model table and aliased column references without dropping query filters', function (): void {

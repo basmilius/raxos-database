@@ -35,6 +35,7 @@ use function sort;
  */
 final readonly class BelongsToManyRelation implements RelationInterface
 {
+
     /**
      * Identifies the owner property used to match related rows.
      *
@@ -140,6 +141,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -152,6 +154,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -169,6 +172,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -262,4 +266,5 @@ final readonly class BelongsToManyRelation implements RelationInterface
             );
         }
     }
+
 }

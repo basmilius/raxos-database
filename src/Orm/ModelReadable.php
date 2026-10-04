@@ -30,6 +30,7 @@ use function sprintf;
  */
 trait ModelReadable
 {
+
     /**
      * Shares loaded values, changes and relations between views of the same model row.
      *
@@ -68,6 +69,7 @@ trait ModelReadable
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -86,6 +88,7 @@ trait ModelReadable
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -104,6 +107,7 @@ trait ModelReadable
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -141,6 +145,7 @@ trait ModelReadable
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -158,6 +163,7 @@ trait ModelReadable
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
      */
@@ -175,6 +181,7 @@ trait ModelReadable
 
     /**
      * {@inheritdoc}
+     *
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
@@ -186,6 +193,7 @@ trait ModelReadable
 
     /**
      * {@inheritdoc}
+     *
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
@@ -270,6 +278,7 @@ trait ModelReadable
 
     /**
      * {@inheritdoc}
+     *
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
@@ -281,6 +290,7 @@ trait ModelReadable
 
     /**
      * {@inheritdoc}
+     *
      * @throws OrmExceptionInterface
      * @author Bas Milius <bas@mili.us>
      * @since 3.1.0
@@ -351,4 +361,5 @@ trait ModelReadable
 
         return $result;
     }
+
 }

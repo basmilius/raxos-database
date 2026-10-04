@@ -35,6 +35,7 @@ readonly class MySqlGrammar extends Grammar
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -45,6 +46,7 @@ readonly class MySqlGrammar extends Grammar
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -55,6 +57,7 @@ readonly class MySqlGrammar extends Grammar
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -65,6 +68,7 @@ readonly class MySqlGrammar extends Grammar
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -75,6 +79,7 @@ readonly class MySqlGrammar extends Grammar
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      */
@@ -88,6 +93,7 @@ readonly class MySqlGrammar extends Grammar
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.5.0
      */

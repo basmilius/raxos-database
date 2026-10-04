@@ -36,6 +36,7 @@ final readonly class Partial implements QueryExpressionInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.0.0
      */

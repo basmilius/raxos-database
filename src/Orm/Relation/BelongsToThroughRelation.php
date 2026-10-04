@@ -35,6 +35,7 @@ use function array_values;
  */
 final readonly class BelongsToThroughRelation implements RelationInterface
 {
+
     /**
      * Identifies the owner property used to match related rows.
      *
@@ -141,6 +142,7 @@ final readonly class BelongsToThroughRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
@@ -153,6 +155,7 @@ final readonly class BelongsToThroughRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
@@ -168,6 +171,7 @@ final readonly class BelongsToThroughRelation implements RelationInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.1.0
      */
@@ -240,4 +244,5 @@ final readonly class BelongsToThroughRelation implements RelationInterface
             $instance->backbone->relationCache->setValue($this->property->name, $result);
         }
     }
+
 }

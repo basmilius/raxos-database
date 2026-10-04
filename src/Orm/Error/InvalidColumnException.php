@@ -15,6 +15,7 @@ use Raxos\Error\Exception;
  */
 final class InvalidColumnException extends Exception implements OrmExceptionInterface
 {
+
     /**
      * InvalidColumnException constructor.
      *

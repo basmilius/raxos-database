@@ -32,6 +32,7 @@ use function assert;
  */
 final readonly class BelongsToRelation implements RelationInterface, WritableRelationInterface
 {
+
     /**
      * Identifies the owner property used to match related rows.
      *
@@ -107,6 +108,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -135,6 +137,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -147,6 +150,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -160,6 +164,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -190,6 +195,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.17
      */
@@ -238,4 +244,5 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
             );
         }
     }
+
 }

@@ -12,7 +12,6 @@ beforeEach(function (): void {
     $this->model = ParentModel::singleOrFail(1);
 });
 
-
 it('round trips nonempty sets including zero and handles unsupported storage values', function (): void {
     $caster = new StringSetCaster();
     expect($caster->decode($caster->encode(['first', '0', 'last'], $this->model), $this->model))->toBe(['first', '0', 'last'])

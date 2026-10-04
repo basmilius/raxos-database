@@ -13,7 +13,6 @@ beforeEach(function (): void {
     $this->connection = unitRelations();
 });
 
-
 it('preserves zero reference keys and declared ordering equally for lazy and eager reads', function (bool $eager): void {
     $query = UnitMember::select()->whereIn(UnitMember::col('id'), [100, 101, 300])->orderBy('id');
     if ($eager) {

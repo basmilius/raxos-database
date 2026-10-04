@@ -12,7 +12,6 @@ beforeEach(function (): void {
     $this->model = ParentModel::singleOrFail(1);
 });
 
-
 it('round trips JSON scalar, compound and null values', function (mixed $value): void {
     $caster = new JsonCaster();
     expect($caster->decode($caster->encode($value, $this->model), $this->model))->toBe($value);

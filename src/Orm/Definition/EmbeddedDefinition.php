@@ -74,6 +74,7 @@ final readonly class EmbeddedDefinition extends PropertyDefinition
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */
@@ -85,6 +86,7 @@ final readonly class EmbeddedDefinition extends PropertyDefinition
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 2.2.0
      */

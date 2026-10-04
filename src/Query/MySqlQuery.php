@@ -22,6 +22,7 @@ use function implode;
  */
 class MySqlQuery extends Query
 {
+
     /**
      * Counts the result query while preserving grouping and distinct-result semantics.
      *
@@ -62,4 +63,5 @@ class MySqlQuery extends Query
             ->statement()
             ->fetchColumn();
     }
+
 }

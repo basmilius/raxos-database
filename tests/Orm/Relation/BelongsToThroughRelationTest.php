@@ -13,7 +13,6 @@ beforeEach(function (): void {
     $this->connection = unitRelations();
 });
 
-
 it('resolves the shared parent through another model without leaking identities between rows', function (bool $eager): void {
     $query = UnitMember::select()->orderBy('id');
     if ($eager) {

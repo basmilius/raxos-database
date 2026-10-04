@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 use Raxos\Database\Connection\MariaDb;
 use Raxos\Database\Error\{InvalidOptionException, InvalidTableException, MissingOptionException};
+use Raxos\Database\Query\MariaDbQuery;
 use function RaxosTests\Database\unitConnection;
 
 covers(MariaDb::class);
 
 it('creates the correct driver builder without opening a connection', function (): void {
     $connection = MariaDb::createFromOptions(host: 'localhost', port: 3306, database: 'unit');
-    expect($connection->connected)->toBeFalse()->and($connection->query())->toBeInstanceOf(Raxos\Database\Query\MariaDbQuery::class);
+    expect($connection->connected)->toBeFalse()->and($connection->query())->toBeInstanceOf(MariaDbQuery::class);
 });
 
 it('loads real table schemas and distinguishes unknown tables and columns', function (): void {
@@ -29,7 +30,6 @@ it('loads real table schemas and distinguishes unknown tables and columns', func
         $connection->execute('DROP TABLE IF EXISTS raxos_unit_schema');
     }
 });
-
 
 it('rejects incomplete and conflicting connection options', function (): void {
     expect(fn() => MariaDb::createFromOptions())->toThrow(MissingOptionException::class);

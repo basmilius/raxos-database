@@ -28,6 +28,7 @@ final class Logger implements LoggerInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -38,6 +39,7 @@ final class Logger implements LoggerInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -48,6 +50,7 @@ final class Logger implements LoggerInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -58,6 +61,7 @@ final class Logger implements LoggerInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -70,6 +74,7 @@ final class Logger implements LoggerInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -80,6 +85,7 @@ final class Logger implements LoggerInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -90,6 +96,7 @@ final class Logger implements LoggerInterface
 
     /**
      * {@inheritdoc}
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 1.0.16
      */
@@ -148,7 +155,6 @@ final class Logger implements LoggerInterface
                 #_raxos_database_report ._raxos_database_report_trace { margin-top: .5ch; margin-left: 2ch; color: #6b7280; font-size: 11px; }
             </style>
         HTML;
-
     }
 
 }

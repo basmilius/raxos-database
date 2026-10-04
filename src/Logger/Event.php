@@ -168,7 +168,6 @@ abstract readonly class Event
                 {$trace}
             </div>
         HTML;
-
     }
 
     /**
@@ -204,4 +203,5 @@ abstract readonly class Event
 
         return (string)$value;
     }
+
 }

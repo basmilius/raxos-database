@@ -12,7 +12,6 @@ beforeEach(function (): void {
     $this->model = ParentModel::singleOrFail(1);
 });
 
-
 it('decodes only database one values and preserves nullable storage', function (mixed $value, ?bool $expected): void {
     expect(new BooleanCaster()->decode($value, $this->model))->toBe($expected);
 })->with([[1, true], ['1', true], [0, false], ['0', false], ['true', false], [null, null], [2, false]]);

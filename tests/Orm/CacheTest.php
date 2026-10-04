@@ -11,7 +11,6 @@ beforeEach(function (): void {
     $this->connection = unitAccounts();
 });
 
-
 it('normalizes single and composite primary keys and retains identity when replacing entries', function (): void {
     $cache = new Cache(2);
     $first = UnitAccount::singleOrFail(1);
