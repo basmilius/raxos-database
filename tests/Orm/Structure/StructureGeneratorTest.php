@@ -31,9 +31,11 @@ it('rejects classes with invalid model, table, caster or embedded definitions', 
         StructureGenerator::for($class);
     } catch (Raxos\Database\Orm\Error\ConnectionFailedException $error) {
         expect($error->getPrevious())->toBeInstanceOf($exception);
+
         return;
     } catch (Raxos\Database\Orm\Error\InvalidModelException $error) {
         expect($error)->toBeInstanceOf($exception);
+
         return;
     }
     test()->fail('Expected a definition error.');

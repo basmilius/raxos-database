@@ -151,12 +151,16 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * Selects ORM hydration when results should become models rather than plain row objects.
-     * @var class-string<Model>|null */
+     *
+     * @var class-string<Model>|null
+     */
     private ?string $modelClass = null;
 
     /**
      * Retains clause fragments in builder order until the grammar compiles them.
-     * @var Piece[] */
+     *
+     * @var Piece[]
+     */
     private array $pieces = [];
 
     /**
@@ -242,7 +246,9 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
 
     /**
      * Collects assignments used to initialize models created from this query.
-     * @var array<string, list<PrimerInterface|callable>> */
+     *
+     * @var array<string, list<PrimerInterface|callable>>
+     */
     private array $primers = [];
 
     /**
@@ -906,6 +912,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param list<string> $columns
      * @param bool $descending
      * @param array $options
+     *
      * @return CursorPage<TModel|array>
      * @throws DatabaseExceptionInterface|QueryExceptionInterface|JsonException
      * @author Bas Milius <bas@mili.us>
@@ -996,6 +1003,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param string|list<string> $column
      * @param bool $descending
      * @param bool $retainCache
+     *
      * @return Generator<int, TModel|array>
      * @throws DatabaseExceptionInterface|QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
@@ -1031,6 +1039,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param string|list<string> $column
      * @param bool $descending
      * @param bool $retainCache
+     *
      * @return void
      * @throws DatabaseExceptionInterface|QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>
@@ -1988,6 +1997,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param string $field
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+     *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 3.3.0
@@ -2791,6 +2801,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $lhs
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+     *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 3.2.0
@@ -3017,6 +3028,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * Counts the result rows, preserving DISTINCT, grouping, HAVING and pagination.
      *
      * @param self $query
+     *
      * @return int
      * @author Bas Milius <bas@mili.us>
      * @since 3.2.0
@@ -3101,6 +3113,7 @@ abstract class Query implements DebuggableInterface, InternalQueryInterface, Jso
      * Counts structural parentheses, excluding quoted literals, identifiers and comments.
      *
      * @param string $clause
+     *
      * @return int
      * @author Bas Milius <bas@mili.us>
      * @since 3.2.0

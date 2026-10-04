@@ -20,12 +20,12 @@ it('normalizes single and composite primary keys and retains identity when repla
     $cache->set(UnitAccount::class, ['id' => '1'], $first);
     expect($cache->get(UnitAccount::class, '1'))->toBe($first);
     $cache->set(UnitAccount::class, ['tenant' => 'a', 'id' => 2], $second);
-    expect($cache->get(UnitAccount::class, ['id' => 2, 'tenant' => 'a']))->toBe($second)->and($cache->find(UnitAccount::class, static fn (UnitAccount $model): bool => $model->id === 2))->toBe($second);
+    expect($cache->get(UnitAccount::class, ['id' => 2, 'tenant' => 'a']))->toBe($second)->and($cache->find(UnitAccount::class, static fn(UnitAccount $model): bool => $model->id === 2))->toBe($second);
     $cache->set(UnitAccount::class, 3, $first);
     expect($cache->has(UnitAccount::class, 1))->toBeFalse()->and($cache->has(UnitAccount::class, 3))->toBeTrue();
     $cache->unset(UnitAccount::class, 3);
     $cache->flush(UnitAccount::class);
-    expect($cache->find(UnitAccount::class, static fn () => true))->toBeNull();
+    expect($cache->find(UnitAccount::class, static fn() => true))->toBeNull();
     $cache->flushAll();
     expect($cache->__debugInfo())->toBe([]);
 });

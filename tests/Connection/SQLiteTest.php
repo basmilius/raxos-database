@@ -23,7 +23,7 @@ it('loads real table schemas and distinguishes unknown tables and columns', func
             ->and($connection->tableColumnExists('raxos_unit_schema', 'label'))->toBeTrue()
             ->and($connection->tableColumnExists('raxos_unit_schema', 'missing'))->toBeFalse()
             ->and($connection->tableExists('raxos_nonexistent_unit'))->toBeFalse();
-        expect(fn () => $connection->tableColumns('raxos_nonexistent_unit'))->toThrow(InvalidTableException::class);
+        expect(fn() => $connection->tableColumns('raxos_nonexistent_unit'))->toThrow(InvalidTableException::class);
         expect($connection->loadDatabaseSchema()['raxos_unit_schema'])->toBe(['id', 'label']);
     } finally {
         $connection->execute('DROP TABLE IF EXISTS raxos_unit_schema');
@@ -37,7 +37,7 @@ it('supports file connections and explicitly rejects foundRows', function (): vo
         $connection = SQLite::createFromFile($file);
         $connection->connect();
         expect($connection->ping())->toBeTrue();
-        expect(fn () => $connection->foundRows())->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
+        expect(fn() => $connection->foundRows())->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
         $connection->disconnect();
         expect($connection->ping())->toBeFalse();
     } finally {

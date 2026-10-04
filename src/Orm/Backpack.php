@@ -33,9 +33,7 @@ final class Backpack implements ArrayAccess, BackpackInterface, DebuggableInterf
      */
     public function __construct(
         private array $data = []
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

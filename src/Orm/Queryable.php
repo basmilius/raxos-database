@@ -571,6 +571,7 @@ trait Queryable
      * @param string $field
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $cmp
      * @param BackedEnum|Stringable|QueryValueInterface|string|int|float|bool|null $rhs
+     *
      * @return QueryInterface<static>
      * @throws DatabaseExceptionInterface|OrmExceptionInterface|QueryExceptionInterface
      * @author Bas Milius <bas@mili.us>

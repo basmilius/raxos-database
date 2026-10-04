@@ -29,7 +29,7 @@ it('streams actual rows and leaves the connection usable after early termination
     }
     unset($cursor);
     expect($connection->column('SELECT 3'))->toBe(3);
-    expect(fn () => iterator_to_array($statement->cursor(batchSize: 0)))->toThrow(Raxos\Error\InvalidArgumentException::class);
+    expect(fn() => iterator_to_array($statement->cursor(batchSize: 0)))->toThrow(Raxos\Error\InvalidArgumentException::class);
 });
 
 it('supports execution counts, arrays, collections and SQL null or no-row scalars', function (): void {
@@ -49,19 +49,19 @@ it('hydrates models and preserves the identity cache across repeated reads', fun
     $first = $statement->single();
     expect($first)->toBeInstanceOf(ParentModel::class)->and($first->name)->toBe('first')
         ->and($statement->single()->backbone)->toBe($first->backbone)->and($statement->arrayList())->toBeInstanceOf(Raxos\Database\Orm\ModelArrayList::class);
-    expect(fn () => $statement->createModel(new stdClass()))->toThrow(InvalidModelException::class);
+    expect(fn() => $statement->createModel(new stdClass()))->toThrow(InvalidModelException::class);
     $statement->withoutModel();
     expect($statement->single())->toBe(['id' => 1, 'external_key' => 100, 'name' => 'first']);
-    expect(fn () => $statement->createModel([]))->toThrow(InvalidModelException::class);
+    expect(fn() => $statement->createModel([]))->toThrow(InvalidModelException::class);
     $statement->withModel('MissingUnitModel');
-    expect(fn () => $statement->createModel([]))->toThrow(InvalidModelException::class);
+    expect(fn() => $statement->createModel([]))->toThrow(InvalidModelException::class);
 });
 
 it('rejects eager-loading without a model and logs only while the logger is enabled', function (): void {
     $connection = unitConnection();
     $statement = new Statement($connection, 'SELECT 1');
     $statement->eagerLoad(['children']);
-    expect(fn () => $statement->array())->toThrow(MissingModelException::class);
+    expect(fn() => $statement->array())->toThrow(MissingModelException::class);
     $statement->eagerLoad([]);
     $statement->array();
     expect($connection->logger->count())->toBe(0);

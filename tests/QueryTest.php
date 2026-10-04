@@ -76,8 +76,8 @@ it('keeps grouped soft-delete predicates before sorting and pagination', functio
         $query->where(SoftModel::col('id'), '>', 0);
     }
 
-    $query->parenthesis(static fn ($query) => $query->where(SoftModel::col('group_id'), 1)->orWhere(SoftModel::col('group_id'), 2))
-        ->parenthesis(static fn ($query) => $query->where(SoftModel::col('id'), '>', 1));
+    $query->parenthesis(static fn($query) => $query->where(SoftModel::col('group_id'), 1)->orWhere(SoftModel::col('group_id'), 2))
+        ->parenthesis(static fn($query) => $query->where(SoftModel::col('id'), '>', 1));
 
     if (!$late) {
         $query->orderBy(SoftModel::col('id'))->limit(1, 1);
@@ -102,7 +102,7 @@ it('ignores parentheses in SQL literals and comments when placing model predicat
     $this->connection->pdo->exec('CREATE TABLE soft_items (id INTEGER PRIMARY KEY, group_id INTEGER, deleted_at TEXT)');
     $this->connection->pdo->exec("INSERT INTO soft_items VALUES (1,1,NULL),(2,1,NULL),(3,2,'2026-01-01')");
     $query = SoftModel::select()->where(Literal::of($predicate))->orderBy(SoftModel::col('id'))->limit(1);
-    $query->parenthesis(static fn ($query) => $query->where(SoftModel::col('id'), '>', 1));
+    $query->parenthesis(static fn($query) => $query->where(SoftModel::col('id'), '>', 1));
     $query->where(SoftModel::col('group_id'), 1);
 
     expect(array_column($query->array(), 'id'))->toBe([2])
@@ -141,11 +141,11 @@ it('places nested predicate groups before existing sorting and pagination', func
     $query = Db::query()->select('id')->from('items')->orderBy('id')->limit(3)
         ->parenthesis(static function ($query): void {
             $query->where(column('group_id'), 1)->orWhere(column('group_id'), 2);
-            $query->parenthesis(static fn ($query) => $query->where(column('id'), '>', 1));
+            $query->parenthesis(static fn($query) => $query->where(column('id'), '>', 1));
         });
     expect(array_column($query->array(), 'id'))->toBe([1, 2, 3])->and($query->totalCount())->toBe(3);
     $query = Db::query()->select('id')->from('items')->orderBy('id')->limit(3)
-        ->parenthesis(static fn ($query) => $query->where(column('group_id'), 1)->orWhere(column('group_id'), 2))
+        ->parenthesis(static fn($query) => $query->where(column('group_id'), 1)->orWhere(column('group_id'), 2))
         ->where(column('id'), '>', 1);
     expect(array_column($query->array(), 'id'))->toBe([2, 3]);
 });
@@ -161,20 +161,20 @@ it('executes inserts, batch values, replacements, dirty sets, returning and dele
 });
 
 it('rejects incomplete inserts, negative pagination and absent scalar results', function (): void {
-    foreach ([fn () => Db::query()->insertIntoValues('items', []), fn () => Db::query()->insertInto('items', []),
-        fn () => Db::query()->insertIgnoreIntoValues('items', []), fn () => Db::query()->limit(-1),
-        fn () => Db::query()->limit(1, -1), fn () => Db::query()->offset(-1)] as $operation) {
+    foreach ([fn() => Db::query()->insertIntoValues('items', []), fn() => Db::query()->insertInto('items', []),
+                 fn() => Db::query()->insertIgnoreIntoValues('items', []), fn() => Db::query()->limit(-1),
+                 fn() => Db::query()->limit(1, -1), fn() => Db::query()->offset(-1)] as $operation) {
         expect($operation)->toThrow(Raxos\Database\Query\Error\IncompleteException::class);
     }
-    expect(fn () => Db::query()->select()->from('items')->where(column('id'), 99)->singleOrFail())->toThrow(Raxos\Database\Query\Error\MissingResultException::class);
+    expect(fn() => Db::query()->select()->from('items')->where(column('id'), 99)->singleOrFail())->toThrow(Raxos\Database\Query\Error\MissingResultException::class);
 });
 
 it('selects aliased expressions, scalar literals and merged fields without changing parameter values', function (): void {
     $query = Db::query()->select(['identifier' => column('id'), 'total' => Raxos\Database\Query\Expr::add(column('group_id'), 2), 'zero' => 0, 'enabled' => false])
         ->select('group_id')->from('items')->where(column('id'), 1);
     expect($query->single())->toBe(['identifier' => 1, 'total' => 3, 'zero' => 0, 'enabled' => 0, 'group_id' => 1]);
-    expect(fn () => Db::query()->select([['bad']]))->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
-    expect(fn () => Db::query()->select(Db::query()->select(1)))->toThrow(Raxos\Database\Query\Error\MissingAliasException::class);
+    expect(fn() => Db::query()->select([['bad']]))->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
+    expect(fn() => Db::query()->select(Db::query()->select(1)))->toThrow(Raxos\Database\Query\Error\MissingAliasException::class);
     expect(Db::query()->select(['sub' => Db::query()->select(7)])->single())->toBe(['sub' => 7]);
 });
 
@@ -199,8 +199,8 @@ it('treats joins as idempotent for the same alias while retaining distinct alias
     expect($query->single())->toBe(['id' => 1])->and($calls)->toBe(1);
     $sub = Db::query()->select('id')->from('items')->where(column('group_id'), 1);
     $joined = Db::query()->select(['id' => column('id', 'items')])->from('items')
-        ->joinSub($sub, 'subset', static fn ($query) => $query->on(column('id', 'subset'), column('id', 'items')))
-        ->joinSub($sub, 'subset', static fn () => throw new RuntimeException('duplicate callback'));
+        ->joinSub($sub, 'subset', static fn($query) => $query->on(column('id', 'subset'), column('id', 'items')))
+        ->joinSub($sub, 'subset', static fn() => throw new RuntimeException('duplicate callback'));
     expect($joined->resultCount())->toBe(2);
 });
 
@@ -216,17 +216,17 @@ it('supports grouped HAVING predicates, conditional composition and custom pagin
         ++$calls;
     });
     expect($calls)->toBe(0);
-    $page = Db::query()->select()->from('items')->paginate(2, 2, static fn ($query, $offset, $limit) => $query->limit($limit, $offset)->arrayList(), static fn () => 4);
+    $page = Db::query()->select()->from('items')->paginate(2, 2, static fn($query, $offset, $limit) => $query->limit($limit, $offset)->arrayList(), static fn() => 4);
     expect($page->items->toArray())->toBe([['id' => 3, 'group_id' => 2], ['id' => 4, 'group_id' => 3]])
         ->and($page->page)->toBe(2)->and($page->pages)->toBe(2)->and($page->total)->toBe(4);
 });
 
 it('reports query debug state and removes or replaces sorting clauses consistently', function (): void {
     $query = Db::query()->select('id')->from('items')->orderBy('id')->limit(1);
-    $query->removeClause('order by')->replaceClause('limit', static fn ($piece) => new Raxos\Database\Query\Piece($piece->clause, 2));
+    $query->removeClause('order by')->replaceClause('limit', static fn($piece) => new Raxos\Database\Query\Piece($piece->clause, 2));
     expect($query->array())->toHaveCount(2)->and($query->isClauseDefined('order by'))->toBeFalse()
         ->and($query->jsonSerialize())->toBe($query->toSql())->and((string)$query)->toBe($query->toSql())
         ->and($query->__debugInfo()['type'])->toBe('PREPARED QUERY');
-    expect(fn () => $query->forShare())->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
-    expect(fn () => $query->forUpdate())->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
+    expect(fn() => $query->forShare())->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
+    expect(fn() => $query->forUpdate())->toThrow(Raxos\Database\Query\Error\UnsupportedException::class);
 });

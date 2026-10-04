@@ -34,6 +34,7 @@ it('protects existing primary keys, immutable fields and macros with their origi
         $model->setValue($property, $value);
     } catch (Raxos\Database\Orm\Error\PropertyWriteFailedException $error) {
         expect($error->getPrevious())->toBeInstanceOf($cause)->and($model->backbone->currentInstance)->toBeNull();
+
         return;
     }
     test()->fail('Expected an immutable write error.');
@@ -70,5 +71,5 @@ it('runs queued save tasks in order once and reports missing reloaded records', 
     $model->save();
     expect($trace)->toBe([1, 2]);
     $this->connection->execute('DELETE FROM unit_accounts WHERE id=1');
-    expect(fn () => $model->backbone->reload())->toThrow(Raxos\Database\Orm\Error\NotFoundException::class);
+    expect(fn() => $model->backbone->reload())->toThrow(Raxos\Database\Orm\Error\NotFoundException::class);
 });

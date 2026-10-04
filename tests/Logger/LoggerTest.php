@@ -12,7 +12,7 @@ it('tracks enablement, deferred replacement and aggregate query counts', functio
     $logger->enable();
     expect($logger->enabled)->toBeTrue();
     $watch = new Stopwatch();
-    $watch->run(static fn () => null);
+    $watch->run(static fn() => null);
     $pending = $logger->deferred();
     $logger->log(new QueryEvent('SELECT 2', $watch));
     $pending->commit(new QueryEvent('SELECT 1', $watch));

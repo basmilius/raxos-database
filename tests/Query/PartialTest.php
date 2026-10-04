@@ -12,6 +12,7 @@ it('builds the deferred subquery with the compiling connection', function (): vo
     $seen = null;
     $partial = new Partial(function ($connection) use (&$seen) {
         $seen = $connection;
+
         return $connection->query()->select(7)->where(literal(1), 1);
     });
     expect($query->select($partial)->statement()->fetchColumn())->toBe(7)->and($seen)->toBe($query->connection);

@@ -48,7 +48,7 @@ it('groups OR predicates under the soft delete condition without mutating the qu
     expect(array_map(static fn(SoftModel $model) => $model->id, $query->array()))->toBe([1]);
     expect($query->toSql())->toBe($sql);
     expect(array_map(static fn(SoftModel $model) => $model->id, $query->array()))->toBe([1]);
-    expect(array_map(static fn(SoftModel $model) => $model->id, $query->withDeleted()->array()))->toBe([1,2]);
+    expect(array_map(static fn(SoftModel $model) => $model->id, $query->withDeleted()->array()))->toBe([1, 2]);
 });
 
 it('adds soft delete filtering before grouping and pagination when no WHERE exists', function (): void {
@@ -87,7 +87,7 @@ it('eager loads cursor relations once per batch and releases streamed identities
         expect($parent->children->first()->parent_id)->toBe($parent->id);
     }
     $after = count(array_filter(new ReflectionProperty($this->connection->logger, 'events')->getValue($this->connection->logger), static fn(Raxos\Database\Logger\Event $event) => $event instanceof QueryEvent));
-    expect($seen)->toBe(range(1,250));
+    expect($seen)->toBe(range(1, 250));
     expect($after - $before)->toBe(4);
     expect($this->connection->cache->has(ParentModel::class, 1))->toBeFalse();
     expect($this->connection->cache->has(ChildModel::class, 250))->toBeFalse();

@@ -74,7 +74,9 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * Links the shared row state to its generated ORM structure.
-     * @var class-string<Model> */
+     *
+     * @var class-string<Model>
+     */
     public readonly string $class;
 
     /**
@@ -133,7 +135,9 @@ final class Backbone implements AccessInterface, BackboneInterface
 
     /**
      * Records changes relative to loaded data so saves can limit their UPDATE assignments.
-     * @var array<string, true> */
+     *
+     * @var array<string, true>
+     */
     private array $modified = [];
 
     /**

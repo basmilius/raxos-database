@@ -246,8 +246,7 @@ final readonly class BelongsToManyRelation implements RelationInterface
 
         if ($this->attribute->orderBy !== null) {
             foreach ($declaringMap as &$references) {
-                usort($references, fn(Model $left, Model $right): int =>
-                    $referenceOrder[$left->{$this->referenceKey->column}] <=> $referenceOrder[$right->{$this->referenceKey->column}]);
+                usort($references, fn(Model $left, Model $right): int => $referenceOrder[$left->{$this->referenceKey->column}] <=> $referenceOrder[$right->{$this->referenceKey->column}]);
             }
             unset($references);
         }

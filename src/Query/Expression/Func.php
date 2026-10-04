@@ -34,9 +34,7 @@ final readonly class Func implements QueryExpressionInterface
     public function __construct(
         public string $name,
         public iterable $params = []
-    )
-    {
-    }
+    ) {}
 
     /**
      * Uses SQLite's scalar min/max spelling for MySQL-style least/greatest expressions.
@@ -44,6 +42,7 @@ final readonly class Func implements QueryExpressionInterface
      * @param QueryInterface $query
      * @param ConnectionInterface $connection
      * @param GrammarInterface $grammar
+     *
      * @return void
      * @author Bas Milius <bas@mili.us>
      * @since 2.0.0
@@ -60,7 +59,7 @@ final readonly class Func implements QueryExpressionInterface
                 'greatest' => 'max',
                 default => $this->name
             }
-        : $this->name;
+            : $this->name;
 
         $query->raw("{$name}(");
         $query->compileMultiple($this->params);

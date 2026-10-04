@@ -62,9 +62,7 @@ final class Cache implements CacheInterface, DebuggableInterface
      */
     public function __construct(
         public readonly int $maxSize = 0
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}
@@ -272,6 +270,7 @@ final class Cache implements CacheInterface, DebuggableInterface
      *
      * @template T
      * @param callable():T $fn
+     *
      * @return T
      * @author Bas Milius <bas@mili.us>
      * @since 3.2.0

@@ -169,7 +169,7 @@ final readonly class BelongsToRelation implements RelationInterface, WritableRel
             $this->referenceStructure,
             $instances
                 ->column($this->declaringKey->column)
-            ->filter(static fn(mixed $value): bool => $value !== null)
+                ->filter(static fn(mixed $value): bool => $value !== null)
                 ->unique(),
             $this->referenceKeyIsPrimaryKey ? null : $this->referenceKey
         );

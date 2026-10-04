@@ -69,6 +69,7 @@ class ModelArrayList extends ArrayList implements VisibilityInterface
      * Allows a mapped collection to change model type without retaining the original model restriction.
      *
      * @param callable(ModelInterface):ModelInterface $fn
+     *
      * @return static
      * @author Bas Milius <bas@mili.us>
      * @since 3.2.0

@@ -61,7 +61,9 @@ class Db
 
     /**
      * Keeps named connection instances independent while exposing one selected default connection.
-     * @var ConnectionInterface[] */
+     *
+     * @var ConnectionInterface[]
+     */
     private static array $connections = [];
 
     /**
@@ -463,6 +465,7 @@ class Db
      * @template T
      * @param callable():T $fn
      * @param string|null $id
+     *
      * @return T
      * @throws DatabaseExceptionInterface|Throwable
      * @author Bas Milius <bas@mili.us>
@@ -487,6 +490,7 @@ class Db
      *
      * @param callable():void $fn
      * @param string|null $id
+     *
      * @return void
      * @throws DatabaseExceptionInterface|Throwable
      * @author Bas Milius <bas@mili.us>

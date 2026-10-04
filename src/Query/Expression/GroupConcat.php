@@ -41,9 +41,7 @@ final readonly class GroupConcat implements QueryExpressionInterface
         public QueryValueInterface|string|null $separator = null,
         public ?int $limit = null,
         public ?int $offset = null
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

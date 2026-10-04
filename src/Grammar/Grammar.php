@@ -43,9 +43,7 @@ abstract readonly class Grammar implements GrammarInterface
         public bool $supportsReturning = true,
         public bool $supportsRowValueConstructors = true,
         public bool $supportsRowLocking = false
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}

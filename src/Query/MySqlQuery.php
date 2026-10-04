@@ -26,6 +26,7 @@ class MySqlQuery extends Query
      * Counts the result query while preserving grouping and distinct-result semantics.
      *
      * @param Query $query
+     *
      * @return int
      * @author Bas Milius <bas@mili.us>
      * @since 3.2.0

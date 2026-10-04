@@ -20,9 +20,9 @@ it('partitions cached primary and custom keys without confusing their lookup col
     unitRelations();
     $model = UnitTeam::singleOrFail(10);
     $structure = StructureGenerator::for(UnitTeam::class);
-    [$cached,$missing] = RelationHelper::partitionModels($structure, new ArrayList([10, 20, null]));
+    [$cached, $missing] = RelationHelper::partitionModels($structure, new ArrayList([10, 20, null]));
     expect($cached->first())->toBe($model)->and($missing->toArray())->toBe([20]);
-    [$cached,$missing] = RelationHelper::partitionModels($structure, new ArrayList([1, 3, null]), UnitTeam::col('department_id'));
+    [$cached, $missing] = RelationHelper::partitionModels($structure, new ArrayList([1, 3, null]), UnitTeam::col('department_id'));
     expect($cached->first())->toBe($model)->and($missing->toArray())->toBe([3]);
     expect(RelationHelper::declaringKeyValue($model, UnitTeam::col('department_id')))->toBe(1);
     $model->department_id = null;

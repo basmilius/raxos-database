@@ -19,5 +19,5 @@ it('round trips JSON scalar, compound and null values', function (mixed $value):
 })->with([[['html' => '<script>', 'enabled' => false, 'count' => 0]], [42], [false], [null], ['héllo']]);
 
 it('rejects values JSON cannot represent instead of silently losing data', function (): void {
-    expect(fn () => new JsonCaster()->encode(INF, $this->model))->toThrow(JsonException::class);
+    expect(fn() => new JsonCaster()->encode(INF, $this->model))->toThrow(JsonException::class);
 });

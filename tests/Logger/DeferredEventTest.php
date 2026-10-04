@@ -11,7 +11,7 @@ it('occupies its original position without printing until committed', function (
     $event = $logger->deferred();
     expect($event->index)->toBe(0)->and($event->trace)->toBe([])->and($event->print(true))->toBe('');
     $watch = new Stopwatch();
-    $watch->run(static fn () => null);
+    $watch->run(static fn() => null);
     $event->commit(new QueryEvent('SELECT 9', $watch));
     expect($logger->count())->toBe(1)->and($logger->print())->toContain('SELECT 9');
 });

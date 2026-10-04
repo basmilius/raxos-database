@@ -26,6 +26,7 @@ final readonly class KeysetPredicate implements QueryExpressionInterface
      * @param list<string> $columns
      * @param list<string|int|float> $values
      * @param bool $descending
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.3.0
      */
@@ -33,9 +34,7 @@ final readonly class KeysetPredicate implements QueryExpressionInterface
         private array $columns,
         private array $values,
         private bool $descending
-    )
-    {
-    }
+    ) {}
 
     /**
      * Groups equal prefixes and the next comparison so compound ordering remains consistent.
@@ -43,6 +42,7 @@ final readonly class KeysetPredicate implements QueryExpressionInterface
      * @param QueryInterface $query
      * @param ConnectionInterface $connection
      * @param GrammarInterface $grammar
+     *
      * @return void
      * @author Bas Milius <bas@mili.us>
      * @since 3.3.0

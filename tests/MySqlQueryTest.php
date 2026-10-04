@@ -27,6 +27,7 @@ function countTestConnection(string $variable): MariaDb|MySql
     $connection->pdo->exec('CREATE TABLE raxos_test_counts (id INTEGER PRIMARY KEY, group_id INTEGER NOT NULL, quantity INTEGER NOT NULL, deleted_at VARCHAR(30) NULL)');
     $connection->pdo->exec("INSERT INTO raxos_test_counts VALUES (1,1,1,NULL),(2,1,3,NULL),(3,2,5,NULL),(4,3,7,'2026-01-01')");
     $connection->logger->enable();
+
     return $connection;
 }
 
@@ -68,7 +69,7 @@ it('executes grouped soft-delete searches with pagination and accurate counts', 
         $query->where(CountedModel::col('id'), '>', 0);
     }
 
-    $query->parenthesis(static fn ($query) => $query->where(CountedModel::col('group_id'), 1)->orWhere(CountedModel::col('group_id'), 3));
+    $query->parenthesis(static fn($query) => $query->where(CountedModel::col('group_id'), 1)->orWhere(CountedModel::col('group_id'), 3));
     $sql = $query->toSql();
 
     expect(array_column($query->array(), 'id'))->toBe([2])
@@ -97,11 +98,11 @@ it('balances fulltext expression fragments before soft-delete filters and late p
     $this->connection->pdo->exec('ALTER TABLE raxos_test_counts ADD search_text TEXT, ADD FULLTEXT INDEX (search_text)');
     $this->connection->pdo->exec("UPDATE raxos_test_counts SET search_text = 'festival'");
     $query = CountedModel::select()->where(CountedModel::col('id'), '>', 0)
-        ->parenthesis(static fn ($query) => $query->where(Expr::matchAgainst(column('search_text', 'raxos_test_counts'), 'festival')))
+        ->parenthesis(static fn($query) => $query->where(Expr::matchAgainst(column('search_text', 'raxos_test_counts'), 'festival')))
         ->orderBy(CountedModel::col('id'))->limit(1);
 
     if ($lateGroup) {
-        $query->parenthesis(static fn ($query) => $query->where(CountedModel::col('id'), '>', 1));
+        $query->parenthesis(static fn($query) => $query->where(CountedModel::col('id'), '>', 1));
     } else {
         $query->where(CountedModel::col('id'), '>', 1);
     }

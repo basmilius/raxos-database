@@ -21,11 +21,9 @@ it('runs callable and interface primers around eager relations once per hydrated
         }
         $trace[] = ['before', $models->count()];
     };
-    $after = new class($trace) implements PrimerInterface
-    {
-        public function __construct(public array &$trace)
-        {
-        }
+    $after = new class($trace) implements PrimerInterface {
+        public function __construct(public array &$trace) {}
+
         public function prime(ArrayListInterface $models, ConnectionInterface $connection): void
         {
             foreach ($models as $model) {

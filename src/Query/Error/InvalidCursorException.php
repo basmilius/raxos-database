@@ -21,6 +21,7 @@ final class InvalidCursorException extends Exception implements QueryExceptionIn
      * Rejects cursor input without exposing query bindings or database details.
      *
      * @param string $message
+     *
      * @author Bas Milius <bas@mili.us>
      * @since 3.3.0
      */

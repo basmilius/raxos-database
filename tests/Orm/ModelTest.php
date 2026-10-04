@@ -35,6 +35,6 @@ it('writes new and dirty models and shares changes with visibility and readonly 
 it('queries declared relations and rejects calls to ordinary properties', function (): void {
     $parent = ParentModel::singleOrFail(1);
     expect($parent->children()->resultCount())->toBe(2);
-    expect(fn () => $parent->name())->toThrow(Raxos\Database\Orm\Error\MissingFunctionException::class);
+    expect(fn() => $parent->name())->toThrow(Raxos\Database\Orm\Error\MissingFunctionException::class);
     expect($parent->backbone->currentInstance)->toBeNull();
 });

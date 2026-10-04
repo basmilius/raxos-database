@@ -10,8 +10,10 @@ use Raxos\Database\Orm\{Model, ModelArrayList};
 #[Table('unit_departments')]
 final class UnitDepartment extends Model
 {
-    #[PrimaryKey] public int $id;
-    #[Column] public string $name;
+    #[PrimaryKey]
+    public int $id;
+    #[Column]
+    public string $name;
     #[HasMany(UnitTeam::class, referenceKey: 'department_id', orderBy: 'unit_teams.id DESC')]
     public ModelArrayList $teams;
     #[HasOne(referenceKey: 'department_id', orderBy: 'unit_teams.id DESC')]
@@ -25,17 +27,23 @@ final class UnitDepartment extends Model
 #[Table('unit_teams')]
 final class UnitTeam extends Model
 {
-    #[PrimaryKey] public int $id;
-    #[Column] public ?int $department_id;
-    #[Column] public ?int $lead_id;
-    #[BelongsTo(declaringKey: 'department_id')] public ?UnitDepartment $department;
+    #[PrimaryKey]
+    public int $id;
+    #[Column]
+    public ?int $department_id;
+    #[Column]
+    public ?int $lead_id;
+    #[BelongsTo(declaringKey: 'department_id')]
+    public ?UnitDepartment $department;
 }
 
 #[Table('unit_members')]
 final class UnitMember extends Model
 {
-    #[PrimaryKey] public int $id;
-    #[Column] public ?int $team_id;
+    #[PrimaryKey]
+    public int $id;
+    #[Column]
+    public ?int $team_id;
     #[BelongsToThrough(UnitTeam::class, declaringKey: 'team_id', referenceLinkingKey: 'department_id')]
     public ?UnitDepartment $department;
     #[BelongsToMany(UnitTag::class, linkingTable: 'unit_member_tags', declaringLinkingKey: 'member_id', referenceLinkingKey: 'tag_id', orderBy: 'unit_tags.id ASC')]
@@ -45,8 +53,10 @@ final class UnitMember extends Model
 #[Table('unit_tags')]
 final class UnitTag extends Model
 {
-    #[PrimaryKey] public int $id;
-    #[Column] public string $name;
+    #[PrimaryKey]
+    public int $id;
+    #[Column]
+    public string $name;
 }
 
 function unitRelations(): ConnectionInterface
@@ -62,5 +72,6 @@ function unitRelations(): ConnectionInterface
     $connection->execute('INSERT INTO unit_members VALUES (100,10),(101,11),(102,10),(200,20),(300,NULL)');
     $connection->execute("INSERT INTO unit_tags VALUES (0,'zero'),(2,'second')");
     $connection->execute('INSERT INTO unit_member_tags VALUES (100,2),(100,0),(101,2)');
+
     return $connection;
 }

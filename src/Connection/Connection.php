@@ -134,9 +134,7 @@ abstract class Connection implements TransactionalConnectionInterface
         public readonly CacheInterface $cache,
         public readonly GrammarInterface $grammar,
         public readonly LoggerInterface $logger
-    )
-    {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}
@@ -437,6 +435,7 @@ abstract class Connection implements TransactionalConnectionInterface
      *
      * @template T
      * @param callable():T $fn
+     *
      * @return T
      * @throws DatabaseExceptionInterface|Throwable
      * @author Bas Milius <bas@mili.us>
@@ -480,6 +479,7 @@ abstract class Connection implements TransactionalConnectionInterface
      * All hooks run in registration order after the outer commit; the first hook exception is rethrown.
      *
      * @param callable():void $fn
+     *
      * @return void
      * @throws Throwable
      * @author Bas Milius <bas@mili.us>

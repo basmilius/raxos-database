@@ -41,6 +41,7 @@ final class KeysetCursor
      * @param string $cursor
      * @param string $signature
      * @param int $size
+     *
      * @return list<string|int|float>
      * @throws InvalidCursorException
      * @author Bas Milius <bas@mili.us>
@@ -84,6 +85,7 @@ final class KeysetCursor
      *
      * @param string $signature
      * @param list<string|int|float> $values
+     *
      * @return string
      * @throws InvalidCursorException|JsonException
      * @author Bas Milius <bas@mili.us>
@@ -112,6 +114,7 @@ final class KeysetCursor
      * Sort keys must be non-null scalar values; a trailing unique key is required.
      *
      * @param mixed $value
+     *
      * @return string|int|float
      * @throws InvalidCursorException
      * @author Bas Milius <bas@mili.us>

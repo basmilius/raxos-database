@@ -17,8 +17,8 @@ it('advertises the engine capabilities and row-locking behavior', function (): v
         ->and($grammar->supportsRowLocking)->toBe(false);
 
     foreach (['compileForShare', 'compileForUpdate', 'compileLockNowait', 'compileLockSkipLocked'] as $method) {
-        expect(fn () => $grammar->$method())->toThrow(UnsupportedException::class);
+        expect(fn() => $grammar->$method())->toThrow(UnsupportedException::class);
     }
-    expect(fn () => $grammar->compileOptimizeTable('items'))->toThrow(UnsupportedException::class);
-    expect(fn () => $grammar->compileTruncateTable('items'))->toThrow(UnsupportedException::class);
+    expect(fn() => $grammar->compileOptimizeTable('items'))->toThrow(UnsupportedException::class);
+    expect(fn() => $grammar->compileTruncateTable('items'))->toThrow(UnsupportedException::class);
 });

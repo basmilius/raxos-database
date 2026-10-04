@@ -16,7 +16,7 @@ it('lazily opens named connections and reopens an explicitly disconnected connec
         expect(Db::column('SELECT 7', 'unit-named'))->toBe(7)->and($connection->connected)->toBeTrue();
         Db::unregister('unit-named');
         expect(Db::get('unit-named'))->toBeNull();
-        expect(fn () => Db::getOrFail('unit-named'))->toThrow(InvalidConnectionException::class);
+        expect(fn() => Db::getOrFail('unit-named'))->toThrow(InvalidConnectionException::class);
     } finally {
         Db::unregister('unit-named');
     }

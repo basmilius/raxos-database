@@ -24,6 +24,7 @@ function unitConnection(string $driver = 'sqlite'): ConnectionInterface
     }
     $connection->connect();
     Db::register($connection);
+
     return $connection;
 }
 
@@ -36,6 +37,7 @@ function compiledExpression(QueryValueInterface $expression): array
 {
     $query = unitQuery();
     $query->compile($expression);
+
     return [preg_replace('/\s+/', ' ', trim($query->toSql())), array_values(new \ReflectionProperty(\Raxos\Database\Query\Query::class, 'params')->getValue($query))];
 }
 
@@ -49,5 +51,6 @@ function unitOrm(): ConnectionInterface
     $connection->execute("INSERT INTO parents VALUES (1,100,'first'),(100,999,'other')");
     $connection->execute('INSERT INTO children VALUES (1,1,100),(2,1,100)');
     $connection->execute("INSERT INTO soft_items VALUES (1,1,NULL),(2,2,'2026-01-01'),(3,2,NULL)");
+
     return $connection;
 }

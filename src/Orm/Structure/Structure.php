@@ -75,7 +75,9 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * Identifies the property used to address one model row and maintain its cached identity.
-     * @var ColumnDefinition[]|null */
+     *
+     * @var ColumnDefinition[]|null
+     */
     public readonly array|null $primaryKey;
 
     /**
@@ -98,22 +100,30 @@ final class Structure implements StructureInterface, SerializableInterface
 
     /**
      * Retains relation attributes until relation objects can safely resolve their related structures.
-     * @var RelationDefinition[] */
+     *
+     * @var RelationDefinition[]
+     */
     public array $relationDefinitions = [];
 
     /**
      * Preserves the property order used for generated model access.
-     * @var string[] */
+     *
+     * @var string[]
+     */
     public array $propertyNames = [];
 
     /**
      * Maps property names to stable positions in the generated access metadata.
-     * @var array<string, PropertyDefinition> */
+     *
+     * @var array<string, PropertyDefinition>
+     */
     private array $propertyIndex = [];
 
     /**
      * Caches instantiated relations after their related structures have become available.
-     * @var array<string, RelationInterface> */
+     *
+     * @var array<string, RelationInterface>
+     */
     private array $relations = [];
 
     /**
